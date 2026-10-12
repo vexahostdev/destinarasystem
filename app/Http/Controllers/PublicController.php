@@ -220,14 +220,11 @@ class PublicController extends Controller
     }
 
     /**
-     * 1. Halaman Beranda
+     * 1. Halaman Beranda (Dialihkan ke Katalog Destinasi karena landing page beranda berpusat di Destinara Compro)
      */
     public function home()
     {
-        $allDestinations = $this->getDestinations();
-        $curatedDestinations = array_slice($allDestinations, 0, 4);
-
-        return view('home', compact('curatedDestinations', 'allDestinations'));
+        return redirect()->route('destinasi.index');
     }
 
     /**

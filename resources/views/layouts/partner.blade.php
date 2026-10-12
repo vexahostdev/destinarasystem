@@ -13,10 +13,10 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#703A3A">
 
-    <!-- Google Fonts: Newsreader & Work Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,52 +24,36 @@
 
     <style>
         body {
-            font-family: 'Work Sans', sans-serif;
-        }
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 20px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-            vertical-align: middle;
-        }
-        .font-serif, h1, h2, h3, .font-editorial {
-            font-family: 'Newsreader', Georgia, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .rgs-card {
             background-color: #ffffff;
-            border: 1px solid rgba(43, 33, 30, 0.12);
-            box-shadow: 0 1px 3px rgba(43, 33, 30, 0.04);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
         }
         .rgs-card-accent {
-            border-top: 3px solid #703A3A;
+            border-top: 4px solid #51634b;
+            border-radius: 1.25rem;
         }
         .rgs-btn-primary {
-            background-color: #703A3A;
+            background-color: #51634b;
             color: #ffffff;
+            border-radius: 9999px;
             transition: all 0.2s ease;
         }
         .rgs-btn-primary:hover {
-            background-color: #522b2b;
+            background-color: #3f4e3a;
         }
         .rgs-btn-outline {
-            border: 1px solid rgba(43, 33, 30, 0.2);
-            color: #2B211E;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 9999px;
+            color: #1E1B1B;
             background-color: transparent;
             transition: all 0.2s ease;
         }
         .rgs-btn-outline:hover {
-            background-color: rgba(43, 33, 30, 0.04);
-            border-color: #2B211E;
+            background-color: rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
@@ -107,71 +91,71 @@
         </div>
 
         <!-- Identitas Lembaga Adat Mitra Card -->
-        <div class="p-4 border-b border-[#2B211E]/08 bg-[#faf6f0]">
+        <div class="m-3 p-3.5 rounded-2xl bg-[#51634b]/10 border border-[#51634b]/20">
             <div class="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#51634b] mb-1">
                 <span class="material-symbols-outlined text-[14px]">verified</span>
-                <span>Lembaga Adat Terverifikasi</span>
+                <span>Lembaga Adat</span>
             </div>
-            <div class="text-xs font-semibold text-[#2B211E] truncate">Desa Adat Penglipuran</div>
-            <div class="text-[10px] text-[#2B211E]/60">Hak Adat 90% • Protokol FPIC Aktif</div>
+            <div class="text-xs font-bold text-[#1E1B1B] truncate">Desa Adat Penglipuran</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Hak Adat 90% • Protokol FPIC</div>
         </div>
 
-        <!-- Navigasi Menu Vertikal Mitra (6 Menu Layer 3) -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#2B211E]/40">
+        <!-- Navigasi Menu Vertikal Mitra -->
+        <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                 Operasional Tapak
             </div>
 
             <a href="{{ route('mitra.dashboard') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.dashboard') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.dashboard') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">dashboard</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.dashboard') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">dashboard</span>
                 <span>Dashboard</span>
             </a>
 
             <a href="{{ route('mitra.bookings') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.bookings*') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.bookings*') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">inbox</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.bookings*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">inbox</span>
                 <span>Booking Masuk</span>
             </a>
 
             <a href="{{ route('mitra.availability') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.availability*') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.availability*') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">calendar_month</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.availability*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">calendar_month</span>
                 <span>Kalender Slot</span>
             </a>
 
             <a href="{{ route('mitra.destinations') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.destinations*') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.destinations*') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">holiday_village</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.destinations*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">holiday_village</span>
                 <span>Tapak Kelolaan</span>
             </a>
 
             <a href="{{ route('mitra.income') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.income*') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.income*') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">payments</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.income*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">payments</span>
                 <span>Pendapatan</span>
             </a>
 
             <a href="{{ route('mitra.profile') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('mitra.profile*') ? 'text-[#51634b] bg-[#51634b]/10 border-l-2 border-[#51634b]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('mitra.profile*') ? 'text-[#51634b]' : 'text-[#2B211E]/60' }}">badge</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.profile*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">badge</span>
                 <span>Profil Adat</span>
             </a>
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
-        <div class="p-3 border-t border-[#2B211E]/12 bg-[#faf6f0] shrink-0">
+        <div class="p-3 border-t border-gray-100 bg-[#FAF7F5] shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-8 h-8 shrink-0 bg-[#51634b] text-white flex items-center justify-center font-serif text-xs font-semibold">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#51634b] text-white flex items-center justify-center text-xs font-bold">
                         WS
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-semibold text-[#2B211E] truncate">{{ Auth::user()->name ?? 'I Wayan Sudarma' }}</span>
+                        <span class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->name ?? 'I Wayan Sudarma' }}</span>
                         <span class="text-[10px] text-[#51634b] font-medium truncate">Kelian Adat</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar dari Portal" class="p-1.5 text-[#2B211E]/50 hover:text-[#703A3A] hover:bg-[#2B211E]/5 transition-colors">
+                <a href="{{ route('login') }}" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#703A3A] hover:bg-white rounded-full transition-colors">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                 </a>
             </div>

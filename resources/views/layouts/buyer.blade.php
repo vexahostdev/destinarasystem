@@ -13,10 +13,10 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#703A3A">
 
-    <!-- Google Fonts: Newsreader & Work Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,52 +24,36 @@
 
     <style>
         body {
-            font-family: 'Work Sans', sans-serif;
-        }
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 20px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-            vertical-align: middle;
-        }
-        .font-serif, h1, h2, h3, .font-editorial {
-            font-family: 'Newsreader', Georgia, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .rgs-card {
             background-color: #ffffff;
-            border: 1px solid rgba(43, 33, 30, 0.12);
-            box-shadow: 0 1px 3px rgba(43, 33, 30, 0.04);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
         }
         .rgs-card-accent {
-            border-top: 3px solid #703A3A;
+            border-top: 4px solid #703A3A;
+            border-radius: 1.25rem;
         }
         .rgs-btn-primary {
             background-color: #703A3A;
             color: #ffffff;
+            border-radius: 9999px;
             transition: all 0.2s ease;
         }
         .rgs-btn-primary:hover {
-            background-color: #522b2b;
+            background-color: #561D1E;
         }
         .rgs-btn-outline {
-            border: 1px solid rgba(43, 33, 30, 0.2);
-            color: #2B211E;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 9999px;
+            color: #1E1B1B;
             background-color: transparent;
             transition: all 0.2s ease;
         }
         .rgs-btn-outline:hover {
-            background-color: rgba(43, 33, 30, 0.04);
-            border-color: #2B211E;
+            background-color: rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
@@ -107,51 +91,51 @@
         </div>
 
         <!-- Identitas Institusi Buyer Card -->
-        <div class="p-4 border-b border-[#2B211E]/08 bg-[#faf6f0]">
+        <div class="m-3 p-3.5 rounded-2xl bg-[#703A3A]/5 border border-[#703A3A]/10">
             <div class="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-[#703A3A] mb-1">
                 <span class="material-symbols-outlined text-[14px]">school</span>
-                <span>Institusi Buyer Terverifikasi</span>
+                <span>Institusi Buyer</span>
             </div>
-            <div class="text-xs font-semibold text-[#2B211E] truncate">{{ Auth::user()->institution->institution_name ?? 'SMA Negeri 1 Candirejo' }}</div>
-            <div class="text-[10px] text-[#2B211E]/60">NPSN: {{ Auth::user()->institution->npsn ?? '20101234' }} • Anggaran BOS</div>
+            <div class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->institution->institution_name ?? 'SMA Negeri 1 Candirejo' }}</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">NPSN: {{ Auth::user()->institution->npsn ?? '20101234' }} • BOS Resmi</div>
         </div>
 
         <!-- Navigasi Menu Vertikal -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#2B211E]/40">
+        <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                 Menu Utama
             </div>
 
             <a href="{{ route('buyer.dashboard') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('buyer.dashboard') ? 'text-[#703A3A] bg-[#703A3A]/8 border-l-2 border-[#703A3A]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('buyer.dashboard') ? 'text-[#703A3A]' : 'text-[#2B211E]/60' }}">dashboard</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.dashboard') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">dashboard</span>
                 <span>Dashboard</span>
             </a>
 
             <a href="{{ route('buyer.booking.create') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('buyer.booking.create') ? 'text-[#703A3A] bg-[#703A3A]/8 border-l-2 border-[#703A3A]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('buyer.booking.create') ? 'text-[#703A3A]' : 'text-[#2B211E]/60' }}">post_add</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.booking.create') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">post_add</span>
                 <span>Ajukan Kunjungan</span>
             </a>
 
             <a href="{{ route('buyer.history') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('buyer.history') ? 'text-[#703A3A] bg-[#703A3A]/8 border-l-2 border-[#703A3A]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('buyer.history') ? 'text-[#703A3A]' : 'text-[#2B211E]/60' }}">receipt_long</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.history') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">receipt_long</span>
                 <span>Riwayat Pesanan</span>
             </a>
 
             <a href="{{ route('buyer.profile') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('buyer.profile') ? 'text-[#703A3A] bg-[#703A3A]/8 border-l-2 border-[#703A3A]' : 'text-[#2B211E]/75 hover:text-[#2B211E] hover:bg-[#2B211E]/5' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('buyer.profile') ? 'text-[#703A3A]' : 'text-[#2B211E]/60' }}">school</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.profile') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <span class="material-symbols-outlined text-[18px]">school</span>
                 <span>Profil Institusi</span>
             </a>
 
-            <div class="pt-4 px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#2B211E]/40">
+            <div class="pt-4 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                 Eksplorasi Tapak
             </div>
 
             <a href="{{ route('destinasi.index') }}"
-               class="flex items-center justify-between px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#51634b] hover:bg-[#51634b]/10 transition-colors">
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide text-[#51634b] hover:bg-[#51634b]/10 rounded-full transition-all">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-[18px]">travel_explore</span>
                     <span>Katalog Tapak</span>
@@ -161,18 +145,18 @@
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
-        <div class="p-3 border-t border-[#2B211E]/12 bg-[#faf6f0] shrink-0">
+        <div class="p-3 border-t border-gray-100 bg-[#FAF7F5] shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-8 h-8 shrink-0 bg-[#703A3A] text-white flex items-center justify-center font-serif text-xs font-semibold">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#703A3A] text-white flex items-center justify-center text-xs font-bold">
                         BH
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-semibold text-[#2B211E] truncate">{{ Auth::user()->name ?? 'Drs. Bambang Hidayat' }}</span>
-                        <span class="text-[10px] text-[#2B211E]/60 truncate">Kepala Sekolah</span>
+                        <span class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->name ?? 'Drs. Bambang Hidayat' }}</span>
+                        <span class="text-[10px] text-gray-500 truncate">Kepala Sekolah</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar dari Portal" class="p-1.5 text-[#2B211E]/50 hover:text-[#703A3A] hover:bg-[#2B211E]/5 transition-colors">
+                <a href="{{ route('login') }}" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#703A3A] hover:bg-white rounded-full transition-colors">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                 </a>
             </div>

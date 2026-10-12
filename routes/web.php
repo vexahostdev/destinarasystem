@@ -10,17 +10,16 @@ use App\Http\Controllers\PublicController;
 | 6 Halaman Publik Gerbang Sistem sesuai PRD v1.0 & Kanvas Figma
 */
 
-// 1. Marketplace Etalase Tapak Nusantara (Root & Katalog)
-Route::get('/', [PublicController::class, 'destinasi'])->name('home');
-Route::get('/destinasi', [PublicController::class, 'destinasi'])->name('destinasi.index');
+// 1. Marketplace Etalase Tapak Nusantara (Root & Katalog — Portal Sistem Langsung ke Katalog)
+Route::get('/', [PublicController::class, 'destinasi'])->name('destinasi.index');
+Route::get('/destinasi', [PublicController::class, 'destinasi']);
+Route::redirect('/home', '/')->name('home');
 
 // 2. Detail Destinasi & Silabus Kurikulum Lapangan
 Route::get('/destinasi/{slug}', [PublicController::class, 'showDestinasi'])->name('destinasi.show');
 
 // 3. Alur & Cara Kerja Kemitraan
-Route::get('/cara-kerja', function() {
-    return redirect()->route('destinasi.index');
-})->name('cara-kerja');
+Route::get('/cara-kerja', [PublicController::class, 'caraKerja'])->name('cara-kerja');
 
 // 5. Pendaftaran Akun (Split-screen)
 Route::get('/daftar', [PublicController::class, 'register'])->name('register');
@@ -29,6 +28,14 @@ Route::get('/register', [PublicController::class, 'register']);
 // 6. Masuk Akun / Login
 Route::get('/masuk', [PublicController::class, 'login'])->name('login');
 Route::get('/login', [PublicController::class, 'login']);
+
+// 7. Logout Akun
+Route::match(['get', 'post'], '/logout', function() {
+    \Illuminate\Support\Facades\Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect()->route('destinasi.index');
+})->name('logout');
 
 /*
 |--------------------------------------------------------------------------

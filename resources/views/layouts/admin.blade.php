@@ -13,10 +13,10 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#703A3A">
 
-    <!-- Google Fonts: Newsreader & Work Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,55 +24,40 @@
 
     <style>
         body {
-            font-family: 'Work Sans', sans-serif;
-        }
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 20px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-            vertical-align: middle;
-        }
-        .font-serif, h1, h2, h3, .font-editorial {
-            font-family: 'Newsreader', Georgia, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .rgs-card {
             background-color: #ffffff;
-            border: 1px solid rgba(43, 33, 30, 0.12);
-            box-shadow: 0 1px 3px rgba(43, 33, 30, 0.04);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
         }
         .rgs-card-accent {
-            border-top: 3px solid #703A3A;
+            border-top: 4px solid #703A3A;
+            border-radius: 1.25rem;
         }
         .rgs-card-blue {
-            border-top: 3px solid #2B3A4A;
+            border-top: 4px solid #2B3A4A;
+            border-radius: 1.25rem;
         }
         .rgs-btn-primary {
             background-color: #703A3A;
             color: #ffffff;
+            border-radius: 9999px;
             transition: all 0.2s ease;
         }
         .rgs-btn-primary:hover {
-            background-color: #522b2b;
+            background-color: #561D1E;
         }
         .rgs-btn-outline {
-            border: 1px solid rgba(43, 33, 30, 0.2);
-            color: #2B211E;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 9999px;
+            color: #1E1B1B;
             background-color: transparent;
             transition: all 0.2s ease;
         }
         .rgs-btn-outline:hover {
-            background-color: rgba(43, 33, 30, 0.04);
-            border-color: #2B211E;
+            background-color: rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
@@ -118,77 +103,77 @@
             <div class="text-[10px] text-[#a89a95] mt-0.5">Pusat Kendali Terpadu Lapangan</div>
         </div>
 
-        <!-- Navigasi Menu Vertikal Admin (7 Menu Layer 4) -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#7d6c66]">
+        <!-- Navigasi Menu Vertikal Admin -->
+        <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-stone-400">
                 Pusat Kontrol
             </div>
 
             <a href="{{ route('admin.dashboard') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.dashboard') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.dashboard') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">dashboard</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.dashboard') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+                <span class="material-symbols-outlined text-[18px]">dashboard</span>
                 <span>Dashboard</span>
             </a>
 
             <a href="{{ route('admin.destinations.verify') }}" 
-               class="flex items-center justify-between px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.destinations.verify*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.destinations.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.destinations.verify*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">fact_check</span>
+                    <span class="material-symbols-outlined text-[18px]">fact_check</span>
                     <span>Verif Tapak</span>
                 </div>
-                <span class="px-1.5 py-0.2 bg-[#b87a38]/25 text-[#f5d09e] border border-[#b87a38]/50 text-[10px] font-mono font-bold">2</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 text-[10px] font-bold">2</span>
             </a>
 
             <a href="{{ route('admin.users.verify') }}" 
-               class="flex items-center justify-between px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.users.verify*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.users.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.users.verify*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">how_to_reg</span>
+                    <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
                     <span>Verif User</span>
                 </div>
-                <span class="px-1.5 py-0.2 bg-[#8c5151]/30 text-[#ffdad9] border border-[#8c5151]/50 text-[10px] font-mono font-bold">2</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 text-[10px] font-bold">2</span>
             </a>
 
             <a href="{{ route('admin.bookings.index') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.bookings*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.bookings*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">assignment</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.bookings*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+                <span class="material-symbols-outlined text-[18px]">assignment</span>
                 <span>Kelola Booking</span>
             </a>
 
             <a href="{{ route('admin.documents.index') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.documents*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.documents*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">description</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.documents*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+                <span class="material-symbols-outlined text-[18px]">description</span>
                 <span>Dokumen Resmi</span>
             </a>
 
             <a href="{{ route('admin.destinations.curation') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.destinations.curation*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
-                <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.destinations.curation*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">edit_note</span>
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.destinations.curation*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+                <span class="material-symbols-outlined text-[18px]">edit_note</span>
                 <span>Editor Kurasi</span>
             </a>
 
             <a href="{{ route('admin.notifications.index') }}" 
-               class="flex items-center justify-between px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('admin.notifications*') ? 'text-white bg-[#342724] border-l-3 border-[#b87a38]' : 'text-[#c4b5af] hover:text-white hover:bg-[#342724]' }}">
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.notifications*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('admin.notifications*') ? 'text-[#d4a373]' : 'text-[#a89a95]' }}">notifications_active</span>
+                    <span class="material-symbols-outlined text-[18px]">notifications_active</span>
                     <span>Log & Queue</span>
                 </div>
-                <span class="px-1.5 py-0.2 bg-[#8c5151]/40 text-[#ffd3d2] border border-[#ffb3b2]/40 text-[10px] font-mono font-bold">1</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 text-[10px] font-bold">1</span>
             </a>
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
-        <div class="p-3 border-t border-[#382a26] bg-[#1c1311] shrink-0">
+        <div class="p-3 border-t border-white/10 bg-[#1c1311] shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-8 h-8 shrink-0 bg-[#703A3A] border border-[#8c5151] text-white flex items-center justify-center font-serif text-xs font-semibold">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#703A3A] border border-[#8c5151] text-white flex items-center justify-center text-xs font-bold">
                         RP
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-semibold text-white truncate">Rian Pratama, S.Hum.</span>
+                        <span class="text-xs font-bold text-white truncate">Rian Pratama, S.Hum.</span>
                         <span class="text-[10px] text-[#d4a373] font-medium truncate">Lead Operasional</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar ke Halaman Masuk" class="p-1.5 text-[#a89a95] hover:text-[#f87171] hover:bg-white/5 transition-colors">
+                <a href="{{ route('login') }}" title="Keluar ke Halaman Masuk" class="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                 </a>
             </div>

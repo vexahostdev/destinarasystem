@@ -4,7 +4,7 @@
 @section('meta_description', $destination['highlights'])
 
 @section('content')
-<main class="w-full bg-surface pb-16 lg:pb-0" x-data="{
+<main class="w-full bg-[#FAF7F5] pt-20 sm:pt-24 pb-20" x-data="{
     peserta: 30,
     tipe: 'study_tour',
     basePrice: {{ $destination['price'] }},
@@ -16,290 +16,327 @@
     },
     activePhoto: '{{ $destination['gallery'][0] ?? $destination['image'] }}'
 }">
-  <div class="flex flex-col w-full">
+  <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
 
-    <!-- Header & Hero Dossier Top (RGS Style) -->
-    <section class="w-full bg-[#fff1ed] py-10 md:py-14 border-b border-[#8C5151]/15">
-      <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
-        <a href="{{ route('destinasi.index') }}" class="inline-flex items-center gap-1.5 text-[#51634b] font-bold text-sm hover:underline font-sans">
-          <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-          <span>Kembali ke Katalog Destinasi</span>
-        </a>
-        
-        <div class="flex items-center gap-3 flex-wrap pt-1">
-          <span class="rgs-category-tag bg-[#8C5151]">
-            {{ $destination['category'] }}
-          </span>
-          <span class="rgs-category-tag bg-[#51634b]">
-            {{ $destination['city'] }}, {{ $destination['province'] }}
-          </span>
-          <span class="text-xs uppercase tracking-wider font-bold text-[#51634b] font-sans">
-            ✓ Terverifikasi Sesepuh Adat (FPIC)
-          </span>
-        </div>
+    <!-- Breadcrumb & Top Bar Navigation -->
+    <div class="flex items-center justify-between py-4">
+      <a href="{{ route('destinasi.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-[#703A3A] hover:text-[#561D1E] bg-white px-4 py-2 rounded-full shadow-xs border border-gray-100 transition-all hover:shadow-md">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span>Katalog Destinasi</span>
+      </a>
 
-        <h1 class="font-serif text-3xl sm:text-4xl md:text-5xl text-[#231917] font-bold tracking-tight leading-tight">
-          {{ $destination['name'] }}
-        </h1>
-
-        <p class="text-base md:text-lg text-[#524343] max-w-3xl leading-relaxed font-sans">
-          {{ $destination['highlights'] }}
-        </p>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#51634b]/10 text-[#51634b] text-xs font-bold">
+          <span class="material-symbols-outlined text-[16px]">verified</span>
+          <span>Protokol FPIC Sah</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200/50">
+          <span class="material-symbols-outlined text-[15px] fill-current text-amber-500">star</span>
+          <span>{{ $destination['rating'] }} ({{ $destination['reviews_count'] }} ulasan)</span>
+        </span>
       </div>
-    </section>
+    </div>
 
-    <!-- Main Content & Details (2 Kolom: Konten Kiri 8, Dossier Summary Kanan 4) -->
-    <section class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 w-full">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 items-start">
+    <!-- Title & Meta Header -->
+    <div class="mt-2 mb-6">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
+        <span class="px-3 py-1 rounded-full bg-[#703A3A]/10 text-[#703A3A] text-xs font-bold tracking-wide uppercase">
+          {{ $destination['category'] }}
+        </span>
+        <span class="text-xs text-gray-500 font-medium flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px] text-gray-400">location_on</span>
+          {{ $destination['city'] }}, {{ $destination['province'] }}
+        </span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1E1B1B] tracking-tight leading-tight">
+        {{ $destination['name'] }}
+      </h1>
+      <p class="text-sm sm:text-base text-gray-600 mt-2 max-w-3xl leading-relaxed">
+        {{ $destination['highlights'] }}
+      </p>
+    </div>
+
+    <!-- Main Content & Details (2 Kolom: Konten Kiri 8, Sticky Booking Simulator Kanan 4) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+      
+      <!-- Content Column (Kiri 8) -->
+      <div class="lg:col-span-8 flex flex-col gap-8">
         
-        <!-- Content Column (Kiri 8) -->
-        <div class="lg:col-span-8 flex flex-col gap-8">
-          
-          <!-- Interactive Photo Gallery -->
-          <div class="space-y-3">
-            <div class="relative w-full aspect-[16/9] overflow-hidden border border-[#8C5151]/20 bg-[#fdeae5]">
-              <img :src="activePhoto" alt="{{ $destination['name'] }}" class="w-full h-full object-cover transition-all duration-300">
-              <span class="absolute bottom-3 left-3 px-3 py-1 bg-[#231917]/70 backdrop-blur-sm text-white text-xs font-serif italic">
-                Dokumentasi Lapangan Terverifikasi
-              </span>
-            </div>
-
-            <!-- Sub Photo Thumbnails -->
-            <div class="grid grid-cols-5 gap-2">
-              @foreach($destination['gallery'] as $idx => $photo)
-              <div @click="activePhoto = '{{ $photo }}'" 
-                   class="aspect-[4/3] overflow-hidden border cursor-pointer transition-all"
-                   :class="activePhoto === '{{ $photo }}' ? 'border-[#8C5151] ring-2 ring-[#8C5151]/40' : 'border-[#2B211E]/15 hover:border-[#8C5151]'">
-                <img src="{{ $photo }}" alt="Foto {{ $idx + 1 }}" class="w-full h-full object-cover">
-              </div>
-              @endforeach
+        <!-- Interactive Photo Gallery -->
+        <div class="space-y-3">
+          <div class="relative w-full aspect-[16/9] overflow-hidden rounded-3xl bg-[#231917] shadow-md border border-gray-100">
+            <img :src="activePhoto" alt="{{ $destination['name'] }}" class="w-full h-full object-cover transition-all duration-300">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium">
+              <span class="material-symbols-outlined text-[16px] text-[#D4E9CA]">photo_camera</span>
+              <span>Dokumentasi Lapangan Terverifikasi</span>
             </div>
           </div>
 
-          <!-- Konteks Narasi Tapak -->
-          <div class="flex flex-col gap-3 font-sans text-sm sm:text-base text-[#231917] leading-relaxed">
-            <h3 class="font-serif text-2xl text-[#231917] font-bold">Konteks Narasi & Sejarah Tapak</h3>
-            <p class="text-[#524343] leading-relaxed">
-              {{ $destination['name'] }} merupakan ruang hidup komunal yang merawat keharmonisan antara kosmologi tradisi, tata kelola lingkungan lokal, dan kedaulatan warga. Destinara telah memfasilitasi integrasi pengetahuan tak benda ini agar dapat dipelajari langsung oleh peserta didik dan peneliti formal dengan menghormati martabat tetua adat.
-            </p>
-          </div>
-
-          <!-- Focus Riset Box ala RGS -->
-          <div class="p-6 bg-surface border-l-4 border-l-[#51634b] border-y border-r border-[#2B211E]/15 flex flex-col gap-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-[#51634b] font-sans">Fokus Pembelajaran & Riset Lapangan</span>
-            <p class="text-sm sm:text-base text-[#231917] leading-relaxed font-sans">
-              {{ implode(' • ', $destination['suitable_for']) }}. Kajian empiris mencakup dokumentasi ekologi lokal, ketahanan pangan adat, dan arsitektur vernakular ramah gempa.
-            </p>
-          </div>
-
-          <!-- 2 Modul Pembelajaran Lapangan -->
-          <div class="space-y-4">
-            <h3 class="font-serif text-2xl text-[#231917] font-bold">Kurikulum & Muatan Lapangan</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="p-5 bg-white border border-[#2B211E]/15 space-y-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-[#8C5151] font-sans block">Modul Sekolah (P5)</span>
-                <h4 class="font-serif font-bold text-lg text-[#231917]">Ekskursi & Refleksi Budaya</h4>
-                <p class="text-xs sm:text-sm text-[#524343] leading-relaxed font-sans">
-                  Siswa diajak mengamati siklus hidup desa, sistem gotong royong, dan mempraktikkan kearifan lokal bimbingan tetua adat.
-                </p>
-                <div class="pt-2 text-xs text-[#51634b] font-bold font-sans">
-                  Output: Lembar refleksi & asesmen P5
-                </div>
-              </div>
-
-              <div class="p-5 bg-white border border-[#2B211E]/15 space-y-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-[#51634b] font-sans block">Modul Akademisi & Riset</span>
-                <h4 class="font-serif font-bold text-lg text-[#231917]">Penelitian Etnografi & Sains</h4>
-                <p class="text-xs sm:text-sm text-[#524343] leading-relaxed font-sans">
-                  Akses langsung informan kunci, pencatatan data biofisik lapangan, serta kliring etik protokol FPIC yang sah secara hukum.
-                </p>
-                <div class="pt-2 text-xs text-[#86580d] font-bold font-sans">
-                  Output: Data primer & berita acara riset
-                </div>
-              </div>
+          <!-- Sub Photo Thumbnails -->
+          <div class="grid grid-cols-5 gap-3">
+            @foreach($destination['gallery'] as $idx => $photo)
+            <div @click="activePhoto = '{{ $photo }}'" 
+                 class="aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer transition-all border-2"
+                 :class="activePhoto === '{{ $photo }}' ? 'border-[#703A3A] shadow-md scale-[1.02]' : 'border-transparent opacity-75 hover:opacity-100'">
+              <img src="{{ $photo }}" alt="Foto {{ $idx + 1 }}" class="w-full h-full object-cover">
             </div>
+            @endforeach
           </div>
-
-          <!-- Fasilitas & Daya Dukung Lapangan -->
-          <div class="space-y-3 pt-4 border-t border-[#8C5151]/15">
-            <h3 class="font-serif text-2xl text-[#231917] font-bold">Fasilitas & Daya Dukung Kunjungan</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              @foreach($destination['facilities'] as $fac)
-              <div class="p-3 bg-white border border-[#2B211E]/15 flex items-center gap-2 text-xs sm:text-sm text-[#231917] font-sans font-medium">
-                <span class="text-[#51634b] font-bold">✓</span>
-                <span>{{ $fac }}</span>
-              </div>
-              @endforeach
-            </div>
-          </div>
-
-          <!-- Pratinjau Kalender Akademik Slot Kunjungan -->
-          <div class="space-y-3 pt-4 border-t border-[#8C5151]/15">
-            <div class="flex items-center justify-between">
-              <h3 class="font-serif text-2xl text-[#231917] font-bold">Pratinjau Ketersediaan Slot Tapak</h3>
-              <span class="text-xs font-serif italic text-[#524343]">*Maks. 2 rombongan / hari</span>
-            </div>
-
-            <div class="bg-white p-5 border border-[#2B211E]/15 space-y-4">
-              <div class="flex items-center justify-between text-xs font-bold text-[#231917] border-b border-[#2B211E]/10 pb-3 font-sans">
-                <span>Bulan Berjalan (Kalender Akademik)</span>
-                <div class="flex items-center gap-4 text-[11px]">
-                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#d4e9ca] inline-block"></span> Slot Tersedia</span>
-                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#fdeae5] inline-block"></span> Kuota Penuh</span>
-                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#e8d6d1] inline-block"></span> Upacara Adat</span>
-                </div>
-              </div>
-
-              <!-- Calendar Grid Mockup -->
-              <div class="grid grid-cols-7 gap-2 text-center text-xs font-sans">
-                <span class="font-bold text-[#735A5A] py-1">Sen</span>
-                <span class="font-bold text-[#735A5A] py-1">Sel</span>
-                <span class="font-bold text-[#735A5A] py-1">Rab</span>
-                <span class="font-bold text-[#735A5A] py-1">Kam</span>
-                <span class="font-bold text-[#735A5A] py-1">Jum</span>
-                <span class="font-bold text-[#735A5A] py-1">Sab</span>
-                <span class="font-bold text-[#735A5A] py-1">Min</span>
-
-                @for($i = 1; $i <= 14; $i++)
-                  @php
-                    $isFull = in_array($i, [5, 6, 12]);
-                    $isCeremony = in_array($i, [9]);
-                  @endphp
-                  <div class="py-2.5 border text-xs font-semibold
-                    {{ $isFull ? 'bg-[#fdeae5] border-[#8C5151]/30 text-[#8C5151]' : ($isCeremony ? 'bg-[#f1dfd9] border-[#2B211E]/20 text-[#735A5A]' : 'bg-[#e8f0e4]/70 border-[#51634b]/30 text-[#51634b]') }}">
-                    {{ $i }}
-                    <span class="block text-[9px] font-normal {{ $isFull ? 'text-[#8C5151]' : ($isCeremony ? 'text-[#735A5A]' : 'text-[#51634b]') }}">
-                      {{ $isFull ? 'Penuh' : ($isCeremony ? 'Adat' : 'Tersedia') }}
-                    </span>
-                  </div>
-                @endfor
-              </div>
-            </div>
-          </div>
-
-          <!-- Protokol Etika FPIC Adat -->
-          <div class="p-6 bg-white border border-[#2B211E]/15 space-y-2 text-xs sm:text-sm text-[#524343] font-sans leading-relaxed">
-            <h4 class="font-serif text-lg text-[#231917] font-bold">Protokol Etika Tapak & Kepatuhan Adat (FPIC)</h4>
-            <p>1. <strong>Pakaian Adat:</strong> Rombongan wajib mengenakan kain/selendang adat yang disediakan di pos gerbang masuk sebelum memasuki area sakral.</p>
-            <p>2. <strong>Dokumentasi Tertib:</strong> Mengambil foto/video diperkenankan pada zona publik. Untuk upacara ritual internal keluarga adat, wajib memohon izin tetua.</p>
-            <p>3. <strong>Bebas Sampah Plastik:</strong> Dilarang keras membawa kemasan plastik sekali pakai ke dalam kawasan hutan dan mata air.</p>
-          </div>
-
         </div>
 
-        <!-- Sidebar / Dossier Summary Plinth (Kanan 4 Sticky) -->
-        <div class="lg:col-span-4 flex flex-col gap-6 sticky top-28">
-          <div class="bg-surface p-6 sm:p-7 rounded-none border-t-4 border-t-[#8C5151] border-x border-b border-[#2B211E]/15 flex flex-col gap-5">
+        <!-- Konteks Narasi Tapak -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-gray-100/80 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-[#703A3A]/10 text-[#703A3A] flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]">menu_book</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-bold text-[#1E1B1B]">Konteks & Narasi Hidup Tapak</h3>
+          </div>
+          <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
+            {{ $destination['name'] }} merupakan ruang hidup komunal yang merawat keharmonisan antara kosmologi tradisi, tata kelola lingkungan lokal, dan kedaulatan warga. Destinara telah memfasilitasi integrasi pengetahuan tak benda ini agar dapat dipelajari langsung oleh peserta didik dan peneliti formal dengan menghormati martabat tetua adat.
+          </p>
+        </div>
+
+        <!-- Focus Riset Box -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-[#51634b]/20 flex flex-col gap-3">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#51634b]">
+            <span class="material-symbols-outlined text-[18px]">nature</span>
+            <span>Fokus Pembelajaran & Riset Lapangan</span>
+          </div>
+          <p class="text-sm sm:text-base text-[#1E1B1B] font-semibold leading-relaxed">
+            {{ implode(' • ', $destination['suitable_for']) }}
+          </p>
+          <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">
+            Kajian empiris mencakup dokumentasi ekologi lokal, ketahanan pangan adat, dan arsitektur vernakular ramah gempa yang teruji lintas generasi.
+          </p>
+        </div>
+
+        <!-- 2 Modul Pembelajaran Lapangan -->
+        <div class="space-y-4">
+          <h3 class="text-xl sm:text-2xl font-bold text-[#1E1B1B]">Silabus & Muatan Kurikulum</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            <div>
-              <span class="text-xs uppercase tracking-wider font-bold text-[#8C5151] font-sans block mb-1">
-                Ringkasan Berkas Tapak (Dossier)
+            <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 hover:shadow-md transition-shadow">
+              <span class="inline-block px-3 py-1 rounded-full bg-[#703A3A]/10 text-[#703A3A] text-xs font-bold">
+                Modul Sekolah (P5)
               </span>
-              <div class="flex items-baseline gap-1">
-                <span class="font-serif text-3xl font-bold text-[#231917]">{{ $destination['price_formatted'] }}</span>
-                <span class="text-xs text-[#524343] font-sans">/ peserta didik</span>
+              <h4 class="font-bold text-lg text-[#1E1B1B]">Ekskursi & Refleksi Budaya</h4>
+              <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Siswa diajak mengamati siklus hidup desa, sistem gotong royong, dan mempraktikkan kearifan lokal bimbingan tetua adat.
+              </p>
+              <div class="pt-2 text-xs text-[#51634b] font-bold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                <span>Output: Lembar refleksi & asesmen P5</span>
               </div>
             </div>
 
-            <!-- Metadata List -->
-            <div class="flex flex-col gap-3 border-t border-[#2B211E]/10 pt-4 text-xs sm:text-sm font-sans">
-              <div>
-                <span class="text-[#735A5A] block text-[11px] uppercase tracking-wider">Wilayah Administratif</span>
-                <span class="font-bold text-[#231917]">{{ $destination['city'] }}, {{ $destination['province'] }}</span>
+            <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 hover:shadow-md transition-shadow">
+              <span class="inline-block px-3 py-1 rounded-full bg-[#51634b]/10 text-[#51634b] text-xs font-bold">
+                Modul Akademisi & Riset
+              </span>
+              <h4 class="font-bold text-lg text-[#1E1B1B]">Penelitian Etnografi & Sains</h4>
+              <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Akses langsung informan kunci, pencatatan data biofisik lapangan, serta kliring etik protokol FPIC yang sah secara hukum.
+              </p>
+              <div class="pt-2 text-xs text-amber-700 font-bold flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>Output: Data primer & berita acara riset</span>
               </div>
-              <div>
-                <span class="text-[#735A5A] block text-[11px] uppercase tracking-wider">Kategori Bentang Alam</span>
-                <span class="font-bold text-[#231917] uppercase">{{ $destination['category'] }}</span>
-              </div>
-              <div>
-                <span class="text-[#735A5A] block text-[11px] uppercase tracking-wider">Daya Tampung Maksimal</span>
-                <span class="font-bold text-[#51634b]">{{ $destination['capacity'] }} Orang / Rombongan</span>
-              </div>
-              <div>
-                <span class="text-[#735A5A] block text-[11px] uppercase tracking-wider">Kepatuhan Etika Adat</span>
-                <span class="font-bold text-[#231917]">100% Sah Protokol FPIC</span>
-              </div>
-            </div>
-
-            <!-- Booking Simulator Form Inputs -->
-            <div class="space-y-4 pt-4 border-t border-[#2B211E]/10 font-sans">
-              <div>
-                <label class="block text-xs font-bold text-[#231917] uppercase tracking-wider mb-1.5">Tipe Kunjungan</label>
-                <div class="grid grid-cols-2 gap-2">
-                  <button type="button" @click="tipe = 'study_tour'" :class="tipe === 'study_tour' ? 'bg-[#8C5151] text-white font-bold' : 'bg-white text-[#524343] border border-[#2B211E]/15'" class="py-2 text-xs transition-all">
-                    Study Tour
-                  </button>
-                  <button type="button" @click="tipe = 'riset'" :class="tipe === 'riset' ? 'bg-[#8C5151] text-white font-bold' : 'bg-white text-[#524343] border border-[#2B211E]/15'" class="py-2 text-xs transition-all">
-                    Riset Lapang
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex items-center justify-between text-xs font-semibold text-[#231917] mb-1">
-                  <span>Estimasi Peserta:</span>
-                  <span class="font-bold text-[#8C5151]" x-text="peserta + ' Orang'"></span>
-                </div>
-                <input type="range" min="5" max="150" x-model="peserta" class="w-full accent-[#8C5151] cursor-pointer">
-                <div class="flex justify-between text-[10px] text-[#735A5A]">
-                  <span>Min. 5</span>
-                  <span>Maks. 150</span>
-                </div>
-              </div>
-
-              <!-- Realtime Cost Calculation -->
-              <div class="p-3.5 bg-white border border-[#2B211E]/15 space-y-1.5 text-xs">
-                <div class="flex justify-between text-[#524343]">
-                  <span>Retribusi Tapak (<span x-text="peserta"></span> org):</span>
-                  <span class="font-semibold" x-text="formatRupiah(subtotal)"></span>
-                </div>
-                <div class="flex justify-between text-[#524343]">
-                  <span>Jasa Pemandu Adat:</span>
-                  <span class="font-semibold" x-text="formatRupiah(guidePrice)"></span>
-                </div>
-                <div class="flex justify-between text-sm font-bold text-[#231917] pt-2 border-t border-[#2B211E]/10">
-                  <span>Estimasi Total:</span>
-                  <span class="text-[#703A3A]" x-text="formatRupiah(total)"></span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="pt-2 flex flex-col gap-3 font-sans">
-              @auth
-                @if(Auth::user()->role === 'buyer')
-                  <a href="{{ route('buyer.booking.create', ['tapak' => $destination['slug']]) }}" class="rgs-btn rgs-btn-primary w-full text-center flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                    <span>Lanjut Buat Booking Rombongan</span>
-                  </a>
-                @else
-                  <a href="{{ route(Auth::user()->role . '.dashboard') }}" class="rgs-btn rgs-btn-primary w-full text-center flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">dashboard</span>
-                    <span>Buka Konsol {{ ucfirst(Auth::user()->role) }}</span>
-                  </a>
-                @endif
-              @else
-                <a href="{{ route('login') }}" class="rgs-btn rgs-btn-primary w-full text-center flex items-center justify-center gap-2">
-                  <span class="material-symbols-outlined text-[18px]">login</span>
-                  <span>Masuk untuk Ajukan Reservasi Jadwal</span>
-                </a>
-              @endauth
-              <button type="button" @click="alert('Berkas Dossier Kurikulum Lapangan {{ addslashes($destination['name']) }} sedang disiapkan untuk diunduh.')" class="rgs-btn rgs-btn-outline w-full text-center flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px]">download</span>
-                <span>Unduh Dossier PDF</span>
-              </button>
-            </div>
-
-            <div class="p-3 bg-[#e8f0e4] border border-[#51634b]/20 text-xs text-[#51634b] font-sans space-y-1">
-              <span class="font-bold block">✓ Akuntabilitas Keuangan Desa</span>
-              <p class="text-[11px] leading-relaxed">Dana disalurkan langsung ke rekening penampung resmi dan diteruskan ke BUMDes adat setelah kegiatan selesai.</p>
             </div>
 
           </div>
         </div>
 
+        <!-- Fasilitas & Daya Dukung Lapangan -->
+        <div class="space-y-4">
+          <h3 class="text-xl sm:text-2xl font-bold text-[#1E1B1B]">Fasilitas & Daya Dukung Kunjungan</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            @foreach($destination['facilities'] as $fac)
+            <div class="p-4 bg-white rounded-2xl border border-gray-100 shadow-xs flex items-center gap-3 text-xs sm:text-sm text-[#1E1B1B] font-semibold">
+              <div class="w-7 h-7 rounded-full bg-[#51634b]/10 text-[#51634b] flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[16px]">check</span>
+              </div>
+              <span>{{ $fac }}</span>
+            </div>
+            @endforeach
+          </div>
+        </div>
+
+        <!-- Pratinjau Kalender Akademik Slot Kunjungan -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-xs space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xl font-bold text-[#1E1B1B]">Ketersediaan Slot Kunjungan</h3>
+              <p class="text-xs text-gray-500">Maksimal 2 rombongan studi per hari guna menjaga daya dukung tapak</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tersedia</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Penuh</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Upacara</span>
+            </div>
+          </div>
+
+          <!-- Calendar Grid Mockup -->
+          <div class="grid grid-cols-7 gap-2 text-center text-xs">
+            <span class="font-bold text-gray-400 py-1">Sen</span>
+            <span class="font-bold text-gray-400 py-1">Sel</span>
+            <span class="font-bold text-gray-400 py-1">Rab</span>
+            <span class="font-bold text-gray-400 py-1">Kam</span>
+            <span class="font-bold text-gray-400 py-1">Jum</span>
+            <span class="font-bold text-gray-400 py-1">Sab</span>
+            <span class="font-bold text-gray-400 py-1">Min</span>
+
+            @for($i = 1; $i <= 14; $i++)
+              @php
+                $isFull = in_array($i, [5, 6, 12]);
+                $isCeremony = in_array($i, [9]);
+              @endphp
+              <div class="py-3 rounded-xl border text-xs font-semibold transition-all
+                {{ $isFull ? 'bg-rose-50/70 border-rose-200 text-rose-700' : ($isCeremony ? 'bg-amber-50/70 border-amber-200 text-amber-700' : 'bg-emerald-50/70 border-emerald-200 text-emerald-700 hover:scale-105 cursor-pointer') }}">
+                {{ $i }}
+                <span class="block text-[9px] font-normal mt-0.5">
+                  {{ $isFull ? 'Penuh' : ($isCeremony ? 'Adat' : 'Tersedia') }}
+                </span>
+              </div>
+            @endfor
+          </div>
+        </div>
+
+        <!-- Protokol Etika FPIC Adat -->
+        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+          <div class="flex items-center gap-2 font-bold text-base text-[#1E1B1B]">
+            <span class="material-symbols-outlined text-[#703A3A] text-[20px]">policy</span>
+            <h4>Protokol Etika Tapak & Kepatuhan Adat (FPIC)</h4>
+          </div>
+          <p>1. <strong>Pakaian Adat:</strong> Rombongan wajib mengenakan kain/selendang adat yang disediakan di pos gerbang masuk sebelum memasuki area sakral.</p>
+          <p>2. <strong>Dokumentasi Tertib:</strong> Mengambil foto/video diperkenankan pada zona publik. Untuk upacara ritual internal keluarga adat, wajib memohon izin tetua.</p>
+          <p>3. <strong>Bebas Sampah Plastik:</strong> Dilarang keras membawa kemasan plastik sekali pakai ke dalam kawasan hutan dan mata air.</p>
+        </div>
+
       </div>
-    </section>
+
+      <!-- Sticky Booking Simulator Card (Kanan 4) -->
+      <div class="lg:col-span-4 sticky top-24 space-y-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_50px_rgba(112,58,58,0.12)] border border-gray-100 flex flex-col gap-5">
+          
+          <div>
+            <span class="text-xs uppercase tracking-wider font-bold text-[#703A3A] block mb-1">
+              Investasi Pendidikan Tapak
+            </span>
+            <div class="flex items-baseline gap-1.5">
+              <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $destination['price_formatted'] }}</span>
+              <span class="text-xs text-gray-500">/ peserta didik</span>
+            </div>
+          </div>
+
+          <!-- Metadata List -->
+          <div class="flex flex-col gap-2.5 border-t border-gray-100 pt-4 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Wilayah</span>
+              <span class="font-bold text-[#1E1B1B]">{{ $destination['city'] }}, {{ $destination['province'] }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Kategori</span>
+              <span class="font-bold text-[#1E1B1B]">{{ $destination['category'] }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Daya Tampung</span>
+              <span class="font-bold text-[#51634b]">{{ $destination['capacity'] }} Orang / Rombongan</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Legalitas</span>
+              <span class="font-bold text-emerald-600">✓ 100% FPIC Terverifikasi</span>
+            </div>
+          </div>
+
+          <!-- Booking Simulator Form Inputs -->
+          <div class="space-y-4 pt-4 border-t border-gray-100">
+            <div>
+              <label class="block text-xs font-bold text-[#1E1B1B] mb-2">Tipe Kunjungan</label>
+              <div class="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-full">
+                <button type="button" @click="tipe = 'study_tour'" 
+                        :class="tipe === 'study_tour' ? 'bg-[#703A3A] text-white shadow-xs' : 'text-gray-600 hover:text-black'" 
+                        class="py-2 px-3 text-xs font-bold rounded-full transition-all text-center">
+                  Study Tour
+                </button>
+                <button type="button" @click="tipe = 'riset'" 
+                        :class="tipe === 'riset' ? 'bg-[#703A3A] text-white shadow-xs' : 'text-gray-600 hover:text-black'" 
+                        class="py-2 px-3 text-xs font-bold rounded-full transition-all text-center">
+                  Riset Lapang
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between text-xs font-semibold text-[#1E1B1B] mb-1.5">
+                <span>Estimasi Peserta:</span>
+                <span class="font-bold text-[#703A3A] text-sm" x-text="peserta + ' Orang'"></span>
+              </div>
+              <input type="range" min="5" max="150" x-model="peserta" class="w-full accent-[#703A3A] cursor-pointer">
+              <div class="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>Min. 5 org</span>
+                <span>Maks. 150 org</span>
+              </div>
+            </div>
+
+            <!-- Realtime Cost Calculation -->
+            <div class="p-4 bg-[#FAF7F5] rounded-2xl space-y-2 text-xs border border-gray-200/50">
+              <div class="flex justify-between text-gray-600">
+                <span>Retribusi (<span x-text="peserta"></span> org):</span>
+                <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(subtotal)"></span>
+              </div>
+              <div class="flex justify-between text-gray-600">
+                <span>Pemandu Adat Resmi:</span>
+                <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(guidePrice)"></span>
+              </div>
+              <div class="flex justify-between text-sm font-extrabold text-[#1E1B1B] pt-2 border-t border-gray-200">
+                <span>Estimasi Total:</span>
+                <span class="text-[#703A3A]" x-text="formatRupiah(total)"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col gap-2.5 pt-1">
+            @auth
+              @if(Auth::user()->role === 'buyer')
+                <a href="{{ route('buyer.booking.create', ['tapak' => $destination['slug']]) }}" 
+                   class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                  <span>Lanjut Reservasi Rombongan</span>
+                </a>
+              @else
+                <a href="{{ route(Auth::user()->role . '.dashboard') }}" 
+                   class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                  <span>Buka Konsol {{ ucfirst(Auth::user()->role) }}</span>
+                </a>
+              @endif
+            @else
+              <a href="{{ route('login') }}" 
+                 class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                <span class="material-symbols-outlined text-[18px]">login</span>
+                <span>Masuk untuk Reservasi</span>
+              </a>
+            @endauth
+
+            <button type="button" @click="alert('Berkas Dossier Kurikulum Lapangan {{ addslashes($destination['name']) }} sedang disiapkan untuk diunduh.')" 
+                    class="border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-full font-semibold text-xs text-center flex items-center justify-center gap-1.5 transition-all bg-white hover:bg-gray-50">
+              <span class="material-symbols-outlined text-[16px]">download</span>
+              <span>Unduh Dossier Silabus PDF</span>
+            </button>
+          </div>
+
+          <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/50 text-[11px] text-emerald-800 space-y-0.5">
+            <span class="font-bold block">✓ Akuntabilitas BOS & BUMDes</span>
+            <p class="leading-relaxed">Kwitansi resmi instansi diterbitkan otomatis setelah verifikasi pembayaran.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
 
   </div>
 </main>

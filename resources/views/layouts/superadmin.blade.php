@@ -13,10 +13,10 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <meta name="theme-color" content="#4A1E1E">
 
-    <!-- Google Fonts: Newsreader & Work Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,38 +24,22 @@
 
     <style>
         body {
-            font-family: 'Work Sans', sans-serif;
-        }
-        .material-symbols-outlined {
-            font-family: 'Material Symbols Outlined';
-            font-weight: normal;
-            font-style: normal;
-            font-size: 20px;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            display: inline-block;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-            vertical-align: middle;
-        }
-        .font-serif, h1, h2, h3, .font-editorial {
-            font-family: 'Newsreader', Georgia, serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         .rgs-card {
             background-color: #ffffff;
-            border: 1px solid rgba(43, 33, 30, 0.12);
-            box-shadow: 0 1px 3px rgba(43, 33, 30, 0.04);
+            border-radius: 1.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
         }
         .rgs-card-wine {
-            border-top: 3px solid #4A1E1E;
+            border-top: 4px solid #4A1E1E;
+            border-radius: 1.25rem;
         }
         .rgs-btn-primary {
             background-color: #703A3A;
             color: #ffffff;
+            border-radius: 9999px;
             transition: all 0.2s ease;
         }
         .rgs-btn-primary:hover {
@@ -64,20 +48,21 @@
         .rgs-btn-dark {
             background-color: #4A1E1E;
             color: #ffffff;
+            border-radius: 9999px;
             transition: all 0.2s ease;
         }
         .rgs-btn-dark:hover {
             background-color: #311313;
         }
         .rgs-btn-outline {
-            border: 1px solid rgba(43, 33, 30, 0.2);
-            color: #2B211E;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 9999px;
+            color: #1E1B1B;
             background-color: transparent;
             transition: all 0.2s ease;
         }
         .rgs-btn-outline:hover {
-            background-color: rgba(43, 33, 30, 0.04);
-            border-color: #2B211E;
+            background-color: rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
@@ -123,38 +108,38 @@
             <div class="text-[10px] text-[#d6b4b4] mt-0.5">Dewan Pengawas & Direksi</div>
         </div>
 
-        <!-- Navigasi Menu Vertikal Super Admin (5 Menu Layer 5) -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <div class="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[#8c5252]">
+        <!-- Navigasi Menu Vertikal Super Admin -->
+        <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+            <div class="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-[#d6b4b4]/60">
                 Eksekutif & Tata Kelola
             </div>
 
             <a href="{{ route('superadmin.dashboard') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('superadmin.dashboard') ? 'text-white bg-[#3a1616] border-l-3 border-[#f87171]' : 'text-[#d6b4b4] hover:text-white hover:bg-[#331414]' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('superadmin.dashboard') ? 'text-white bg-[#f87171]/20 border border-[#f87171]/40 shadow-xs' : 'text-[#d6b4b4] hover:text-white hover:bg-white/5' }}">
                 <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('superadmin.dashboard') ? 'text-[#fca5a5]' : 'text-[#d6b4b4]' }}">tune</span>
                 <span>Kontrol Ekosistem</span>
             </a>
 
             <a href="{{ route('superadmin.settings') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('superadmin.settings*') ? 'text-white bg-[#3a1616] border-l-3 border-[#f87171]' : 'text-[#d6b4b4] hover:text-white hover:bg-[#331414]' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('superadmin.settings*') ? 'text-white bg-[#f87171]/20 border border-[#f87171]/40 shadow-xs' : 'text-[#d6b4b4] hover:text-white hover:bg-white/5' }}">
                 <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('superadmin.settings*') ? 'text-[#fca5a5]' : 'text-[#d6b4b4]' }}">settings</span>
                 <span>Pengaturan Master</span>
             </a>
 
             <a href="{{ route('superadmin.users') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('superadmin.users*') ? 'text-white bg-[#3a1616] border-l-3 border-[#f87171]' : 'text-[#d6b4b4] hover:text-white hover:bg-[#331414]' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('superadmin.users*') ? 'text-white bg-[#f87171]/20 border border-[#f87171]/40 shadow-xs' : 'text-[#d6b4b4] hover:text-white hover:bg-white/5' }}">
                 <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('superadmin.users*') ? 'text-[#fca5a5]' : 'text-[#d6b4b4]' }}">shield</span>
-                <span>Akses & Tindakan Kritis</span>
+                <span>Akses & Tindakan</span>
             </a>
 
             <a href="{{ route('superadmin.analytics') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('superadmin.analytics*') ? 'text-white bg-[#3a1616] border-l-3 border-[#f87171]' : 'text-[#d6b4b4] hover:text-white hover:bg-[#331414]' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('superadmin.analytics*') ? 'text-white bg-[#f87171]/20 border border-[#f87171]/40 shadow-xs' : 'text-[#d6b4b4] hover:text-white hover:bg-white/5' }}">
                 <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('superadmin.analytics*') ? 'text-[#fca5a5]' : 'text-[#d6b4b4]' }}">monitoring</span>
                 <span>Analitik Bisnis</span>
             </a>
 
             <a href="{{ route('superadmin.reconciliation') }}" 
-               class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors {{ request()->routeIs('superadmin.reconciliation*') ? 'text-white bg-[#3a1616] border-l-3 border-[#f87171]' : 'text-[#d6b4b4] hover:text-white hover:bg-[#331414]' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('superadmin.reconciliation*') ? 'text-white bg-[#f87171]/20 border border-[#f87171]/40 shadow-xs' : 'text-[#d6b4b4] hover:text-white hover:bg-white/5' }}">
                 <span class="material-symbols-outlined text-[18px] {{ request()->routeIs('superadmin.reconciliation*') ? 'text-[#fca5a5]' : 'text-[#d6b4b4]' }}">account_balance</span>
                 <span>Rekonsiliasi & Audit</span>
             </a>
@@ -164,15 +149,15 @@
         <div class="p-3 border-t border-[#3d1818] bg-[#1a0808] shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-8 h-8 shrink-0 bg-[#4A1E1E] border border-[#6b2c2c] text-white flex items-center justify-center font-serif text-xs font-semibold">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#4A1E1E] border border-[#6b2c2c] text-white flex items-center justify-center text-xs font-bold">
                         SP
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-semibold text-white truncate">Dr. Ir. Suryadi Pratama</span>
+                        <span class="text-xs font-bold text-white truncate">Dr. Ir. Suryadi Pratama</span>
                         <span class="text-[10px] text-[#fca5a5] font-medium truncate">Dewan Direksi</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar ke Portal Masuk" class="p-1.5 text-[#d6b4b4] hover:text-[#fca5a5] hover:bg-white/5 transition-colors">
+                <a href="{{ route('login') }}" title="Keluar ke Portal Masuk" class="p-2 text-[#d6b4b4] hover:text-white hover:bg-white/5 rounded-full transition-colors">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                 </a>
             </div>
