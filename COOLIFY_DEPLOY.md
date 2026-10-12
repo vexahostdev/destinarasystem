@@ -13,7 +13,7 @@ Panduan lengkap deployment proyek **Destinara Core System** (Laravel 12 + Vite +
 | **DB_PORT** | `3306` | `3306` | `3306` |
 | **DB_DATABASE** | `db_destinarasystem` | `db_destinarasystem` | `db_destinarasystem` |
 | **DB_USERNAME** | `mysql` | `mysql` | `mysql` |
-| **Domain (FQDN)** | `http://127.0.0.1:8031` | `https://app-staging.destinara.my.id` | `https://app.destinara.my.id` |
+| **Domain (FQDN)** | `https://layanan-dev.destinara.my.id` | `https://layanan-staging.destinara.my.id` | `https://layanan.destinara.my.id` |
 | **File Env Acuan** | `.env.development` | `.env.staging` | `.env.production` |
 
 > 💡 **Tips Hak Akses MySQL di Coolify:**
@@ -28,13 +28,14 @@ Panduan lengkap deployment proyek **Destinara Core System** (Laravel 12 + Vite +
 1. Buka dashboard **Coolify**.
 2. Pilih Project & Environment tujuan (**Production**, **Staging**, atau **Development**).
 3. Klik **+ New** -> **Application** -> pilih repositori Git Anda.
-4. Pilih branch yang sesuai (`main` atau `dev`).
+4. Pilih branch yang sesuai (`main`, `staging`, atau `dev`).
 5. Pada pilihan Build Pack, gunakan **Nixpacks** (default).
 
 ### B. Konfigurasi Domain (FQDN)
 Pada kolom **Domains**:
-- **Production**: `https://app.destinara.my.id`
-- **Staging**: `https://app-staging.destinara.my.id`
+- **Production**: `https://layanan.destinara.my.id` (alias: `https://app.destinara.my.id`)
+- **Staging**: `https://layanan-staging.destinara.my.id`
+- **Development**: `https://layanan-dev.destinara.my.id`
 *(SSL Let's Encrypt diurus otomatis oleh Coolify).*
 
 ### C. Masukkan Environment Variables
