@@ -4,42 +4,44 @@ Panduan lengkap deployment proyek **Destinara Core System** (Laravel 12 + Vite +
 
 ---
 
-## 1. Arsitektur Domain & Environment
+## 1. Ringkasan Kredensial MySQL Coolify
 
-| Environment | Domain / FQDN di Coolify | Database | File Acuan Env |
+| Parameter | Development | Staging | Production |
 |---|---|---|---|
-| **Development** | `http://127.0.0.1:8031` | `db_destinarasystem` | `.env.development` |
-| **Staging** | `https://app-staging.destinara.my.id` | `destinara_system_staging` | `.env.staging` |
-| **Production** | `https://app.destinara.my.id` | `destinara_system_prod` | `.env.production` |
+| **Coolify Resource** | `destinara-mysql-dev` | `destinara-mysql-staging` | `destinara-mysql-production` |
+| **DB_HOST / Container** | `vbi0lskyqkxybarmwlgtmobo` | `athi0chh8tohka2pb9dbrrfh` | `kgnzm2wodjjnfjfrxdo1avqa` |
+| **DB_PORT** | `3306` | `3306` | `3306` |
+| **DB_DATABASE** | `db_destinarasystem` | `db_destinarasystem` | `db_destinarasystem` |
+| **DB_USERNAME** | `mysql` | `mysql` | `mysql` |
+| **Domain (FQDN)** | `http://127.0.0.1:8031` | `https://app-staging.destinara.my.id` | `https://app.destinara.my.id` |
+| **File Env Acuan** | `.env.development` | `.env.staging` | `.env.production` |
 
-*(Subdomain dapat disesuaikan di Coolify, misalnya `system.destinara.my.id` jika Anda memilih penamaan tersebut).*
+> 💡 **Tips Hak Akses MySQL di Coolify:**
+> Default user `mysql` di Coolify awalnya terasosiasi ke database default (`destinara_dev` / `destinara_staging` / `destinara_production`).
+> Jika migrasi mengalami error *Access denied for database db_destinarasystem*, ubah `DB_USERNAME=root` dan masukkan `ROOT_PASSWORD` yang tertera di catatan resource Coolify.
 
 ---
 
-## 2. Langkah Deployment di Coolify Dashboard
+## 2. Langkah Deployment di Dashboard Coolify
 
 ### A. Buat Resource Application
 1. Buka dashboard **Coolify**.
-2. Pilih Project & Environment (misal: `Production` atau `Staging`).
+2. Pilih Project & Environment tujuan (**Production**, **Staging**, atau **Development**).
 3. Klik **+ New** -> **Application** -> pilih repositori Git Anda.
-4. Pilih branch (`main` atau `dev`).
+4. Pilih branch yang sesuai (`main` atau `dev`).
 5. Pada pilihan Build Pack, gunakan **Nixpacks** (default).
 
 ### B. Konfigurasi Domain (FQDN)
 Pada kolom **Domains**:
 - **Production**: `https://app.destinara.my.id`
 - **Staging**: `https://app-staging.destinara.my.id`
-
-> Coolify secara otomatis mengonfigurasi SSL Let's Encrypt melalui reverse proxy Traefik/Caddy. Laravel sudah dikonfigurasi dengan middleware `trustProxies(at: '*')` sehingga HTTPS dan cookie session aman tanpa loop redirect.
+*(SSL Let's Encrypt diurus otomatis oleh Coolify).*
 
 ### C. Masukkan Environment Variables
 1. Buka tab **Environment Variables** di aplikasi Coolify Anda.
-2. Buka file `.env.production` (atau `.env.staging`).
+2. Buka file `.env.production` (atau `.env.staging` / `.env.development`).
 3. Salin (**Copy**) seluruh isi file dan tempel (**Paste**) ke form Environment Variables Coolify.
-4. Sesuaikan nilai kredensial:
-   - `DB_HOST`: Jika MySQL dibuat sebagai service di Coolify pada project/network yang sama, isi nama servicenya (misal: `mysql` atau `destinara-mysql`). Jika di luar container, gunakan IP private atau `host.docker.internal`.
-   - `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
-   - `MAIL_PASSWORD` (password SMTP email Hostinger / layanan email Anda).
+4. Simpan perubahan.
 
 ### D. Perintah Pasca-Deploy (Post-deployment Command)
 Di menu konfigurasi aplikasi Coolify, pada bagian **Post-deployment Command** (atau di Terminal Container):
@@ -47,9 +49,9 @@ Di menu konfigurasi aplikasi Coolify, pada bagian **Post-deployment Command** (a
 php artisan migrate --force && php artisan storage:link && php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
 
-### E. Background Queue Worker (Opsional namun Direkomendasikan)
-Destinara System menggunakan antrean `QUEUE_CONNECTION=database` untuk notifikasi & generator dokumen:
-- Di Coolify, Anda dapat menambahkan command worker di tab Process / Worker:
+### E. Background Queue Worker (Notifikasi & Generator Dokumen)
+Destinara System menggunakan `QUEUE_CONNECTION=database` untuk notifikasi & generator dokumen:
+- Di Coolify, pada tab **Processes** / **Worker**, tambahkan command:
   ```bash
   php artisan queue:work --tries=3 --timeout=90
   ```
@@ -57,7 +59,7 @@ Destinara System menggunakan antrean `QUEUE_CONNECTION=database` untuk notifikas
 ---
 
 ## 3. Persistent Storage
-Untuk menjaga agar file upload (dokumen NPSN, invoice, e-pass, galeri destinasi) tidak hilang saat container di-rebuild:
+Untuk menjaga agar file upload (dokumen legal, foto kurasi, e-pass) tidak terhapus saat rebuild container:
 - Tambahkan **Persistent Storage** di Coolify:
   - **Source Volume**: `system-storage-public`
   - **Destination Path**: `/app/storage/app/public`
