@@ -182,7 +182,7 @@
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700">Isi Pesan (Body) *</label>
-                    <textarea name="body" rows="6" required placeholder="Halo {{user_name}}, ..." class="w-full text-xs font-mono rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                    <textarea name="body" rows="6" required placeholder="Halo {user_name}, ..." class="w-full text-xs font-mono rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
                 </div>
 
                 <div class="flex items-center gap-2">
