@@ -162,7 +162,7 @@
                                 <span>Tolak Dossier</span>
                             </button>
                         @else
-                            <a href="{{ route('admin.destinations.curation', $d->id) }}" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 bg-white">
+                            <a href="{{ route('admin.destinations.edit', $d->id) }}" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 bg-white">
                                 <span class="material-symbols-outlined text-[16px]">edit</span>
                                 <span>Edit Kurasi</span>
                             </a>

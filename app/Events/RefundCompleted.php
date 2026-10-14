@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Refund;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class RefundCompleted
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public Refund $refund
+    ) {}
+}

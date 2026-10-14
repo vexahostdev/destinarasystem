@@ -31,5 +31,39 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function (User $user, string $ability) {
             return $user->isSuperAdmin() ? true : null;
         });
+
+        // Register Domain Event Listeners (SPEC §10.2 & §11)
+        \Illuminate\Support\Facades\Event::listen([
+            \App\Events\BookingCreated::class,
+            \App\Events\BookingPaid::class,
+            \App\Events\BookingConfirmed::class,
+            \App\Events\BookingRescheduled::class,
+            \App\Events\PayoutTransferred::class,
+        ], \App\Listeners\GenerateBookingDocumentsListener::class);
+
+        \Illuminate\Support\Facades\Event::listen([
+            \App\Events\BookingCreated::class,
+            \App\Events\BookingPaid::class,
+            \App\Events\BookingConfirmed::class,
+            \App\Events\BookingRejected::class,
+            \App\Events\BookingCancelled::class,
+            \App\Events\BookingRescheduled::class,
+            \App\Events\BookingExpired::class,
+            \App\Events\BookingCheckedIn::class,
+            \App\Events\BookingCompleted::class,
+            \App\Events\RefundCreated::class,
+            \App\Events\RefundCompleted::class,
+            \App\Events\PayoutCreated::class,
+            \App\Events\PayoutTransferred::class,
+            \App\Events\DestinationSubmitted::class,
+            \App\Events\DestinationModerated::class,
+            \App\Events\PartnerVerified::class,
+            \App\Events\PartnerRejected::class,
+            \App\Events\InstitutionVerified::class,
+            \App\Events\InstitutionRejected::class,
+            \App\Events\LatePaymentReceived::class,
+            \App\Events\PaymentAmountMismatch::class,
+            \App\Events\UserRegistered::class,
+        ], \App\Listeners\SendDomainNotificationListener::class);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Domain\Document\Services\DocumentService;
 use App\Enums\DocumentType;
 use App\Models\Booking;
+use App\Models\PartnerPayout;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,7 +22,7 @@ class GenerateDocumentJob implements ShouldQueue
     public int $timeout = 120;
 
     public function __construct(
-        public Booking $booking,
+        public Booking|PartnerPayout $target,
         public DocumentType $type,
         public ?User $actor = null
     ) {
@@ -30,6 +31,10 @@ class GenerateDocumentJob implements ShouldQueue
 
     public function handle(DocumentService $documentService): void
     {
-        $documentService->generateForBooking($this->booking, $this->type, $this->actor);
+        if ($this->target instanceof PartnerPayout) {
+            $documentService->generateForPayout($this->target, $this->actor);
+        } else {
+            $documentService->generateForBooking($this->target, $this->type, $this->actor);
+        }
     }
 }

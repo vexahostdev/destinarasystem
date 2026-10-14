@@ -8,6 +8,7 @@ use App\Enums\DestinationStatus;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
+use App\Models\Package;
 use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -117,6 +118,18 @@ class AdminPortalTest extends TestCase
             'status' => DestinationStatus::DRAFT,
             'city' => 'Sleman',
             'address' => 'Jl. Kaliurang',
+        ]);
+
+        Package::create([
+            'destination_id' => $destination->id,
+            'name' => 'Paket Edukasi Test',
+            'slug' => 'paket-edukasi-test',
+            'description' => 'Deskripsi paket edukasi',
+            'price_per_pax' => 50000,
+            'min_participants' => 10,
+            'duration_days' => 1,
+            'inquiry_types' => ['study_tour'],
+            'is_active' => true,
         ]);
 
         $this->actingAs($this->superAdmin);

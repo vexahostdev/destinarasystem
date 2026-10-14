@@ -47,6 +47,9 @@ class NotificationDispatcher
                 };
 
                 if (empty($recipient)) {
+                    if ($audience === 'admin') {
+                        \Illuminate\Support\Facades\Log::info("Notifikasi admin untuk event '{$eventKey}' pada channel '{$template->channel->value}' dilewati karena penerima belum dikonfigurasi.");
+                    }
                     continue;
                 }
 
@@ -64,7 +67,7 @@ class NotificationDispatcher
                     'status' => NotificationStatus::QUEUED,
                 ]);
 
-                SendNotificationJob::dispatch($log->id);
+                SendNotificationJob::dispatch($log->id)->afterCommit();
                 $createdLogs[] = $log;
             }
         }
@@ -94,10 +97,10 @@ class NotificationDispatcher
                 'phone' => $context['partner_phone'] ?? $booking?->destination?->partner?->phone ?? $context['partner_user']?->phone,
             ],
             'admin' => [
-                'user' => null,
-                'user_id' => null,
-                'email' => (string) setting('admin_notification_email', 'admin@destinara.test'),
-                'phone' => (string) setting('admin_notification_whatsapp', '6281234567890'),
+                'user' => User::where('account_type', 'internal')->first(),
+                'user_id' => User::where('account_type', 'internal')->first()?->id,
+                'email' => setting('admin_alert_emails'),
+                'phone' => setting('admin_alert_whatsapp'),
             ],
             default => [
                 'user' => $user,

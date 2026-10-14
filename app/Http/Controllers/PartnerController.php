@@ -214,7 +214,7 @@ class PartnerController extends Controller
             'address' => $request->address,
             'description' => $request->description,
             'default_daily_capacity' => (int) $request->default_daily_capacity,
-            'status' => DestinationStatus::PENDING_REVIEW,
+            'status' => DestinationStatus::DRAFT,
         ]);
 
         // Auto create primary contact from partner profile
@@ -222,13 +222,13 @@ class PartnerController extends Controller
             $dest->contacts()->create([
                 'contact_name' => $user->name,
                 'role' => 'Penanggung Jawab Tapak',
-                'phone' => $user->phone ?? '081234567890',
+                'phone' => $user->phone ?? null,
                 'is_primary' => true,
             ]);
         }
 
-        return redirect()->route('mitra.destinations')
-            ->with('success', "Destinasi '{$dest->name}' berhasil diajukan dan sedang menunggu kurasi oleh tim Destinara.");
+        return redirect()->route('mitra.destinations.edit', $dest->id)
+            ->with('success', "Draf destinasi '{$dest->name}' berhasil dibuat. Silakan tambahkan minimal 1 paket aktif, foto, dan slot ketersediaan sebelum mengajukan kurasi.");
     }
 
     /**

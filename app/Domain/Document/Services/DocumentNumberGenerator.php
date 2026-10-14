@@ -48,7 +48,12 @@ class DocumentNumberGenerator
                 $nextNum = $seq->last_number;
             }
 
-            $format = (string) setting("doc_number_format_{$typeStr}", self::DEFAULT_FORMATS[$typeStr] ?? 'DOC/{YYYY}/{MM}/{SEQ:5}');
+            $settingKey = match ($typeStr) {
+                'confirmation_letter' => 'doc_number_format_confirmation',
+                'payout_receipt' => 'doc_number_format_payout',
+                default => "doc_number_format_{$typeStr}",
+            };
+            $format = (string) setting($settingKey, self::DEFAULT_FORMATS[$typeStr] ?? 'DOC/{YYYY}/{MM}/{SEQ:5}');
 
             // Format replacements
             $formatted = str_replace(

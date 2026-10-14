@@ -76,7 +76,7 @@ class FinanceTest extends TestCase
             'address' => 'Jl. Nglanggeran Wetan',
             'city' => 'Gunungkidul',
             'province' => 'DI Yogyakarta',
-            'bank_name' => 'Bank Mandiri',
+            'bank_id' => \App\Models\Bank::first()?->id,
             'bank_account_number' => '1370012345678',
             'bank_account_holder' => 'Koperasi Nglanggeran',
             'verification_status' => VerificationStatus::VERIFIED,

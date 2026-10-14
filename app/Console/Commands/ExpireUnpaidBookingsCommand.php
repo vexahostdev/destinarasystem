@@ -54,13 +54,17 @@ class ExpireUnpaidBookingsCommand extends Command
                     $paymentService->processPaymentExpiry($payment);
                 }
 
-                // 4. Dispatch notification
-                $notifier->send('booking.expired', [
-                    'booking' => $locked,
-                    'user' => $locked->user,
-                    'destination_name' => $locked->destination->name,
-                    'booking_code' => $locked->booking_code,
-                ], ['buyer']);
+                // 4. Restore voucher quota if used
+                if ($locked->voucher_id) {
+                    $voucher = \App\Models\Voucher::where('id', $locked->voucher_id)->lockForUpdate()->first();
+                    if ($voucher && $voucher->used_count > 0) {
+                        $voucher->decrement('used_count');
+                    }
+                    \App\Models\VoucherRedemption::where('booking_id', $locked->id)->delete();
+                }
+
+                // 5. Dispatch domain event
+                \App\Events\BookingExpired::dispatch($locked);
 
                 $count++;
             });

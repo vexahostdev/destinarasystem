@@ -113,12 +113,18 @@ class DestinationService
     }
 
     /**
-     * Submit destination for admin curation.
+     * Submit destination for admin curation (SPEC §8.6).
      */
     public function submitForReview(Destination $destination, User $user): Destination
     {
         if ($destination->status !== DestinationStatus::DRAFT && $destination->status !== DestinationStatus::REVISION_REQUIRED) {
             throw new InvalidArgumentException('Hanya destinasi draf atau perlu revisi yang dapat diajukan kurasi.');
+        }
+
+        // SPEC §8.6: Destinasi tanpa minimal 1 paket aktif TIDAK boleh disubmit untuk kurasi
+        $activePackagesCount = $destination->packages()->where('is_active', true)->count();
+        if ($activePackagesCount < 1) {
+            throw new InvalidArgumentException('Destinasi harus memiliki minimal 1 paket aktif sebelum diajukan untuk kurasi.');
         }
 
         $destination->update([
@@ -136,6 +142,13 @@ class DestinationService
     public function moderate(Destination $destination, string $action, ?string $note, User $admin): Destination
     {
         return DB::transaction(function () use ($destination, $action, $note, $admin) {
+            if ($action === 'approve') {
+                $activePackagesCount = $destination->packages()->where('is_active', true)->count();
+                if ($activePackagesCount < 1) {
+                    throw new InvalidArgumentException('Destinasi tidak dapat disetujui tanpa minimal 1 paket aktif.');
+                }
+            }
+
             $newStatus = match ($action) {
                 'approve' => DestinationStatus::PUBLISHED,
                 'revision' => DestinationStatus::REVISION_REQUIRED,
@@ -259,6 +272,62 @@ class DestinationService
         $data['destination_id'] = $destination->id;
 
         return Addon::create($data);
+    }
+
+    /**
+     * Sort gallery media images.
+     */
+    public function sortMedia(Destination $destination, array $order): void
+    {
+        foreach ($order as $index => $mediaId) {
+            DestinationMedia::where('destination_id', $destination->id)
+                ->where('id', $mediaId)
+                ->update(['sort_order' => $index + 1]);
+        }
+    }
+
+    /**
+     * Toggle package active status.
+     */
+    public function togglePackageActive(Package $package): Package
+    {
+        $package->is_active = ! $package->is_active;
+        $package->save();
+
+        AuditLogger::log('toggle_package_active', $package, "Status aktif paket '{$package->name}' diubah menjadi " . ($package->is_active ? 'aktif' : 'nonaktif'));
+
+        return $package;
+    }
+
+    /**
+     * Delete package.
+     */
+    public function deletePackage(Package $package): void
+    {
+        if ($package->destination->packages()->count() <= 1 && $package->destination->status === DestinationStatus::PUBLISHED) {
+            throw new InvalidArgumentException('Destinasi yang sedang tayang harus memiliki minimal 1 paket.');
+        }
+
+        AuditLogger::log('delete_package', $package, "Paket '{$package->name}' dihapus.");
+        $package->delete();
+    }
+
+    /**
+     * Delete addon.
+     */
+    public function deleteAddon(Addon $addon): void
+    {
+        AuditLogger::log('delete_addon', $addon, "Add-on '{$addon->name}' dihapus.");
+        $addon->delete();
+    }
+
+    /**
+     * Delete contact.
+     */
+    public function deleteContact(DestinationContact $contact): void
+    {
+        AuditLogger::log('delete_contact', $contact, "Kontak '{$contact->contact_name}' dihapus.");
+        $contact->delete();
     }
 
     /**

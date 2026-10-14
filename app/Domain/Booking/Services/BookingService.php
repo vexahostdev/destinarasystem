@@ -94,7 +94,15 @@ class BookingService
         // 6. Voucher (if provided)
         $voucher = null;
         if (! empty($data['voucher_code'])) {
-            $voucher = Voucher::where('code', strtoupper($data['voucher_code']))->first();
+            $voucher = Voucher::where('code', strtoupper($data['voucher_code']))
+                ->where('is_active', true)
+                ->where('valid_from', '<=', now())
+                ->where('valid_until', '>=', now())
+                ->first();
+
+            if (! $voucher) {
+                throw new InvalidArgumentException('Kode voucher tidak valid atau telah kedaluwarsa.');
+            }
         }
 
         // 7. Atomic DB Transaction with slot lock
@@ -102,6 +110,22 @@ class BookingService
             $buyer, $institution, $destination, $package, $inquiryType,
             $startDate, $endDate, $pax, $data, $voucher
         ) {
+            if ($voucher) {
+                $lockedVoucher = Voucher::where('id', $voucher->id)->lockForUpdate()->first();
+                if ($lockedVoucher->total_quota !== null && $lockedVoucher->used_count >= $lockedVoucher->total_quota) {
+                    throw new InvalidArgumentException('Kuota pemakaian voucher telah habis.');
+                }
+
+                $userUsage = VoucherRedemption::where('voucher_id', $lockedVoucher->id)
+                    ->where('user_id', $buyer->id)
+                    ->count();
+
+                if ($lockedVoucher->per_user_limit !== null && $userUsage >= $lockedVoucher->per_user_limit) {
+                    throw new InvalidArgumentException('Anda telah mencapai batas penggunaan voucher ini.');
+                }
+                $voucher = $lockedVoucher;
+            }
+
             $pricing = $this->pricingService->calculate(
                 package: $package,
                 pax: $pax,
@@ -195,6 +219,8 @@ class BookingService
                 userId: $buyer->id
             );
 
+            \App\Events\BookingCreated::dispatch($booking);
+
             return $booking;
         });
     }
@@ -269,6 +295,12 @@ class BookingService
             $refundPercent = $overridePercent !== null ? $overridePercent : $refundCalc['percent'];
             $refundAmount = (int) round($lockedBooking->total_amount * ($refundPercent / 100));
 
+            if ($source === 'buyer' && $refundPercent > 0) {
+                if (empty($bankDetails['account_number']) || empty($bankDetails['account_holder'])) {
+                    throw new InvalidArgumentException('Nomor dan nama pemilik rekening pengembalian dana wajib diisi.');
+                }
+            }
+
             $lockedBooking->cancellation_source = $source;
             $lockedBooking->cancel_reason = $reason;
 
@@ -283,27 +315,33 @@ class BookingService
             // Release slots
             $this->availabilityService->releaseSlots($lockedBooking);
 
+            // Restore voucher if unpaid
+            $redemption = VoucherRedemption::where('booking_id', $lockedBooking->id)->first();
+            if ($redemption) {
+                $redemption->voucher?->decrement('used_count');
+                $redemption->delete();
+            }
+
             // Expire pending payments
             Payment::where('booking_id', $lockedBooking->id)
                 ->where('status', PaymentStatus::PENDING)
                 ->update(['status' => PaymentStatus::CANCELLED]);
 
-            // Create refund record if refund amount > 0
+            // Create refund record if refund amount > 0 via RefundService
             if ($refundAmount > 0) {
-                $payment = $lockedBooking->payments()->where('status', PaymentStatus::PAID)->latest()->first();
-
-                Refund::create([
-                    'booking_id' => $lockedBooking->id,
-                    'payment_id' => $payment?->id,
-                    'amount' => $refundAmount,
-                    'percent' => $refundPercent,
-                    'reason' => $reason ?? 'Pembatalan pesanan',
-                    'status' => RefundStatus::PENDING,
-                    'buyer_bank_id' => $bankDetails['bank_id'] ?? null,
-                    'buyer_account_number' => $bankDetails['account_number'] ?? null,
-                    'buyer_account_holder' => $bankDetails['account_holder'] ?? null,
-                ]);
+                app(\App\Domain\Finance\Services\RefundService::class)->create(
+                    booking: $lockedBooking,
+                    amount: $refundAmount,
+                    reason: $reason ?? 'Pembatalan pesanan',
+                    percent: $refundPercent,
+                    bankName: $bankDetails['bank_name'] ?? null,
+                    accountNumber: $bankDetails['account_number'] ?? null,
+                    accountHolder: $bankDetails['account_holder'] ?? null,
+                    buyerBankId: $bankDetails['bank_id'] ?? null
+                );
             }
+
+            \App\Events\BookingCancelled::dispatch($lockedBooking, $reason ?? 'Pembatalan pesanan', $source, $actor);
 
             return $lockedBooking;
         });
@@ -332,6 +370,54 @@ class BookingService
                 note: 'Pemesanan dikonfirmasi oleh pengelola tapak.'
             );
 
+            \App\Events\BookingConfirmed::dispatch($locked, $actor);
+
+            return $locked;
+        });
+    }
+
+    /**
+     * Partner rejects paid booking (SPEC §7.1, §8.6).
+     */
+    public function reject(Booking $booking, User $actor, string $reason): Booking
+    {
+        return DB::transaction(function () use ($booking, $actor, $reason) {
+            $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
+
+            if ($locked->status !== BookingStatus::DIBAYAR) {
+                throw new RuntimeException('Hanya booking yang telah dibayar yang dapat ditolak.');
+            }
+
+            $locked->cancellation_source = 'partner';
+            $locked->cancel_reason = $reason;
+
+            $this->stateMachine->transition(
+                booking: $locked,
+                to: BookingStatus::BATAL,
+                actor: $actor,
+                note: "Ditolak pengelola: {$reason}"
+            );
+
+            // Release held slots
+            $this->availabilityService->releaseSlots($locked);
+
+            // 100% refund initiated
+            app(\App\Domain\Finance\Services\RefundService::class)->create(
+                booking: $locked,
+                amount: $locked->total_amount,
+                reason: "Penolakan oleh pengelola: {$reason}",
+                percent: 100
+            );
+
+            AuditLogger::log(
+                action: 'booking_rejected',
+                target: $locked,
+                description: "Booking {$locked->booking_code} ditolak oleh {$actor->name}. Alasan: {$reason}",
+                userId: $actor->id
+            );
+
+            \App\Events\BookingRejected::dispatch($locked, $reason, $actor);
+
             return $locked;
         });
     }
@@ -351,30 +437,43 @@ class BookingService
                 note: $note ?? 'Kunjungan telah selesai dilaksanakan.'
             );
 
-            // Create eligible Partner Payout record if not already created
+            $locked->completed_at = now();
+            $locked->save();
+
+            // Create eligible Partner Payout record if not already created (SPEC §8.8)
             if (! PartnerPayout::where('booking_id', $locked->id)->exists()) {
                 $delayDays = (int) setting('payout_delay_days', 3);
                 $partner = $locked->destination->partner;
                 $profile = $partner?->partnerProfile;
 
-                $seq = PartnerPayout::count() + 1;
-                $payoutNumber = sprintf('PO/%s/%05d', now()->format('Y/m'), $seq);
+                $payoutNumber = app(\App\Domain\Document\Services\DocumentNumberGenerator::class)->generate(\App\Enums\DocumentType::PAYOUT_RECEIPT);
 
-                PartnerPayout::create([
+                $bankName = $profile?->bank?->name ?? $profile?->bank_name ?? 'Bank Belum Diatur';
+                $hasValidBank = $profile && ! empty($profile->bank_account_number) && ($bankName !== 'Bank Belum Diatur');
+                $initialStatus = $hasValidBank ? PayoutStatus::PENDING : PayoutStatus::ON_HOLD;
+                $initialNote = $hasValidBank
+                    ? "Pencairan dana untuk booking {$locked->booking_code}"
+                    : 'Ditahan otomatis: rekening bank mitra belum dilengkapi di profil.';
+
+                $payout = PartnerPayout::create([
                     'payout_number' => $payoutNumber,
                     'partner_id' => $partner->id,
                     'booking_id' => $locked->id,
                     'gross_amount' => $locked->subtotal_amount,
                     'commission_amount' => $locked->commission_amount,
                     'net_amount' => $locked->partner_net_amount,
-                    'status' => PayoutStatus::PENDING,
+                    'status' => $initialStatus,
                     'eligible_at' => now()->addDays($delayDays),
-                    'bank_name' => $profile?->bank?->name ?? 'Bank Mitra',
+                    'bank_name' => $bankName,
                     'bank_account_number' => $profile?->bank_account_number ?? '-',
                     'bank_account_holder' => $profile?->bank_account_holder ?? '-',
-                    'note' => "Pencairan dana untuk booking {$locked->booking_code}",
+                    'note' => $initialNote,
                 ]);
+
+                \App\Events\PayoutCreated::dispatch($payout);
             }
+
+            \App\Events\BookingCompleted::dispatch($locked, $actor);
 
             return $locked;
         });
@@ -385,7 +484,7 @@ class BookingService
      */
     public function reschedule(Booking $booking, Carbon $newStartDate, User $admin, string $reason): Booking
     {
-        return DB::transaction(function () use ($booking, $newStartDate, $reason) {
+        return DB::transaction(function () use ($booking, $newStartDate, $admin, $reason) {
             $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
 
             if (! in_array($locked->status, [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI])) {
@@ -416,6 +515,8 @@ class BookingService
                 target: $locked,
                 description: "Jadwal booking diubah dari {$oldDates} menjadi {$newStartDate->format('d/m/Y')} - {$newEndDate->format('d/m/Y')}. Alasan: {$reason}"
             );
+
+            \App\Events\BookingRescheduled::dispatch($locked, $oldDates, $admin);
 
             return $locked;
         });

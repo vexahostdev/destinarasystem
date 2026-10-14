@@ -83,9 +83,9 @@ class DocumentService
 
             $pdf = Pdf::loadHTML($pdfView)->setPaper('a4', 'portrait');
 
-            // 4. Save to private storage
+            // 4. Save to private storage (disk local already roots to storage/app/private)
             $yearMonth = now()->format('Y/m');
-            $dir = "private/documents/{$yearMonth}";
+            $dir = "documents/{$yearMonth}";
             $safeDocNum = str_replace(['/', '\\'], '_', $docNumber);
             $fileName = "{$type->value}_{$safeDocNum}_{$hash}.pdf";
             $filePath = "{$dir}/{$fileName}";
@@ -110,6 +110,98 @@ class DocumentService
                 action: 'document_generated',
                 target: $document,
                 description: "Dokumen {$type->label()} nomor {$docNumber} berhasil di-generate untuk booking {$booking->booking_code}.",
+                userId: $actor?->id
+            );
+
+            return $document;
+        });
+    }
+
+    /**
+     * Generate PDF payout receipt document for a partner payout (SPEC §11).
+     */
+    public function generateForPayout(
+        \App\Models\PartnerPayout $payout,
+        ?User $actor = null
+    ): Document {
+        return DB::transaction(function () use ($payout, $actor) {
+            $docNumber = $this->numberGenerator->generate(DocumentType::PAYOUT_RECEIPT);
+            $hash = bin2hex(random_bytes(16));
+            $type = DocumentType::PAYOUT_RECEIPT;
+
+            // 1. Prepare Verification QR
+            $verifyUrl = route('verification.document', ['hash' => $hash]);
+            $qrSvg = QrCode::format('svg')->size(75)->generate($verifyUrl);
+            $qrVerificationBase64 = base64_encode($qrSvg);
+
+            // 2. Prepare Template & Body
+            $template = DocumentTemplate::where('type', $type->value)
+                ->where('is_active', true)
+                ->first();
+
+            $bodyHtml = $template ? $template->body : '<p>Bukti pencairan dana kemitraan Destinara.</p>';
+            $title = $template ? $template->title : $type->label();
+
+            $partner = $payout->partner;
+            $profile = $partner?->partnerProfile;
+
+            $replacements = [
+                '{{payout.number}}' => $payout->payout_number,
+                '{{payout.gross_amount}}' => 'Rp ' . number_format($payout->gross_amount, 0, ',', '.'),
+                '{{payout.commission_amount}}' => 'Rp ' . number_format($payout->commission_amount, 0, ',', '.'),
+                '{{payout.net_amount}}' => 'Rp ' . number_format($payout->net_amount, 0, ',', '.'),
+                '{{payout.bank_name}}' => $payout->bank_name ?? '-',
+                '{{payout.bank_account_number}}' => $payout->bank_account_number ?? '-',
+                '{{payout.bank_account_holder}}' => $payout->bank_account_holder ?? '-',
+                '{{payout.transferred_at}}' => $payout->transferred_at ? $payout->transferred_at->format('d/m/Y H:i') : now()->format('d/m/Y H:i'),
+                '{{partner.name}}' => $partner->name,
+                '{{partner.organization}}' => $profile?->organization_name ?? $partner->name,
+                '{{booking.code}}' => $payout->booking ? $payout->booking->booking_code : '-',
+            ];
+
+            $bodyHtml = str_replace(array_keys($replacements), array_values($replacements), $bodyHtml);
+
+            // 3. Render DomPDF
+            $pdfView = view('pdf.layout', [
+                'title' => $title,
+                'documentNumber' => $docNumber,
+                'dateIssued' => now()->translatedFormat('d F Y'),
+                'statusLabel' => $type->label(),
+                'isDraft' => false,
+                'qrVerification' => $qrVerificationBase64,
+                'body' => $bodyHtml,
+            ])->render();
+
+            $pdf = Pdf::loadHTML($pdfView)->setPaper('a4', 'portrait');
+
+            // 4. Save to private storage
+            $yearMonth = now()->format('Y/m');
+            $dir = "documents/{$yearMonth}";
+            $safeDocNum = str_replace(['/', '\\'], '_', $docNumber);
+            $fileName = "{$type->value}_{$safeDocNum}_{$hash}.pdf";
+            $filePath = "{$dir}/{$fileName}";
+
+            Storage::disk('local')->put($filePath, $pdf->output());
+
+            // 5. Create Document Record
+            $document = Document::create([
+                'booking_id' => $payout->booking_id,
+                'payout_id' => $payout->id,
+                'type' => $type,
+                'document_number' => $docNumber,
+                'title' => $title,
+                'file_path' => $filePath,
+                'verification_hash' => $hash,
+                'status' => DocumentStatus::FINAL,
+                'generated_at' => now(),
+                'generated_by' => $actor?->id,
+                'version' => 1,
+            ]);
+
+            AuditLogger::log(
+                action: 'document_generated',
+                target: $document,
+                description: "Bukti transfer payout nomor {$docNumber} berhasil di-generate untuk {$payout->payout_number}.",
                 userId: $actor?->id
             );
 

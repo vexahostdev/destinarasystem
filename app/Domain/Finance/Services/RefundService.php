@@ -12,8 +12,68 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
+use App\Enums\PaymentStatus;
+use App\Events\RefundCompleted;
+use App\Events\RefundCreated;
+use App\Models\Booking;
+use App\Models\Payment;
+
 class RefundService
 {
+    /**
+     * Create a new refund record for a booking (SPEC §8.4, §9.5).
+     */
+    public function create(
+        Booking $booking,
+        int $amount,
+        string $reason,
+        int $percent = 100,
+        ?int $paymentId = null,
+        ?string $bankName = null,
+        ?string $accountNumber = null,
+        ?string $accountHolder = null,
+        ?int $buyerBankId = null
+    ): Refund {
+        return DB::transaction(function () use (
+            $booking, $amount, $reason, $percent, $paymentId,
+            $bankName, $accountNumber, $accountHolder, $buyerBankId
+        ) {
+            $payment = $paymentId
+                ? Payment::find($paymentId)
+                : $booking->payments()->where('status', PaymentStatus::PAID)->latest()->first();
+
+            $refund = Refund::create([
+                'booking_id' => $booking->id,
+                'payment_id' => $payment?->id,
+                'amount' => $amount,
+                'percent' => $percent,
+                'reason' => $reason,
+                'status' => RefundStatus::PENDING,
+                'buyer_bank_id' => $buyerBankId,
+                'buyer_account_number' => $accountNumber,
+                'buyer_account_holder' => $accountHolder,
+            ]);
+
+            // Put partner payout on hold if already generated
+            PartnerPayout::where('booking_id', $booking->id)
+                ->whereIn('status', [PayoutStatus::PENDING, PayoutStatus::SCHEDULED])
+                ->update([
+                    'status' => PayoutStatus::ON_HOLD,
+                    'note' => 'Ditahan karena terdapat pengajuan refund untuk booking ini.',
+                ]);
+
+            RefundCreated::dispatch($refund);
+
+            AuditLogger::log(
+                action: 'refund_created',
+                target: $refund,
+                description: 'Refund sebesar Rp '.number_format($amount, 0, ',', '.')." dibuat untuk booking {$booking->booking_code} ({$reason})."
+            );
+
+            return $refund;
+        });
+    }
+
     /**
      * Admin processes a pending refund and uploads transfer proof.
      */
@@ -30,7 +90,7 @@ class RefundService
         return DB::transaction(function () use ($refund, $admin, $proofFile, $note) {
             $lockedRefund = Refund::where('id', $refund->id)->lockForUpdate()->first();
 
-            $dir = 'private/refunds/'.now()->format('Y/m');
+            $dir = 'refunds/'.now()->format('Y/m');
             $fileName = "refund_{$lockedRefund->id}_".uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, $fileName, 'local');
 
@@ -47,6 +107,8 @@ class RefundService
             PartnerPayout::where('booking_id', $lockedRefund->booking_id)
                 ->where('status', PayoutStatus::PENDING)
                 ->update(['status' => PayoutStatus::ON_HOLD, 'note' => 'Ditahan karena terdapat pengembalian dana (refund) untuk pemesan.']);
+
+            RefundCompleted::dispatch($lockedRefund);
 
             AuditLogger::log(
                 action: 'refund_completed',

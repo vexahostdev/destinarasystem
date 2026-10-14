@@ -3,9 +3,13 @@
 namespace App\Domain\Finance\Services;
 
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Document\Services\DocumentNumberGenerator;
 use App\Enums\BookingStatus;
+use App\Enums\DocumentType;
 use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
+use App\Events\PayoutCreated;
+use App\Events\PayoutTransferred;
 use App\Models\Booking;
 use App\Models\PartnerPayout;
 use App\Models\User;
@@ -15,6 +19,10 @@ use InvalidArgumentException;
 
 class PayoutService
 {
+    public function __construct(
+        protected DocumentNumberGenerator $numberGenerator
+    ) {}
+
     /**
      * Generate payouts for completed bookings that have passed eligibility delay (SPEC §8.8).
      */
@@ -38,25 +46,31 @@ class PayoutService
                 $partner = $booking->destination->partner;
                 $profile = $partner?->partnerProfile;
 
-                $seq = PartnerPayout::whereYear('created_at', now()->year)
-                    ->whereMonth('created_at', now()->month)
-                    ->count() + 1;
-                $payoutNumber = sprintf('PO/%s/%05d', now()->format('Y/m'), $seq);
+                $payoutNumber = $this->numberGenerator->generate(DocumentType::PAYOUT_RECEIPT);
 
-                PartnerPayout::create([
+                $bankName = $profile?->bank?->name ?? $profile?->bank_name ?? 'Bank Belum Diatur';
+                $hasValidBank = $profile && ! empty($profile->bank_account_number) && ($bankName !== 'Bank Belum Diatur');
+                $initialStatus = $hasValidBank ? PayoutStatus::PENDING : PayoutStatus::ON_HOLD;
+                $initialNote = $hasValidBank
+                    ? "Pencairan dana untuk booking {$booking->booking_code}"
+                    : 'Ditahan otomatis: rekening bank mitra belum dilengkapi di profil.';
+
+                $payout = PartnerPayout::create([
                     'payout_number' => $payoutNumber,
                     'partner_id' => $partner->id,
                     'booking_id' => $booking->id,
                     'gross_amount' => $booking->subtotal_amount,
                     'commission_amount' => $booking->commission_amount,
                     'net_amount' => $booking->partner_net_amount,
-                    'status' => PayoutStatus::PENDING,
+                    'status' => $initialStatus,
                     'eligible_at' => now(),
-                    'bank_name' => $profile?->bank?->name ?? 'Bank Mitra',
+                    'bank_name' => $bankName,
                     'bank_account_number' => $profile?->bank_account_number ?? '-',
                     'bank_account_holder' => $profile?->bank_account_holder ?? '-',
-                    'note' => "Pencairan dana untuk booking {$booking->booking_code}",
+                    'note' => $initialNote,
                 ]);
+
+                PayoutCreated::dispatch($payout);
 
                 $count++;
             });
@@ -81,7 +95,7 @@ class PayoutService
         return DB::transaction(function () use ($payout, $admin, $proofFile, $note) {
             $lockedPayout = PartnerPayout::where('id', $payout->id)->lockForUpdate()->first();
 
-            $dir = 'private/payouts/'.now()->format('Y/m');
+            $dir = 'payouts/'.now()->format('Y/m');
             $fileName = "payout_{$lockedPayout->payout_number}_".uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, str_replace('/', '_', $fileName), 'local');
 
@@ -93,6 +107,8 @@ class PayoutService
                 $lockedPayout->note = $note;
             }
             $lockedPayout->save();
+
+            PayoutTransferred::dispatch($lockedPayout, $admin);
 
             AuditLogger::log(
                 action: 'payout_transferred',
@@ -115,7 +131,7 @@ class PayoutService
         ?string $note = null
     ): int {
         return DB::transaction(function () use ($payoutIds, $admin, $proofFile, $note) {
-            $dir = 'private/payouts/'.now()->format('Y/m');
+            $dir = 'payouts/'.now()->format('Y/m');
             $fileName = 'payout_batch_'.uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, $fileName, 'local');
 
@@ -136,6 +152,8 @@ class PayoutService
                     $payout->note = $note;
                 }
                 $payout->save();
+
+                PayoutTransferred::dispatch($payout, $admin);
 
                 AuditLogger::log(
                     action: 'payout_transferred_batch',
