@@ -386,6 +386,15 @@ return [
             'permission' => 'settings.payment',
         ],
         [
+            'key' => 'min_payment_amount',
+            'label' => 'Nominal Minimum Pembayaran Gateway (IDR)',
+            'group' => 'payment',
+            'type' => 'int',
+            'default' => 10000,
+            'rules' => 'required|integer|min:1000',
+            'permission' => 'settings.payment',
+        ],
+        [
             'key' => 'xendit_secret_key',
             'label' => 'Xendit Secret API Key',
             'group' => 'payment',

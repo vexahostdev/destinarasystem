@@ -203,7 +203,7 @@
                     @foreach($auditLogs as $a)
                     <tr class="hover:bg-[#faf6f0]/50">
                         <td class="py-2.5 text-[#2B211E]/60 whitespace-nowrap">{{ $a->created_at->format('d/m/Y H:i:s') }}</td>
-                        <td class="py-2.5 font-sans font-semibold text-[#2B211E]">{{ $a->user->name ?? 'Admin Operasional' }}</td>
+                        <td class="py-2.5 font-sans font-semibold text-[#2B211E]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</td>
                         <td class="py-2.5 font-bold text-[#703A3A] uppercase">{{ $a->action }}</td>
                         <td class="py-2.5 font-sans text-[#2B211E]/80">{{ $a->description }}</td>
                         <td class="py-2.5 text-right text-[#2B211E]/50">{{ $a->ip_address }}</td>

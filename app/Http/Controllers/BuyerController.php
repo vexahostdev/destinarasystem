@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Catalog\Services\ReviewService;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\VerificationStatus;
 use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class BuyerController extends Controller
 {
@@ -312,7 +315,7 @@ class BuyerController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $institution = $user->institution;
+        $institution = $user->institution()->first();
 
         return view('buyer.profile', compact('user', 'institution'));
     }
@@ -358,6 +361,102 @@ class BuyerController extends Controller
 
         return redirect()->route('buyer.profile')
             ->with('success', 'Profil institusi dan legalitas penanggung jawab berhasil diperbarui.');
+    }
+
+    /**
+     * Unggah Dokumen Pendukung Institusi
+     */
+    public function uploadDocument(Request $request)
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $request->validate([
+            'type' => 'required|in:kop_surat,sk_pendirian,surat_tugas,lainnya',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = $request->file('file')->store("institution_documents/{$institution->id}", 'local');
+
+        $institution->documents()->create([
+            'type' => $request->type,
+            'file_path' => $path,
+            'original_name' => $request->file('file')->getClientOriginalName(),
+        ]);
+
+        if ($request->type === 'kop_surat') {
+            $institution->update(['letterhead_path' => $path]);
+        }
+
+        return redirect()->back()->with('success', 'Dokumen pendukung berhasil diunggah.');
+    }
+
+    /**
+     * Hapus Dokumen Pendukung Institusi
+     */
+    public function deleteDocument($id)
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $doc = $institution->documents()->findOrFail($id);
+        Storage::disk('local')->delete($doc->file_path);
+        if ($institution->letterhead_path === $doc->file_path) {
+            $institution->update(['letterhead_path' => null]);
+        }
+        $doc->delete();
+
+        return redirect()->back()->with('success', 'Dokumen pendukung berhasil dihapus.');
+    }
+
+    /**
+     * Unduh Dokumen Pendukung Institusi
+     */
+    public function downloadDocument($id)
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $doc = $institution->documents()->findOrFail($id);
+
+        if (! Storage::disk('local')->exists($doc->file_path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($doc->file_path, $doc->original_name);
+    }
+
+    /**
+     * Ajukan Verifikasi Institusi ke Administrator
+     */
+    public function submitVerification()
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $institution->verification_status = VerificationStatus::PENDING;
+        $institution->save();
+
+        AuditLogger::log(
+            action: 'submit_institution_verification',
+            target: $institution,
+            description: "Institusi '{$institution->institution_name}' mengajukan verifikasi legalitas.",
+            userId: $user->id
+        );
+
+        return redirect()->back()->with('success', 'Pengajuan verifikasi institusi berhasil dikirimkan ke administrator.');
     }
 
     /**

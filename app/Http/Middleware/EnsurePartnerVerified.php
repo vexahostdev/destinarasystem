@@ -16,7 +16,7 @@ class EnsurePartnerVerified
         $user = $request->user();
 
         if ($user && $user->isPartner()) {
-            $profile = $user->partnerProfile;
+            $profile = $user->partnerProfile()->first();
 
             if (! $profile || ! $profile->isVerified()) {
                 if ($request->expectsJson()) {

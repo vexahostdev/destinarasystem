@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Booking\Services\CheckInService;
 use App\Domain\Catalog\Services\AvailabilityCalendarService;
 use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Catalog\Services\ReviewService;
+use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
@@ -702,7 +704,7 @@ class PartnerController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $profile = $user->partnerProfile ?? PartnerProfile::firstOrCreate(['user_id' => $user->id], [
+        $profile = $user->partnerProfile()->first() ?? PartnerProfile::firstOrCreate(['user_id' => $user->id], [
             'organization_name' => $user->name,
         ]);
 
@@ -804,9 +806,9 @@ class PartnerController extends Controller
     }
 
     /**
-     * Ajukan Verifikasi Akun Mitra ke Administrator
+     * Unduh Dokumen Legalitas Mitra
      */
-    public function submitVerification()
+    public function downloadLegalDocument($id)
     {
         $user = Auth::user();
         $profile = $user->partnerProfile;
@@ -814,8 +816,49 @@ class PartnerController extends Controller
             abort(403);
         }
 
+        $doc = $profile->documents()->findOrFail($id);
+
+        if (! Storage::disk('local')->exists($doc->file_path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($doc->file_path, $doc->original_name);
+    }
+
+    /**
+     * Ajukan Verifikasi Akun Mitra ke Administrator
+     */
+    public function submitVerification(NotificationDispatcher $dispatcher)
+    {
+        $user = Auth::user();
+        $profile = $user->partnerProfile;
+        if (! $profile) {
+            abort(403);
+        }
+
+        // Validate that profile, bank account, and at least 1 document are complete
+        if (empty($profile->organization_name) || empty($profile->bank_id) || empty($profile->bank_account_number) || empty($profile->bank_account_holder)) {
+            return redirect()->back()->with('error', 'Silakan lengkapi identitas organisasi dan rekening payout sebelum mengajukan verifikasi.');
+        }
+
+        if ($profile->documents()->count() === 0) {
+            return redirect()->back()->with('error', 'Silakan unggah minimal satu dokumen legalitas (SK/KTP/NPWP) sebelum mengajukan verifikasi.');
+        }
+
         $profile->verification_status = VerificationStatus::PENDING;
         $profile->save();
+
+        AuditLogger::log(
+            action: 'submit_partner_verification',
+            target: $profile,
+            description: "Mitra '{$profile->organization_name}' mengajukan verifikasi legalitas.",
+            userId: $user->id
+        );
+
+        $dispatcher->send('partner.submitted', [
+            'organization_name' => $profile->organization_name,
+            'partner_name' => $user->name,
+        ], ['admin']);
 
         return redirect()->back()->with('success', 'Pengajuan verifikasi berhasil dikirimkan ke administrator. Kami akan memproses verifikasi berkas legalitas Anda.');
     }

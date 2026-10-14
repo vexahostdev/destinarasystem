@@ -98,6 +98,10 @@ Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:b
     // 6. Profil Institusi & Dokumen Pendukung
     Route::get('/profil', [BuyerController::class, 'profile'])->name('profile');
     Route::post('/profil/update', [BuyerController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profil/dokumen', [BuyerController::class, 'uploadDocument'])->name('profile.document.upload');
+    Route::post('/profil/dokumen/{id}/delete', [BuyerController::class, 'deleteDocument'])->name('profile.document.delete');
+    Route::get('/profil/dokumen/{id}/download', [BuyerController::class, 'downloadDocument'])->name('profile.document.download');
+    Route::post('/profil/ajukan-verifikasi', [BuyerController::class, 'submitVerification'])->name('profile.submitVerification');
 
     // 7. Wishlist Tapak Edukasi
     Route::get('/wishlist', [BuyerController::class, 'wishlist'])->name('wishlist');
@@ -148,6 +152,7 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
     Route::post('/profil/update', [PartnerController::class, 'updateProfile'])->name('profile.update');
     Route::post('/profil/dokumen', [PartnerController::class, 'uploadLegalDocument'])->name('profile.document.upload');
     Route::post('/profil/dokumen/{id}/delete', [PartnerController::class, 'deleteLegalDocument'])->name('profile.document.delete');
+    Route::get('/profil/dokumen/{id}/download', [PartnerController::class, 'downloadLegalDocument'])->name('profile.document.download');
     Route::post('/profil/ajukan-verifikasi', [PartnerController::class, 'submitVerification'])->name('profile.submitVerification');
 
     // 4. Pusat Notifikasi Mitra (Database Notifications)
@@ -259,6 +264,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     // 4. Pengguna & Validasi Legalitas
     Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->middleware('can:institutions.verify')->name('users.verify');
     Route::post('/verifikasi-pengguna/{type}/{id}', [AdminController::class, 'updateUserVerification'])->middleware('can:institutions.verify')->name('users.updateVerification');
+    Route::get('/verifikasi-pengguna/mitra/dokumen/{id}', [AdminController::class, 'downloadPartnerDocument'])->middleware('can:partners.verify')->name('users.partnerDocument.download');
+    Route::get('/verifikasi-pengguna/institusi/dokumen/{id}', [AdminController::class, 'downloadInstitutionDocument'])->middleware('can:institutions.verify')->name('users.institutionDocument.download');
     Route::get('/pengguna', [UserController::class, 'index'])->middleware('can:users.view')->name('users.index');
     Route::post('/pengguna/{user}/status', [UserController::class, 'toggleStatus'])->middleware('can:users.manage')->name('users.toggleStatus');
     Route::post('/pengguna/{user}/reset-password', [UserController::class, 'sendPasswordReset'])->middleware('can:users.manage')->name('users.sendPasswordReset');

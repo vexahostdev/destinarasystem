@@ -1142,6 +1142,27 @@ class NotificationTemplateSeeder extends Seeder
                 'subject' => 'Verifikasi Kemitraan Ditolak',
                 'body' => "Verifikasi kemitraan '{{organization_name}}' ditolak: {{reason}}.",
             ],
+            [
+                'event_key' => 'partner.submitted',
+                'channel' => 'mail',
+                'audience' => 'admin',
+                'subject' => 'Pengajuan Verifikasi Mitra Baru: {{organization_name}}',
+                'body' => "Halo Admin Destinara,\n\nMitra {{organization_name}} (PIC: {{partner_name}}) telah mengajukan dokumen legalitas untuk diverifikasi.\n\nSilakan periksa di Konsol Admin.\n\nTim Destinara",
+            ],
+            [
+                'event_key' => 'partner.submitted',
+                'channel' => 'whatsapp',
+                'audience' => 'admin',
+                'subject' => null,
+                'body' => "Mitra *{{organization_name}}* (PIC: {{partner_name}}) telah mengajukan berkas legalitas untuk verifikasi. Segera periksa di konsol admin.",
+            ],
+            [
+                'event_key' => 'partner.submitted',
+                'channel' => 'database',
+                'audience' => 'admin',
+                'subject' => 'Pengajuan Verifikasi Mitra',
+                'body' => "Mitra '{{organization_name}}' telah mengajukan verifikasi berkas legalitas.",
+            ],
 
             // =========================================================================
             // 20. institution.verified & institution.rejected (buyer)

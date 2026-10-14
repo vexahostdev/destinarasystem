@@ -65,13 +65,19 @@
             </div>
             <div class="flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $pendingVerifications }}</span>
-                <span class="text-xs text-blue-800 font-medium">Pengguna</span>
+                <span class="text-xs text-blue-800 font-medium">Menunggu Validasi</span>
             </div>
-            <p class="text-[11px] text-gray-400 mt-2">NPSN Kemdikbud & SK Lembaga</p>
-            <a href="{{ route('admin.users.verify') }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#703A3A] mt-3 hover:underline">
-                <span>Periksa dokumen</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-            </a>
+            <p class="text-[11px] text-gray-500 mt-2">{{ $unverifiedTotal }} akun terdaftar belum mengajukan berkas</p>
+            <div class="flex items-center gap-3 mt-3 text-xs font-bold text-[#703A3A]">
+                <a href="{{ route('admin.users.verify', ['tab' => 'partners', 'status' => 'pending']) }}" class="hover:underline flex items-center gap-1">
+                    <span>Validasi</span>
+                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </a>
+                <span class="text-gray-300">•</span>
+                <a href="{{ route('admin.users.verify', ['tab' => 'partners', 'status' => 'unverified']) }}" class="text-gray-500 hover:underline">
+                    Daftar Belum Verifikasi
+                </a>
+            </div>
         </div>
 
         <!-- Card 3: Active Bookings -->
@@ -105,7 +111,7 @@
                 <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $failedNotifs }}</span>
                 <span class="text-xs text-rose-700 font-medium">Gagal Kirim</span>
             </div>
-            <p class="text-[11px] text-gray-400 mt-2">Gateway Fonnte & Mailgun</p>
+            <p class="text-[11px] text-gray-400 mt-2">Gateway VexaHost & Brevo</p>
             <a href="{{ route('admin.notifications.index', ['status' => 'failed']) }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#703A3A] mt-3 hover:underline">
                 <span>Tinjau queue error</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -273,7 +279,7 @@
                     @foreach($auditTrail as $a)
                     <div class="text-xs space-y-1 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-[#1E1B1B]">{{ $a->user->name ?? 'Admin Operasional' }}</span>
+                            <span class="font-bold text-[#1E1B1B]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</span>
                             <span class="text-[10px] text-gray-400 font-mono">{{ $a->created_at->diffForHumans() }}</span>
                         </div>
                         <p class="text-gray-600 leading-relaxed">{{ $a->description }}</p>

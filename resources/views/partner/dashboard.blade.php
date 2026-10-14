@@ -11,7 +11,15 @@
             <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#51634b] mb-1">
                 <span class="material-symbols-outlined text-[16px]">holiday_village</span>
                 <span>{{ $profile->organization_name ?? (Auth::user()->name ?? 'Lembaga Pengelola Adat') }}</span>
-                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/50">Terverifikasi</span>
+                @if($profile->isVerified())
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200/50">Terverifikasi</span>
+                @elseif($profile->verification_status === \App\Enums\VerificationStatus::PENDING)
+                    <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[10px] font-bold border border-blue-200/50">Menunggu Validasi</span>
+                @elseif($profile->verification_status === \App\Enums\VerificationStatus::REJECTED)
+                    <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-800 text-[10px] font-bold border border-red-200/50">Perlu Perbaikan</span>
+                @else
+                    <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold border border-gray-200">Belum Terverifikasi</span>
+                @endif
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B] tracking-tight">Panel Pengelola Tapak Adat</h1>
             <p class="text-xs sm:text-sm text-gray-500 mt-1">
@@ -30,6 +38,38 @@
             </a>
         </div>
     </div>
+
+    <!-- Banner Peringatan Akun Belum Terverifikasi -->
+    @if(!$profile->isVerified())
+    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-amber-600 text-2xl shrink-0 mt-0.5">warning</span>
+            <div>
+                <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                    @if($profile->verification_status === \App\Enums\VerificationStatus::PENDING)
+                        Dokumen Legalitas Sedang Ditinjau Administrator
+                    @elseif($profile->verification_status === \App\Enums\VerificationStatus::REJECTED)
+                        Pengajuan Kemitraan Memerlukan Revisi
+                    @else
+                        Akun Belum Terverifikasi
+                    @endif
+                </h4>
+                <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                    @if($profile->verification_status === \App\Enums\VerificationStatus::PENDING)
+                        Pengajuan verifikasi berkas legalitas lembaga Anda sedang dalam proses telaah oleh tim Destinara.
+                    @elseif($profile->verification_status === \App\Enums\VerificationStatus::REJECTED)
+                        Catatan administrator: {{ $profile->verification_note ?? 'Silakan perbarui dokumen legalitas Anda.' }}
+                    @else
+                        Lengkapi profil organisasi, rekening payout, dan unggah dokumen legalitas (SK/KTP/NPWP) untuk dapat mempublikasikan destinasi.
+                    @endif
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('mitra.profile') }}" class="px-4 py-2 bg-[#703A3A] hover:bg-[#5a2e2e] text-white rounded-full text-xs font-bold uppercase tracking-wider shrink-0 text-center shadow-xs">
+            Lengkapi Profil & Berkas
+        </a>
+    </div>
+    @endif
 
     <!-- 4 Metric Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -93,7 +133,7 @@
                 <span class="material-symbols-outlined text-amber-600 text-[22px]">error</span>
                 <h2 class="text-lg font-bold text-[#1E1B1B]">Permohonan Rombongan Masuk (Perlu Tindakan)</h2>
             </div>
-            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Maks. 1x24 Jam</span>
+            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Maks. {{ (int) setting('partner_confirm_sla_hours', 48) }} Jam</span>
         </div>
 
         <div class="space-y-3">
@@ -105,7 +145,7 @@
                         <span class="text-gray-300">•</span>
                         <span class="font-bold text-[#1E1B1B]">{{ $booking->institution->institution_name }}</span>
                         <span class="px-2.5 py-0.5 rounded-full bg-[#703A3A]/10 text-[#703A3A] text-[10px] font-bold uppercase">
-                            {{ $booking->inquiry_type === 'study_tour' ? 'Study Tour P5' : 'Penelitian Lapangan' }}
+                            {{ $booking->inquiry_type->label() }}
                         </span>
                     </div>
 
@@ -114,7 +154,7 @@
                         <span>•</span>
                         <span>Tanggal: <strong>{{ \Carbon\Carbon::parse($booking->planned_date_start)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($booking->planned_date_end)->translatedFormat('d M Y') }}</strong></span>
                         <span>•</span>
-                        <span>Estimasi Payout: <strong class="text-[#51634b]">Rp {{ number_format($booking->subtotal_amount * 0.9, 0, ',', '.') }}</strong></span>
+                        <span>Estimasi Payout: <strong class="text-[#51634b]">Rp {{ number_format($booking->partner_payout_amount ?? ($booking->subtotal_amount * (1 - ($profile->commission_percent_override ?? setting('default_commission_percent', 10)) / 100)), 0, ',', '.') }}</strong></span>
                     </div>
 
                     @if($booking->purpose_notes)

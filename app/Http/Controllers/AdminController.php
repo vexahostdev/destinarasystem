@@ -13,6 +13,7 @@ use App\Enums\DestinationStatus;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\RefundStatus;
+use App\Enums\VerificationStatus;
 use App\Events\InstitutionRejected;
 use App\Events\InstitutionVerified;
 use App\Events\PartnerRejected;
@@ -29,9 +30,11 @@ use App\Models\DestinationContact;
 use App\Models\DestinationMedia;
 use App\Models\Facility;
 use App\Models\Institution;
+use App\Models\InstitutionDocument;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\Package;
+use App\Models\PartnerDocument;
 use App\Models\PartnerProfile;
 use App\Models\Province;
 use App\Models\Refund;
@@ -39,6 +42,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdminController extends Controller
@@ -60,9 +64,12 @@ class AdminController extends Controller
         $bookingsToday = Booking::whereDate('created_at', $today)->count();
         $waitingPartnerSla = Booking::where('status', BookingStatus::DIBAYAR)->count();
         $pendingDestinations = Destination::where('status', DestinationStatus::PENDING_REVIEW)->count();
-        $pendingInstitutions = Institution::where('verification_status', 'pending')->count();
-        $pendingPartners = PartnerProfile::where('verification_status', 'pending')->count();
+        $pendingInstitutions = Institution::where('verification_status', VerificationStatus::PENDING)->count();
+        $pendingPartners = PartnerProfile::where('verification_status', VerificationStatus::PENDING)->count();
         $pendingVerifications = $pendingInstitutions + $pendingPartners;
+        $unverifiedInstitutions = Institution::where('verification_status', VerificationStatus::UNVERIFIED)->count();
+        $unverifiedPartners = PartnerProfile::where('verification_status', VerificationStatus::UNVERIFIED)->count();
+        $unverifiedTotal = $unverifiedInstitutions + $unverifiedPartners;
         $failedNotifs = NotificationLog::where('status', NotificationStatus::FAILED)->count();
         $pendingRefunds = Refund::where('status', RefundStatus::PENDING)->count();
 
@@ -151,6 +158,7 @@ class AdminController extends Controller
             'waitingPartnerSla',
             'pendingDestinations',
             'pendingVerifications',
+            'unverifiedTotal',
             'failedNotifs',
             'pendingRefunds',
             'gmvToday',
@@ -557,26 +565,40 @@ class AdminController extends Controller
     public function verifyUsers(Request $request)
     {
         $tab = $request->query('tab', 'institutions');
+        $status = $request->query('status');
 
-        $institutions = Institution::with(['user', 'documents'])->latest('id')->paginate(15, ['*'], 'inst_page');
-        $partners = PartnerProfile::with(['user', 'documents', 'bank'])->latest('id')->paginate(15, ['*'], 'partner_page');
+        $institutionsQuery = Institution::with(['user', 'documents'])->latest('id');
+        $partnersQuery = PartnerProfile::with(['user', 'documents', 'bank'])->latest('id');
 
-        $pendingInstitutionsCount = Institution::where('verification_status', 'pending')->count();
-        $pendingPartnersCount = PartnerProfile::where('verification_status', 'pending')->count();
+        if ($status && in_array($status, ['pending', 'verified', 'unverified', 'rejected'], true)) {
+            $institutionsQuery->where('verification_status', $status);
+            $partnersQuery->where('verification_status', $status);
+        }
+
+        $institutions = $institutionsQuery->paginate(15, ['*'], 'inst_page');
+        $partners = $partnersQuery->paginate(15, ['*'], 'partner_page');
+
+        $pendingInstitutionsCount = Institution::where('verification_status', VerificationStatus::PENDING)->count();
+        $pendingPartnersCount = PartnerProfile::where('verification_status', VerificationStatus::PENDING)->count();
+        $unverifiedInstitutionsCount = Institution::where('verification_status', VerificationStatus::UNVERIFIED)->count();
+        $unverifiedPartnersCount = PartnerProfile::where('verification_status', VerificationStatus::UNVERIFIED)->count();
 
         return view('admin.users.verify', compact(
             'institutions',
             'partners',
             'tab',
+            'status',
             'pendingInstitutionsCount',
-            'pendingPartnersCount'
+            'pendingPartnersCount',
+            'unverifiedInstitutionsCount',
+            'unverifiedPartnersCount'
         ));
     }
 
     public function updateUserVerification(Request $request, $type, $id)
     {
         $action = $request->input('action', 'verify'); // verify or reject
-        $status = ($action === 'verify') ? 'verified' : 'rejected';
+        $status = ($action === 'verify') ? VerificationStatus::VERIFIED : VerificationStatus::REJECTED;
         $note = $request->input('note');
 
         if ($type === 'institution') {
@@ -593,7 +615,7 @@ class AdminController extends Controller
             AuditLogger::log(
                 action: ($action === 'verify') ? 'verify_institution' : 'reject_institution',
                 target: $inst,
-                description: "Verifikasi institusi '{$inst->institution_name}' diset menjadi {$status}."
+                description: "Verifikasi institusi '{$inst->institution_name}' diset menjadi {$status->value}."
             );
 
             if ($action === 'verify') {
@@ -618,7 +640,7 @@ class AdminController extends Controller
             AuditLogger::log(
                 action: ($action === 'verify') ? 'verify_partner' : 'reject_partner',
                 target: $partner,
-                description: "Verifikasi lembaga mitra '{$partner->organization_name}' diset menjadi {$status}."
+                description: "Verifikasi lembaga mitra '{$partner->organization_name}' diset menjadi {$status->value}."
             );
 
             if ($action === 'verify') {
@@ -629,6 +651,42 @@ class AdminController extends Controller
 
             return back()->with('success', "Status verifikasi lembaga mitra {$partner->organization_name} diperbarui.");
         }
+    }
+
+    /**
+     * Unduh Dokumen Legalitas Mitra untuk Verifikasi Admin
+     */
+    public function downloadPartnerDocument($id)
+    {
+        if (! Auth::user()->can('partners.verify')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengunduh dokumen legalitas mitra.');
+        }
+
+        $doc = PartnerDocument::findOrFail($id);
+
+        if (! Storage::disk('local')->exists($doc->file_path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($doc->file_path, $doc->original_name);
+    }
+
+    /**
+     * Unduh Dokumen Pendukung Institusi untuk Verifikasi Admin
+     */
+    public function downloadInstitutionDocument($id)
+    {
+        if (! Auth::user()->can('institutions.verify')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengunduh dokumen institusi pemesan.');
+        }
+
+        $doc = InstitutionDocument::findOrFail($id);
+
+        if (! Storage::disk('local')->exists($doc->file_path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($doc->file_path, $doc->original_name);
     }
 
     /**

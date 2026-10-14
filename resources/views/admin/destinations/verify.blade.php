@@ -58,10 +58,7 @@
     @else
         <div class="space-y-6">
             @foreach($destinations as $d)
-            @php
-                $statusVal = $d->status->value ?? (string)$d->status;
-            @endphp
-            <div class="rgs-card bg-white p-6 transition-all hover:shadow-md border-l-4 {{ $statusVal === 'pending_review' ? 'border-l-amber-600' : ($statusVal === 'published' ? 'border-l-emerald-600' : 'border-l-gray-400') }}">
+            <div class="rgs-card bg-white p-6 transition-all hover:shadow-md border-l-4 {{ $d->status === \App\Enums\DestinationStatus::PENDING_REVIEW ? 'border-l-amber-600' : ($d->status === \App\Enums\DestinationStatus::PUBLISHED ? 'border-l-emerald-600' : 'border-l-gray-400') }}">
                 <div class="flex flex-col lg:flex-row items-start justify-between gap-6">
                     
                     <!-- Thumbnail & Quick Specs -->
@@ -138,7 +135,7 @@
 
                     <!-- Action Column -->
                     <div class="flex flex-row lg:flex-col items-center justify-end gap-2 w-full lg:w-48 shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
-                        @if($d->status === 'pending_review')
+                        @if($d->status === \App\Enums\DestinationStatus::PENDING_REVIEW)
                             <form action="{{ route('admin.destinations.updateStatus', $d->id) }}" method="POST" class="w-full">
                                 @csrf
                                 <input type="hidden" name="action" value="approve">
