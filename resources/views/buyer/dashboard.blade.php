@@ -302,7 +302,7 @@
                     Butuh penyesuaian SPK, dokumen verifikasi BOS daerah, atau proposal kurikulum untuk komite sekolah? Tim operasional Destinara siap mendampingi.
                 </p>
                 <div class="text-[11px] font-bold text-[#703A3A]">
-                    WhatsApp Hotline: 0812-3456-7890
+                    WhatsApp Hotline: {{ setting('support_whatsapp', setting('company_phone', 'Hubungi Admin')) }}
                 </div>
             </div>
         </div>

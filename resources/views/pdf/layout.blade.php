@@ -152,7 +152,7 @@
 
     <div class="footer">
         <div>{{ setting('company_legal_name', 'PT Destinara Wisata Edukasi') }} &bull; {{ setting('company_address', 'DI Yogyakarta, Indonesia') }}</div>
-        <div>Kontak: {{ setting('company_email', 'halo@destinara.my.id') }} &bull; Telepon/WhatsApp: {{ setting('company_phone', '0812-3456-7890') }} &bull; Website: {{ config('app.url') }}</div>
+        <div>Kontak: {{ setting('company_email', 'halo@destinara.my.id') }} &bull; Telepon/WhatsApp: {{ setting('company_phone', setting('support_whatsapp', '-')) }} &bull; Website: {{ config('app.url') }}</div>
     </div>
 </body>
 </html>

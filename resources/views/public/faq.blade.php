@@ -83,7 +83,7 @@
       <h3 class="text-base font-bold text-slate-800">Masih membutuhkan informasi tambahan?</h3>
       <p class="text-xs text-slate-500 mt-1">Tim pendamping teknis Destinara siap membantu kebutuhan proposal dan surat-menyurat instansi Anda.</p>
       <div class="mt-4 flex justify-center gap-3">
-        <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', (string) setting('company_phone', '6281200000000')) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold rounded-full transition shadow-xs">
+        <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', (string) setting('support_whatsapp', setting('company_phone', '628111111111'))) }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold rounded-full transition shadow-xs">
           <span class="material-symbols-outlined text-[16px]">chat</span>
           <span>Konsultasi via WhatsApp</span>
         </a>

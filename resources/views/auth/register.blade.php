@@ -151,7 +151,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5" x-text="role === 'buyer' ? 'Nama Sekolah / Kampus' : 'Nama Desa / Sanggar'"></label>
-                        <input type="text" name="org_name" value="{{ old('org_name') }}" required placeholder="Contoh: SMA Negeri 1 / Desa Wonosadi" 
+                        <input type="text" name="org_name" value="{{ old('org_name') }}" required placeholder="Nama Sekolah / Institusi / Pokdarwis" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                 </div>
@@ -164,7 +164,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nomor WhatsApp</label>
-                        <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="0812-xxxx-xxxx" 
+                        <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="08xxxxxxxxxx" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                 </div>

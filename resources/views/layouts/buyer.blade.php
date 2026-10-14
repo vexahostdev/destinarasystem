@@ -239,7 +239,7 @@
                     <span>— Ruang Belajar Tapak Nusantara</span>
                 </div>
                 <div class="flex items-center gap-4 text-[11px]">
-                    <span>Pusat Bantuan Akademik: 0812-3456-7890</span>
+                    <span>Pusat Bantuan Akademik: {{ setting('support_whatsapp', setting('company_phone', 'Hubungi Admin')) }}</span>
                     <span>•</span>
                     <span>SOP Keselamatan & FPIC Terverifikasi</span>
                 </div>
