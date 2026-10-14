@@ -21,6 +21,7 @@ class RegisterRequest extends FormRequest
             'phone' => ['required', 'string', 'max:25', 'regex:/^(08|628|\+628)[0-9]{7,13}$/'],
             'password' => ['required', 'string', app()->isProduction() ? Password::min(8)->mixedCase()->numbers() : Password::min(8), 'confirmed'],
             'account_type' => ['required', 'in:buyer,partner'],
+            'terms' => ['accepted'],
         ];
     }
 
@@ -38,6 +39,7 @@ class RegisterRequest extends FormRequest
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
             'account_type.required' => 'Tipe akun wajib dipilih.',
             'account_type.in' => 'Tipe akun harus berupa Institusi (buyer) atau Mitra (partner).',
+            'terms.accepted' => 'Anda wajib menyetujui Syarat & Ketentuan serta Kebijakan Privasi.',
         ];
     }
 }

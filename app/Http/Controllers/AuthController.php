@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\Institution;
 use App\Models\PartnerProfile;
 use App\Models\User;
+use App\Events\UserRegistered;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -148,10 +149,12 @@ class AuthController extends Controller
         AuditLogger::log(
             action: 'register',
             target: $user,
-            description: "Registrasi akun baru ({$user->account_type->value})"
+            description: "Registrasi akun baru ({$user->account_type->value})",
+            userId: $user->id
         );
 
         event(new Registered($user));
+        event(new UserRegistered($user));
 
         Auth::login($user);
         $request->session()->regenerate();

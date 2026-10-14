@@ -103,7 +103,7 @@
                     <input type="checkbox" name="remember" class="rounded text-[#703A3A] focus:ring-[#703A3A]">
                     <span>Ingat saya</span>
                 </label>
-                <a href="mailto:admin@destinara.id?subject=Bantuan%20Akses%20dan%20Reset%20Sandi%20Destinara" class="text-[#703A3A] font-semibold hover:underline">
+                <a href="{{ route('password.request') }}" class="text-[#703A3A] font-semibold hover:underline">
                     Lupa sandi?
                 </a>
             </div>

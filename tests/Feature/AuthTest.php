@@ -66,7 +66,7 @@ class AuthTest extends TestCase
 
     public function test_buyer_registration(): void
     {
-        Event::fake([Registered::class]);
+        Event::fake([Registered::class, \App\Events\UserRegistered::class]);
 
         $response = $this->post('/daftar', [
             'name' => 'Budi Santoso',
@@ -76,6 +76,7 @@ class AuthTest extends TestCase
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
             'account_type' => 'buyer',
+            'terms' => '1',
         ]);
 
         $this->assertAuthenticated();
@@ -91,11 +92,12 @@ class AuthTest extends TestCase
         ]);
 
         Event::assertDispatched(Registered::class);
+        Event::assertDispatched(\App\Events\UserRegistered::class);
     }
 
     public function test_partner_registration(): void
     {
-        Event::fake([Registered::class]);
+        Event::fake([Registered::class, \App\Events\UserRegistered::class]);
 
         $response = $this->post('/daftar', [
             'name' => 'Ketut Suardana',
@@ -105,6 +107,7 @@ class AuthTest extends TestCase
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
             'account_type' => 'partner',
+            'terms' => '1',
         ]);
 
         $this->assertAuthenticated();
@@ -120,6 +123,7 @@ class AuthTest extends TestCase
         ]);
 
         Event::assertDispatched(Registered::class);
+        Event::assertDispatched(\App\Events\UserRegistered::class);
     }
 
     public function test_logout_requires_post_and_invalidates_session(): void
@@ -138,5 +142,50 @@ class AuthTest extends TestCase
         $response = $this->post('/keluar');
         $this->assertGuest();
         $response->assertRedirect(route('login'));
+    }
+
+    public function test_registration_requires_accepted_terms_and_matching_password_confirmation(): void
+    {
+        $response = $this->post('/daftar', [
+            'name' => 'Budi Santoso',
+            'org_name' => 'SMA Negeri 1 Yogyakarta',
+            'email' => 'budi_err@sman1jogja.sch.id',
+            'phone' => '081234567890',
+            'password' => 'Password123!',
+            'password_confirmation' => 'DifferentPassword!',
+            'account_type' => 'buyer',
+            // terms missing
+        ]);
+
+        $response->assertSessionHasErrors(['password', 'terms']);
+        $this->assertGuest();
+    }
+
+    public function test_login_screen_has_correct_password_request_link_and_no_mailto(): void
+    {
+        $response = $this->get('/masuk');
+        $response->assertStatus(200);
+        $response->assertSee(route('password.request'));
+        $response->assertDontSee('mailto:admin@destinara.id');
+    }
+
+    public function test_user_verification_and_password_reset_sends_indonesian_database_template_notification(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user_notify@destinara.test',
+            'account_type' => AccountType::BUYER,
+        ]);
+
+        $user->sendEmailVerificationNotification();
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.verify_email',
+            'recipient' => 'user_notify@destinara.test',
+        ]);
+
+        $user->sendPasswordResetNotification('dummy-reset-token');
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.reset_password',
+            'recipient' => 'user_notify@destinara.test',
+        ]);
     }
 }

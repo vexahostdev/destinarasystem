@@ -67,11 +67,25 @@ class NotificationTemplateSeeder extends Seeder
                 'body' => "Halo {{user_name}},\n\nSilakan klik tautan berikut untuk memverifikasi alamat email Anda:\n{{action_url}}\n\nTautan ini berlaku selama 60 menit.\n\nTim Destinara",
             ],
             [
+                'event_key' => 'auth.verify_email',
+                'channel' => 'mail',
+                'audience' => 'partner',
+                'subject' => 'Verifikasi Alamat Email Mitra - Destinara',
+                'body' => "Halo {{user_name}},\n\nSilakan klik tautan berikut untuk memverifikasi alamat email akun mitra Anda:\n{{action_url}}\n\nTautan ini berlaku selama 60 menit.\n\nTim Destinara",
+            ],
+            [
                 'event_key' => 'auth.reset_password',
                 'channel' => 'mail',
                 'audience' => 'buyer',
                 'subject' => 'Atur Ulang Kata Sandi Akun Destinara',
                 'body' => "Halo {{user_name}},\n\nKami menerima permintaan untuk mengatur ulang kata sandi akun Anda. Klik tautan berikut:\n{{action_url}}\n\nJika Anda tidak meminta perubahan ini, abaikan email ini.\n\nTim Destinara",
+            ],
+            [
+                'event_key' => 'auth.reset_password',
+                'channel' => 'mail',
+                'audience' => 'partner',
+                'subject' => 'Atur Ulang Kata Sandi Akun Mitra Destinara',
+                'body' => "Halo {{user_name}},\n\nKami menerima permintaan untuk mengatur ulang kata sandi akun mitra Anda. Klik tautan berikut:\n{{action_url}}\n\nJika Anda tidak meminta perubahan ini, abaikan email ini.\n\nTim Destinara",
             ],
 
             // =========================================================================

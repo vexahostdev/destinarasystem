@@ -105,4 +105,48 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Wishlist::class);
     }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(config('auth.verification.expire', 60)),
+            [
+                'id' => $this->getKey(),
+                'hash' => sha1($this->getEmailForVerification()),
+            ]
+        );
+
+        $audience = $this->isPartner() ? 'partner' : 'buyer';
+        app(\App\Domain\Notification\Services\NotificationDispatcher::class)->send(
+            'auth.verify_email',
+            [
+                'user' => $this,
+                'user_name' => $this->name,
+                'action_url' => $verificationUrl,
+                'email' => $this->email,
+            ],
+            [$audience]
+        );
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $resetUrl = route('password.reset', [
+            'token' => $token,
+            'email' => $this->getEmailForPasswordReset(),
+        ]);
+
+        $audience = $this->isPartner() ? 'partner' : 'buyer';
+        app(\App\Domain\Notification\Services\NotificationDispatcher::class)->send(
+            'auth.reset_password',
+            [
+                'user' => $this,
+                'user_name' => $this->name,
+                'action_url' => $resetUrl,
+                'email' => $this->email,
+            ],
+            [$audience]
+        );
+    }
 }
