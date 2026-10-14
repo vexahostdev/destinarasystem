@@ -41,7 +41,7 @@ class RuntimeConfigServiceProvider extends ServiceProvider
             // Apply Email / SMTP settings
             $email = $settings->group('email');
 
-            if (! empty($email['smtp_host'])) {
+            if (! empty($email['smtp_host']) && ! app()->environment('testing')) {
                 config([
                     'mail.default' => 'smtp',
                     'mail.mailers.smtp.host' => $email['smtp_host'],
