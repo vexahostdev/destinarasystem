@@ -5,7 +5,6 @@ namespace App\Domain\Finance\Services;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Document\Services\DocumentNumberGenerator;
 use App\Enums\BookingStatus;
-use App\Enums\DocumentType;
 use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
 use App\Events\PayoutCreated;
@@ -46,10 +45,13 @@ class PayoutService
                 $partner = $booking->destination->partner;
                 $profile = $partner?->partnerProfile;
 
-                $payoutNumber = $this->numberGenerator->generate(DocumentType::PAYOUT_RECEIPT);
+                $payoutNumber = $this->numberGenerator->generate('payout');
 
-                $bankName = $profile?->bank?->name ?? $profile?->bank_name ?? 'Bank Belum Diatur';
-                $hasValidBank = $profile && ! empty($profile->bank_account_number) && ($bankName !== 'Bank Belum Diatur');
+                $bankName = $profile?->bank?->name ?? $profile?->bank_name;
+                $bankAccountNumber = $profile?->bank_account_number;
+                $bankAccountHolder = $profile?->bank_account_holder;
+
+                $hasValidBank = ! empty($bankName) && ! empty($bankAccountNumber) && ! empty($bankAccountHolder);
                 $initialStatus = $hasValidBank ? PayoutStatus::PENDING : PayoutStatus::ON_HOLD;
                 $initialNote = $hasValidBank
                     ? "Pencairan dana untuk booking {$booking->booking_code}"
@@ -65,8 +67,8 @@ class PayoutService
                     'status' => $initialStatus,
                     'eligible_at' => now(),
                     'bank_name' => $bankName,
-                    'bank_account_number' => $profile?->bank_account_number ?? '-',
-                    'bank_account_holder' => $profile?->bank_account_holder ?? '-',
+                    'bank_account_number' => $bankAccountNumber,
+                    'bank_account_holder' => $bankAccountHolder,
                     'note' => $initialNote,
                 ]);
 
@@ -186,5 +188,43 @@ class PayoutService
         );
 
         return $payout;
+    }
+
+    /**
+     * Admin releases on-hold status once partner updates bank account details.
+     */
+    public function releaseHold(PartnerPayout $payout, User $admin): PartnerPayout
+    {
+        if ($payout->status !== PayoutStatus::ON_HOLD) {
+            throw new InvalidArgumentException('Hanya payout berstatus on_hold yang dapat dilepas penahanannya.');
+        }
+
+        $profile = $payout->partner?->partnerProfile;
+        $bankName = $profile?->bank?->name ?? $profile?->bank_name;
+        $accountNumber = $profile?->bank_account_number;
+        $accountHolder = $profile?->bank_account_holder;
+
+        if (empty($bankName) || empty($accountNumber) || empty($accountHolder)) {
+            throw new InvalidArgumentException('Rekening bank mitra belum lengkap di profil.');
+        }
+
+        return DB::transaction(function () use ($payout, $admin, $bankName, $accountNumber, $accountHolder) {
+            $locked = PartnerPayout::where('id', $payout->id)->lockForUpdate()->first();
+            $locked->bank_name = $bankName;
+            $locked->bank_account_number = $accountNumber;
+            $locked->bank_account_holder = $accountHolder;
+            $locked->status = PayoutStatus::PENDING;
+            $locked->note = "Penahanan dilepas oleh {$admin->name}. Snapshot rekening bank diperbarui.";
+            $locked->save();
+
+            AuditLogger::log(
+                action: 'payout_hold_released',
+                target: $locked,
+                description: "Penahanan payout {$locked->payout_number} dilepas oleh {$admin->name}. Snapshot rekening diperbarui ke {$bankName} ({$accountNumber} a.n {$accountHolder}).",
+                userId: $admin->id
+            );
+
+            return $locked;
+        });
     }
 }

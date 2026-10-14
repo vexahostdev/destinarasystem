@@ -73,9 +73,9 @@ return new class extends Migration
             $table->timestamp('eligible_at');
             $table->timestamp('transferred_at')->nullable();
             $table->string('transfer_proof_path')->nullable();
-            $table->string('bank_name');
-            $table->string('bank_account_number');
-            $table->string('bank_account_holder');
+            $table->string('bank_name')->nullable();
+            $table->string('bank_account_number')->nullable();
+            $table->string('bank_account_holder')->nullable();
             $table->foreignId('processed_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->text('note')->nullable();
             $table->timestamps();

@@ -283,6 +283,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
         Route::get('/payout', [FinanceController::class, 'payouts'])->middleware('can:payouts.view')->name('payouts');
         Route::post('/payout/proses', [FinanceController::class, 'processPayout'])->middleware('can:payouts.process')->name('processPayout');
         Route::post('/payout/{payout}/hold', [FinanceController::class, 'holdPayout'])->middleware('can:payouts.process')->name('holdPayout');
+        Route::post('/payout/{payout}/release-hold', [FinanceController::class, 'releaseHoldPayout'])->middleware('can:payouts.process')->name('releaseHoldPayout');
 
         Route::get('/rekonsiliasi', [FinanceController::class, 'reconciliation'])->middleware('can:reconciliation.view')->name('reconciliation');
         Route::post('/rekonsiliasi/tutup-buku', [FinanceController::class, 'closePeriod'])->middleware('can:reconciliation.close')->name('closePeriod');

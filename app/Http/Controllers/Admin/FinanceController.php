@@ -289,14 +289,28 @@ class FinanceController extends Controller
     /**
      * Tahan Penyaluran Payout (On-Hold)
      */
-    public function holdPayout(Request $request, $id)
+    public function holdPayout(Request $request, $id, PayoutService $payoutService)
     {
         $payout = PartnerPayout::findOrFail($id);
-        $payout->status = PayoutStatus::ON_HOLD;
-        $payout->note = $request->input('reason', 'Ditahan oleh bagian keuangan platform');
-        $payout->save();
+        $reason = $request->input('reason', 'Ditahan oleh bagian keuangan platform');
+        $payoutService->hold($payout, Auth::user(), $reason);
 
         return back()->with('warning', "Payout {$payout->payout_number} telah ditandai on-hold (ditahan).");
+    }
+
+    /**
+     * Lepas Status On-Hold Payout
+     */
+    public function releaseHoldPayout(Request $request, $id, PayoutService $payoutService)
+    {
+        $payout = PartnerPayout::findOrFail($id);
+        try {
+            $payoutService->releaseHold($payout, Auth::user());
+
+            return back()->with('success', "Penahanan payout {$payout->payout_number} berhasil dilepas dan status kembali menjadi pending.");
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**

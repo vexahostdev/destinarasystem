@@ -230,4 +230,68 @@ class FinanceTest extends TestCase
         $this->assertStringContainsString('REKONSILIASI KEUANGAN DESTINARA', $csv);
         $this->assertStringContainsString('1265000', $csv);
     }
+
+    public function test_payout_on_hold_when_partner_bank_details_incomplete_and_can_be_released(): void
+    {
+        // Partner without bank details
+        $profile = $this->partnerUser->partnerProfile;
+        $profile->bank_id = null;
+        $profile->bank_account_number = null;
+        $profile->bank_account_holder = null;
+        $profile->save();
+
+        $this->booking->status = BookingStatus::SELESAI;
+        $this->booking->completed_at = now()->subDays(4);
+        $this->booking->save();
+
+        $payoutService = app(PayoutService::class);
+        $count = $payoutService->generateEligiblePayouts();
+        $this->assertEquals(1, $count);
+
+        $payout = PartnerPayout::where('booking_id', $this->booking->id)->firstOrFail();
+        $this->assertEquals(PayoutStatus::ON_HOLD, $payout->status);
+        $this->assertNull($payout->bank_name);
+        $this->assertNull($payout->bank_account_number);
+        $this->assertNull($payout->bank_account_holder);
+        $this->assertStringContainsString('Ditahan otomatis', $payout->note);
+
+        // Attempting to release hold before profile is updated must fail
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Rekening bank mitra belum lengkap');
+        $payoutService->releaseHold($payout, $this->adminUser);
+    }
+
+    public function test_admin_can_release_payout_hold_after_partner_updates_bank(): void
+    {
+        $profile = $this->partnerUser->partnerProfile;
+        $profile->bank_id = null;
+        $profile->bank_account_number = null;
+        $profile->bank_account_holder = null;
+        $profile->save();
+
+        $this->booking->status = BookingStatus::SELESAI;
+        $this->booking->completed_at = now()->subDays(4);
+        $this->booking->save();
+
+        $payoutService = app(PayoutService::class);
+        $payoutService->generateEligiblePayouts();
+
+        $payout = PartnerPayout::where('booking_id', $this->booking->id)->firstOrFail();
+        $this->assertEquals(PayoutStatus::ON_HOLD, $payout->status);
+
+        // Partner updates bank details
+        $bank = Bank::first();
+        $profile->bank_id = $bank->id;
+        $profile->bank_account_number = '137000999888';
+        $profile->bank_account_holder = 'Koperasi Desa Sejahtera';
+        $profile->save();
+
+        // Admin releases hold
+        $released = $payoutService->releaseHold($payout, $this->adminUser);
+
+        $this->assertEquals(PayoutStatus::PENDING, $released->status);
+        $this->assertEquals($bank->name, $released->bank_name);
+        $this->assertEquals('137000999888', $released->bank_account_number);
+        $this->assertEquals('Koperasi Desa Sejahtera', $released->bank_account_holder);
+    }
 }

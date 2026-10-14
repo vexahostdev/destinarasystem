@@ -7,6 +7,7 @@ use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\DocumentType;
 use App\Enums\PayoutStatus;
+use App\Enums\RefundStatus;
 use App\Enums\VerificationStatus;
 use App\Livewire\Buyer\BookingForm;
 use App\Models\AvailabilitySlot;
@@ -21,6 +22,7 @@ use App\Models\Package;
 use App\Models\PartnerPayout;
 use App\Models\PartnerProfile;
 use App\Models\Province;
+use App\Models\Refund;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -358,16 +360,60 @@ class EndToEndFlowTest extends TestCase
             'event_key' => 'booking.completed',
         ]);
 
+        // Verifikasi V3-2: Tepat setelah complete, BELUM ADA payout yang dibuat
+        $this->assertDatabaseMissing('partner_payouts', ['booking_id' => $booking->id]);
+
+        // Buat booking kedua berstatus SELESAI tetapi memiliki refund aktif (V3-2)
+        $bookingWithRefund = Booking::create([
+            'booking_code' => 'DST-REFUND-TEST',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $destination->id,
+            'package_id' => $package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $visitDate,
+            'planned_date_end' => $visitDate,
+            'participant_count' => 10,
+            'subtotal_amount' => 500000,
+            'total_amount' => 525000,
+            'commission_percent' => 10,
+            'commission_amount' => 50000,
+            'partner_net_amount' => 450000,
+            'status' => BookingStatus::SELESAI,
+            'completed_at' => now(),
+        ]);
+        Refund::create([
+            'booking_id' => $bookingWithRefund->id,
+            'amount' => 250000,
+            'percent' => 50,
+            'reason' => 'Pengembalian sebagian',
+            'status' => RefundStatus::PENDING,
+            'buyer_account_number' => '123456789',
+            'buyer_account_holder' => 'Pembeli',
+        ]);
+
         // =========================================================================
         // TAHAP 7: Payout Generation & Admin Transfer
         // =========================================================================
-        // 7.1 Generator Payout Terjadwal
+        // 7.1 Generator Payout: jika belum melewati delay (3 hari), belum ada payout
+        $this->artisan('payouts:generate')->assertExitCode(0);
+        $this->assertDatabaseMissing('partner_payouts', ['booking_id' => $booking->id]);
+
+        // Majukan waktu 4 hari lagi (total 6 hari dari selesai, melewati delay 3 hari)
+        Carbon::setTestNow(Carbon::parse($visitDate)->addDays(6)->setHour(18));
+
+        // Generator Payout Terjadwal dieksekusi
         $this->artisan('payouts:generate')->assertExitCode(0);
 
+        // Booking normal berhasil menghasilkan payout
         $payout = PartnerPayout::where('booking_id', $booking->id)->firstOrFail();
         $this->assertEquals(PayoutStatus::PENDING, $payout->status);
         $this->assertEquals($booking->partner_net_amount, $payout->net_amount);
         $this->assertNotNull($payout->payout_number);
+        $this->assertStringStartsWith('PAY/', $payout->payout_number);
+
+        // Booking dengan refund aktif TIDAK menghasilkan payout (V3-2)
+        $this->assertDatabaseMissing('partner_payouts', ['booking_id' => $bookingWithRefund->id]);
 
         // 7.2 Admin Eksekusi Transfer Payout
         $this->actingAs($this->admin);

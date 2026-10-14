@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Enums\PayoutStatus;
 use App\Events\BookingCancelled;
 use App\Events\BookingCheckedIn;
 use App\Events\BookingCompleted;
@@ -170,13 +171,14 @@ class SendDomainNotificationListener
             ], ['buyer', 'admin']);
         } elseif ($event instanceof PayoutCreated) {
             $p = $event->payout;
+            $audiences = $p->status === PayoutStatus::ON_HOLD ? ['partner', 'admin'] : ['partner'];
             $this->dispatcher->send('payout.created', [
                 'partner_user' => $p->partner,
                 'payout_number' => $p->payout_number,
                 'organization_name' => $p->partner?->partnerProfile?->organization_name ?? $p->partner?->name,
                 'booking_code' => $p->booking?->booking_code ?? '-',
                 'net_amount' => number_format($p->net_amount, 0, ',', '.'),
-            ], ['partner']);
+            ], $audiences);
         } elseif ($event instanceof PayoutTransferred) {
             $p = $event->payout;
             $this->dispatcher->send('payout.transferred', [

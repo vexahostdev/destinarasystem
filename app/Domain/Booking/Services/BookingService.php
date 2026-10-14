@@ -4,26 +4,21 @@ namespace App\Domain\Booking\Services;
 
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\StateMachine\BookingStateMachine;
-use App\Domain\Document\Services\DocumentNumberGenerator;
 use App\Domain\Finance\Services\RefundService;
 use App\Enums\BookingStatus;
-use App\Enums\DocumentType;
 use App\Enums\PaymentStatus;
-use App\Enums\PayoutStatus;
 use App\Events\BookingCancelled;
 use App\Events\BookingCompleted;
 use App\Events\BookingConfirmed;
 use App\Events\BookingCreated;
 use App\Events\BookingRejected;
 use App\Events\BookingRescheduled;
-use App\Events\PayoutCreated;
 use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\BookingStatusHistory;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\Package;
-use App\Models\PartnerPayout;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
@@ -462,39 +457,6 @@ class BookingService
 
             $locked->completed_at = now();
             $locked->save();
-
-            // Create eligible Partner Payout record if not already created (SPEC §8.8)
-            if (! PartnerPayout::where('booking_id', $locked->id)->exists()) {
-                $delayDays = (int) setting('payout_delay_days', 3);
-                $partner = $locked->destination->partner;
-                $profile = $partner?->partnerProfile;
-
-                $payoutNumber = app(DocumentNumberGenerator::class)->generate(DocumentType::PAYOUT_RECEIPT);
-
-                $bankName = $profile?->bank?->name ?? $profile?->bank_name ?? 'Bank Belum Diatur';
-                $hasValidBank = $profile && ! empty($profile->bank_account_number) && ($bankName !== 'Bank Belum Diatur');
-                $initialStatus = $hasValidBank ? PayoutStatus::PENDING : PayoutStatus::ON_HOLD;
-                $initialNote = $hasValidBank
-                    ? "Pencairan dana untuk booking {$locked->booking_code}"
-                    : 'Ditahan otomatis: rekening bank mitra belum dilengkapi di profil.';
-
-                $payout = PartnerPayout::create([
-                    'payout_number' => $payoutNumber,
-                    'partner_id' => $partner->id,
-                    'booking_id' => $locked->id,
-                    'gross_amount' => $locked->subtotal_amount,
-                    'commission_amount' => $locked->commission_amount,
-                    'net_amount' => $locked->partner_net_amount,
-                    'status' => $initialStatus,
-                    'eligible_at' => now()->addDays($delayDays),
-                    'bank_name' => $bankName,
-                    'bank_account_number' => $profile?->bank_account_number ?? '-',
-                    'bank_account_holder' => $profile?->bank_account_holder ?? '-',
-                    'note' => $initialNote,
-                ]);
-
-                PayoutCreated::dispatch($payout);
-            }
 
             BookingCompleted::dispatch($locked, $actor);
 

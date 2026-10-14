@@ -19,6 +19,7 @@ class DocumentNumberGenerator
         'permit_draft' => 'DRAFT-IZIN/{YYYY}/{MM}/{SEQ:5}',
         'permit_signed' => 'IZIN/{YYYY}/{MM}/{SEQ:5}',
         'payout_receipt' => 'BKT/{YYYY}/{MM}/{SEQ:5}',
+        'payout' => 'PAY/{YYYY}{MM}/{SEQ:4}',
     ];
 
     /**
@@ -50,7 +51,8 @@ class DocumentNumberGenerator
 
             $settingKey = match ($typeStr) {
                 'confirmation_letter' => 'doc_number_format_confirmation',
-                'payout_receipt' => 'doc_number_format_payout',
+                'payout' => 'doc_number_format_payout',
+                'payout_receipt' => 'doc_number_format_payout_receipt',
                 default => "doc_number_format_{$typeStr}",
             };
             $format = (string) setting($settingKey, self::DEFAULT_FORMATS[$typeStr] ?? 'DOC/{YYYY}/{MM}/{SEQ:5}');
