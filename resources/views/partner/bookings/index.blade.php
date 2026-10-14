@@ -30,15 +30,19 @@
     <div class="border-b border-[#2B211E]/15 flex items-center gap-2 overflow-x-auto text-xs font-bold uppercase tracking-wider pb-1">
         <a href="{{ route('mitra.bookings', ['status' => 'semua']) }}" 
            class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'semua') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
-            Semua Permohonan ({{ $bookings->count() }})
+            Semua Permohonan
         </a>
-        <a href="{{ route('mitra.bookings', ['status' => 'menunggu_pembayaran']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'menunggu_pembayaran') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
-            Perlu Konfirmasi
+        <a href="{{ route('mitra.bookings', ['status' => 'dibayar']) }}" 
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dibayar') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+            Perlu Respon Mitra
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'dikonfirmasi']) }}" 
            class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dikonfirmasi') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
             Dikonfirmasi / Siap
+        </a>
+        <a href="{{ route('mitra.bookings', ['status' => 'berlangsung']) }}" 
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'berlangsung') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+            Sedang Berkunjung
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'selesai']) }}" 
            class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'selesai') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
@@ -74,7 +78,7 @@
                     </div>
                     <div>
                         <span class="text-[#2B211E]/60 text-[11px] block">Jumlah Rombongan:</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->participant_count }} Siswa + {{ $booking->guide_count }} Pendamping</span>
+                        <span class="font-bold text-[#2B211E]">{{ $booking->participant_count }} Siswa + {{ $booking->companion_count }} Pendamping</span>
                     </div>
                     <div>
                         <span class="text-[#2B211E]/60 text-[11px] block">Estimasi Payout Pengelola (90%):</span>
@@ -103,36 +107,41 @@
             <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
                 <!-- Status Badge -->
                 <div>
-                    @if($booking->status === 'dikonfirmasi')
+                    @php $st = is_object($booking->status) ? $booking->status->value : $booking->status; @endphp
+                    @if($st === 'dikonfirmasi')
                         <span class="px-3 py-1 bg-[#51634b]/15 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/30 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span> Terjadwal & Siap
                         </span>
-                    @elseif($booking->status === 'dibayar')
+                    @elseif($st === 'dibayar')
                         <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-300 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Lunas — Perlu Konfirmasi
                         </span>
-                    @elseif($booking->status === 'menunggu_pembayaran')
+                    @elseif($st === 'berlangsung')
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold uppercase tracking-wider border border-blue-300 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Sedang Berkunjung
+                        </span>
+                    @elseif($st === 'menunggu_pembayaran')
                         <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider border border-gray-300 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Menunggu Bayar
                         </span>
-                    @elseif($booking->status === 'selesai')
+                    @elseif($st === 'selesai')
                         <span class="px-3 py-1 bg-[#2B211E]/10 text-[#2B211E]/80 text-xs font-bold uppercase tracking-wider">
                             Selesai
                         </span>
-                    @elseif($booking->status === 'batal')
+                    @elseif($st === 'batal')
                         <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider">
-                            Ditolak
+                            Ditolak / Batal
                         </span>
                     @else
                         <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider">
-                            {{ ucfirst($booking->status) }}
+                            {{ ucfirst($st) }}
                         </span>
                     @endif
                 </div>
 
                 <!-- Tombol Aksi Cepat -->
                 <div class="flex flex-wrap items-center gap-2">
-                    @if(in_array($booking->status, ['dibayar', 'menunggu_pembayaran']))
+                    @if($st === 'dibayar')
                         <form action="{{ route('mitra.booking.confirm', $booking->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-[#51634b] text-white hover:bg-[#3f4f3a] text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-xs transition-colors">

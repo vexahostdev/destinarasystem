@@ -51,14 +51,15 @@
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
-                        Bentuk Organisasi <span class="text-red-500">*</span>
+                        Bentuk Organisasi
                     </label>
-                    <select name="organization_type" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                        <option value="yayasan_adat" {{ ($profile->organization_type ?? '') == 'yayasan_adat' ? 'selected' : '' }}>Lembaga Adat / Yayasan Komunitas</option>
-                        <option value="pokdarwis" {{ ($profile->organization_type ?? '') == 'pokdarwis' ? 'selected' : '' }}>Kelompok Sadar Wisata (Pokdarwis)</option>
-                        <option value="bumdes" {{ ($profile->organization_type ?? '') == 'bumdes' ? 'selected' : '' }}>Badan Usaha Milik Desa (BUMDes)</option>
-                        <option value="koperasi" {{ ($profile->organization_type ?? '') == 'koperasi' ? 'selected' : '' }}>Koperasi Tani / Nelayan</option>
-                        <option value="swasta" {{ ($profile->organization_type ?? '') == 'swasta' ? 'selected' : '' }}>Pengelola Swasta / Balai Riset</option>
+                    <select name="organization_type_id" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <option value="">-- Pilih Bentuk Organisasi --</option>
+                        @foreach($organizationTypes as $type)
+                            <option value="{{ $type->id }}" {{ (old('organization_type_id', $profile->organization_type_id) == $type->id) ? 'selected' : '' }}>
+                                {{ $type->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -67,6 +68,34 @@
                         Nomor SK Penetapan / Surat Keputusan
                     </label>
                     <input type="text" name="legal_document_number" placeholder="Contoh: SK.BUP-BGL/442/2021" value="{{ old('legal_document_number', $profile->legal_document_number ?? '') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Kota / Kabupaten
+                    </label>
+                    <input type="text" name="city" placeholder="Kabupaten / Kota" value="{{ old('city', $profile->city ?? '') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Provinsi
+                    </label>
+                    <select name="province_id" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                        <option value="">-- Pilih Provinsi --</option>
+                        @foreach($provinces as $prov)
+                            <option value="{{ $prov->id }}" {{ (old('province_id', $profile->province_id) == $prov->id) ? 'selected' : '' }}>
+                                {{ $prov->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2 space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Alamat Domisili Lembaga
+                    </label>
+                    <textarea name="address" rows="2" placeholder="Alamat lengkap lembaga pengelola..." class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('address', $profile->address ?? '') }}</textarea>
                 </div>
             </div>
         </div>
@@ -86,14 +115,14 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Lengkap & Gelar PIC <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="contact_name" placeholder="Nama PIC Pengelola..." value="{{ old('contact_name', $user->name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="pic_name" placeholder="Nama PIC Pengelola..." value="{{ old('pic_name', $user->name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor WhatsApp Aktif <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="contact_phone" placeholder="08xxxxxxxxxx" value="{{ old('contact_phone', $user->phone ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="pic_phone" placeholder="08xxxxxxxxxx" value="{{ old('pic_phone', $user->phone ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                     <span class="text-[10px] text-[#2B211E]/60">Diteruskan ke guru pendamping setelah transaksi lunas</span>
                 </div>
             </div>
@@ -118,7 +147,14 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Bank Penerbit <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="bank_name" placeholder="Contoh: Bank BPD Bali / Mandiri / BCA" value="{{ old('bank_name', $profile->bank_name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <select name="bank_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <option value="">-- Pilih Bank --</option>
+                        @foreach($banks as $b)
+                            <option value="{{ $b->id }}" {{ (old('bank_id', $profile->bank_id) == $b->id) ? 'selected' : '' }}>
+                                {{ $b->name }} ({{ $b->code }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="space-y-1">

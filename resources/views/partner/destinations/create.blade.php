@@ -53,12 +53,10 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Kategori Tapak Pembelajaran <span class="text-red-500">*</span>
                     </label>
-                    <select name="category" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                        <option value="desa_wisata">Desa Wisata Berbasis Adat & Komunitas</option>
-                        <option value="konservasi_alam">Kawasan Konservasi Hutan & Air</option>
-                        <option value="situs_budaya">Situs Sejarah, Arkeologi & Budaya</option>
-                        <option value="pertanian_berkelanjutan">Agroekologi & Pangan Berkelanjutan</option>
-                        <option value="bahari">Konservasi Pesisir & Ekosistem Bahari</option>
+                    <select name="category_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -67,9 +65,32 @@
                         Kota / Kabupaten & Provinsi <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" name="city" placeholder="Kabupaten Bangli" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
-                        <input type="text" name="province" placeholder="Bali" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                        <input type="text" name="city" placeholder="Kabupaten / Kota" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                        <select name="province_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                            <option value="">Pilih Provinsi</option>
+                            @foreach($provinces as $prov)
+                                <option value="{{ $prov->id }}">{{ $prov->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Kebijakan Pembatalan <span class="text-red-500">*</span>
+                    </label>
+                    <select name="cancellation_policy_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        @foreach($policies as $pol)
+                            <option value="{{ $pol->id }}">{{ $pol->name }} (Refund: {{ $pol->refund_percent_before_h7 ?? 100 }}% &gt;H-7)</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2 space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Alamat Lengkap Tapak <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="address" rows="2" placeholder="Nama jalan, nomor, RT/RW, desa/kelurahan, kecamatan..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
                 </div>
 
                 <div class="sm:col-span-2 space-y-1">
@@ -160,7 +181,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Kapasitas Maksimal Harian (Orang) <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" name="daily_capacity" value="100" min="20" max="500" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="number" name="default_daily_capacity" value="100" min="10" max="1000" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                     <span class="text-[10px] text-[#2B211E]/60">Batas daya tampung kawasan per hari</span>
                 </div>
             </div>

@@ -132,9 +132,8 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
     // 1. Dashboard Mitra
     Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
 
-    // 2. Laporan Pendapatan & Payout
+    // 2. Laporan Pendapatan (Read-only Payout)
     Route::get('/pendapatan', [PartnerController::class, 'incomeReport'])->name('income');
-    Route::post('/pendapatan/cairkan', [PartnerController::class, 'requestPayout'])->name('payout.request');
 
     // 3. Kelola Listing Destinasi
     Route::get('/destinasi', [PartnerController::class, 'destinations'])->name('destinations');
@@ -142,6 +141,7 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
     // 4. Kelola Ketersediaan / Kalender Slot
     Route::get('/ketersediaan', [PartnerController::class, 'availability'])->name('availability');
     Route::post('/ketersediaan/slot/update', [PartnerController::class, 'updateSlot'])->name('slot.update');
+    Route::post('/ketersediaan/bulk', [PartnerController::class, 'bulkGenerateSlots'])->name('slots.bulk');
 
     // 5. Booking Masuk
     Route::get('/booking', [PartnerController::class, 'incomingBookings'])->name('bookings');
@@ -159,7 +159,16 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
     // 8. Check-in QR (Signed URL - SPEC §11, §8.8)
     Route::get('/checkin/{code}', [PartnerController::class, 'showCheckin'])->name('checkin.show');
     Route::post('/checkin/{code}/konfirmasi', [PartnerController::class, 'confirmCheckin'])->name('checkin.confirm');
+
+    // 9. Pusat Notifikasi Mitra
+    Route::get('/notifikasi', [PartnerController::class, 'notifications'])->name('notifications');
+
+    // 10. Balas Ulasan Pembeli
+    Route::post('/ulasan/{id}/balas', [PartnerController::class, 'replyReview'])->name('reviews.reply');
 });
+
+// Route alias for partner dashboard
+Route::get('/partner/dashboard', fn() => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
 
 // Named alias for signed URL generation
 Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->middleware(['signed'])->name('partner.checkin.show');

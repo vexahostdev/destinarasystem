@@ -68,7 +68,7 @@
             <div class="text-2xl sm:text-3xl font-extrabold text-[#703A3A]">
                 Rp {{ number_format($readyBalance, 0, ',', '.') }}
             </div>
-            <div class="text-[11px] text-[#51634b] font-semibold mt-1">Dapat dicairkan ke BPD Bali</div>
+            <div class="text-[11px] text-[#51634b] font-semibold mt-1">Dapat dicairkan ke rekening terdaftar</div>
         </div>
 
         <!-- Metric 4: Total Payout Diterima -->
@@ -110,7 +110,7 @@
                     </div>
 
                     <div class="text-xs text-gray-600 flex flex-wrap items-center gap-3">
-                        <span><strong>{{ $booking->participant_count }} Siswa / Peserta</strong> ({{ $booking->guide_count }} Pendamping)</span>
+                        <span><strong>{{ $booking->participant_count }} Siswa / Peserta</strong> ({{ $booking->companion_count }} Pendamping)</span>
                         <span>•</span>
                         <span>Tanggal: <strong>{{ \Carbon\Carbon::parse($booking->planned_date_start)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($booking->planned_date_end)->translatedFormat('d M Y') }}</strong></span>
                         <span>•</span>

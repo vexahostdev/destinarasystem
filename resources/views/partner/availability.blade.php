@@ -5,6 +5,7 @@
 @section('content')
 <div x-data="{
     showEditModal: false,
+    showBulkModal: false,
     selectedSlot: { id: null, date: '', capacity: 100, status: 'open' },
     openEdit(slot) {
         this.selectedSlot = { ...slot };
@@ -26,21 +27,30 @@
             </p>
         </div>
 
-        <!-- Selector Destinasi -->
-        @if($destinations->count() > 1)
-        <div class="flex items-center gap-2">
-            <label class="text-xs font-bold uppercase text-[#2B211E]/70">Pilih Tapak:</label>
-            <form method="GET" action="{{ route('mitra.availability') }}">
-                <select name="destinasi" onchange="this.form.submit()" class="bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                    @foreach($destinations as $d)
-                        <option value="{{ $d->slug }}" {{ ($currentDestination && $currentDestination->id == $d->id) ? 'selected' : '' }}>
-                            {{ $d->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
+        <div class="flex flex-wrap items-center gap-3">
+            @if($currentDestination)
+            <button type="button" @click="showBulkModal = true" class="rgs-btn-primary px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                <span class="material-symbols-outlined text-[16px]">date_range</span>
+                <span>Buat Slot Massal</span>
+            </button>
+            @endif
+
+            <!-- Selector Destinasi -->
+            @if($destinations->count() > 1)
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold uppercase text-[#2B211E]/70">Pilih Tapak:</label>
+                <form method="GET" action="{{ route('mitra.availability') }}">
+                    <select name="destinasi" onchange="this.form.submit()" class="bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        @foreach($destinations as $d)
+                            <option value="{{ $d->slug }}" {{ ($currentDestination && $currentDestination->id == $d->id) ? 'selected' : '' }}>
+                                {{ $d->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
 
     <!-- Ringkasan Tapak Aktif & Keterangan Warna Slot -->
@@ -170,6 +180,61 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Dialog Bulk Generate Slot (Alpine.js) -->
+    @if($currentDestination)
+    <div x-show="showBulkModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto bg-[#2B211E]/50 flex items-center justify-center p-4">
+        <div @click.away="showBulkModal = false" class="bg-white max-w-lg w-full border border-[#2B211E]/20 p-6 space-y-5 shadow-xl">
+            <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#703A3A] text-[20px]">calendar_month</span>
+                    <h3 class="font-serif text-lg font-bold text-[#2B211E]">Buat Slot Massal — {{ $currentDestination->name }}</h3>
+                </div>
+                <button type="button" @click="showBulkModal = false" class="text-gray-400 hover:text-gray-700">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+            </div>
+
+            <form action="{{ route('mitra.slots.bulk') }}" method="POST" class="space-y-4 text-xs">
+                @csrf
+                <input type="hidden" name="destination_id" value="{{ $currentDestination->id }}">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block font-bold uppercase text-[#2B211E]">Tanggal Mulai <span class="text-red-500">*</span></label>
+                        <input type="date" name="start_date" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-2 text-xs font-bold">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block font-bold uppercase text-[#2B211E]">Tanggal Akhir <span class="text-red-500">*</span></label>
+                        <input type="date" name="end_date" value="{{ date('Y-m-d', strtotime('+30 days')) }}" min="{{ date('Y-m-d') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-2 text-xs font-bold">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block font-bold uppercase text-[#2B211E]">Kapasitas Kuota per Hari <span class="text-red-500">*</span></label>
+                    <input type="number" name="capacity" value="{{ $currentDestination->default_daily_capacity ?? 100 }}" min="10" max="1000" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-2 text-xs font-bold">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block font-bold uppercase text-[#2B211E]">Pilih Hari Buka Mingguan <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-4 gap-2">
+                        @foreach([1 => 'Sen', 2 => 'Sel', 3 => 'Rab', 4 => 'Kam', 5 => 'Jum', 6 => 'Sab', 0 => 'Min'] as $dayVal => $dayLabel)
+                        <label class="flex items-center gap-1.5 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer text-xs">
+                            <input type="checkbox" name="days_of_week[]" value="{{ $dayVal }}" checked class="accent-[#703A3A]">
+                            <span>{{ $dayLabel }}</span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#2B211E]/10">
+                    <button type="button" @click="showBulkModal = false" class="rgs-btn-outline px-4 py-2 text-xs font-bold uppercase">Batal</button>
+                    <button type="submit" class="rgs-btn-primary px-5 py-2 text-xs font-bold uppercase">Generate Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection

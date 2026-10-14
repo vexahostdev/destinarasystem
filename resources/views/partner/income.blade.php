@@ -19,15 +19,12 @@
             </p>
         </div>
 
-        <!-- Tombol Tarik Dana -->
-        <div class="flex items-center gap-3">
-            <form action="{{ route('mitra.payout.request') }}" method="POST">
-                @csrf
-                <button type="submit" class="rgs-btn-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm {{ $readyBalance <= 0 ? 'opacity-60 cursor-not-allowed' : '' }}">
-                    <span class="material-symbols-outlined text-[18px]">payments</span>
-                    <span>Cairkan Saldo (Rp {{ number_format($readyBalance, 0, ',', '.') }})</span>
-                </button>
-            </form>
+        <!-- Status Penyaluran Payout -->
+        <div class="flex items-center gap-2">
+            <span class="px-4 py-2 bg-[#51634b]/10 text-[#51634b] border border-[#51634b]/20 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 rounded-full">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>Pencairan Otomatis via Batch Mingguan Admin</span>
+            </span>
         </div>
     </div>
 
@@ -125,12 +122,12 @@
                 <tbody class="divide-y divide-[#2B211E]/10">
                     @forelse($allPayouts as $payout)
                     <tr class="hover:bg-[#faf6f0]/50 transition-colors">
-                        <td class="p-3 font-mono font-bold text-[#703A3A]">{{ $payout->payout_reference }}</td>
+                        <td class="p-3 font-mono font-bold text-[#703A3A]">{{ $payout->payout_number }}</td>
                         <td class="p-3 text-[#2B211E]/70">
                             {{ $payout->transferred_at ? $payout->transferred_at->translatedFormat('d M Y, H:i') : 'Menunggu Penarikan' }}
                         </td>
                         <td class="p-3 text-right font-medium">Rp {{ number_format($payout->gross_amount, 0, ',', '.') }}</td>
-                        <td class="p-3 text-right text-[#2B211E]/60">- Rp {{ number_format($payout->commission, 0, ',', '.') }}</td>
+                        <td class="p-3 text-right text-[#2B211E]/60">- Rp {{ number_format($payout->commission_amount, 0, ',', '.') }}</td>
                         <td class="p-3 text-right font-bold text-[#51634b]">Rp {{ number_format($payout->net_amount, 0, ',', '.') }}</td>
                         <td class="p-3 text-center">
                             @if($payout->status === 'transferred')
