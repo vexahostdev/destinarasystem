@@ -55,13 +55,13 @@
         <div class="rgs-card p-5 border-t-4 border-t-[#2B211E]/30 space-y-1">
             <div class="text-[#2B211E]/60 text-xs font-medium">Rekening Penampungan Payout</div>
             <div class="font-bold text-sm text-[#2B211E]">
-                {{ $profile->bank_name ?? 'Bank BPD Bali' }}
+                {{ $profile->bank_name ?? 'Belum Diatur' }}
             </div>
             <div class="font-mono text-xs text-[#703A3A] font-bold">
-                {{ $profile->bank_account_number ?? '012-02-0049182-1' }}
+                {{ $profile->bank_account_number ?? '-' }}
             </div>
             <div class="text-[10px] text-[#2B211E]/60 uppercase">
-                a.n. {{ $profile->bank_account_holder ?? 'PENGELOLA DESA WISATA PENGLIPURAN' }}
+                a.n. {{ $profile->bank_account_holder ?? ($user->name ?? 'Pengelola') }}
             </div>
         </div>
     </div>
@@ -71,13 +71,16 @@
         <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-[#703A3A] text-[20px]">bar_chart</span>
-                <h2 class="font-serif text-lg font-bold text-[#2B211E]">Tren Pendapatan Tapak (Mei - September 2026)</h2>
+                <h2 class="font-serif text-lg font-bold text-[#2B211E]">Tren Pendapatan Tapak (5 Bulan Terakhir)</h2>
             </div>
             <span class="text-xs text-[#2B211E]/60">Satuan: Rupiah (Net Bersih)</span>
         </div>
 
         <div class="h-56 flex items-end justify-between gap-4 pt-6 px-4 bg-[#faf6f0] border border-[#2B211E]/10">
-            @php $maxVal = 4500000; @endphp
+            @php 
+                $maxNet = collect($monthlyEarnings)->max('net');
+                $maxVal = ($maxNet && $maxNet > 0) ? ($maxNet * 1.15) : 1000000; 
+            @endphp
             @foreach($monthlyEarnings as $item)
                 @php $heightPercent = round(($item['net'] / $maxVal) * 100); @endphp
                 <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end group">

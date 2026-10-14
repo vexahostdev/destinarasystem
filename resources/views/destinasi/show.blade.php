@@ -321,11 +321,12 @@
               </a>
             @endauth
 
-            <button type="button" @click="alert('Berkas Dossier Kurikulum Lapangan {{ addslashes($destination['name']) }} sedang disiapkan untuk diunduh.')" 
-                    class="border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-full font-semibold text-xs text-center flex items-center justify-center gap-1.5 transition-all bg-white hover:bg-gray-50">
-              <span class="material-symbols-outlined text-[16px]">download</span>
-              <span>Unduh Dossier Silabus PDF</span>
-            </button>
+            <a href="https://wa.me/6281288776655?text=Halo%20Destinara%2C%20mohon%20informasi%20dossier%20kurikulum%20dan%20silabus%20resmi%20untuk%20{{ urlencode($destination['name'] ?? $destination->name) }}" 
+               target="_blank"
+               class="border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-full font-semibold text-xs text-center flex items-center justify-center gap-1.5 transition-all bg-white hover:bg-gray-50">
+              <span class="material-symbols-outlined text-[16px]">description</span>
+              <span>Permohonan Silabus Resmi</span>
+            </a>
           </div>
 
           <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/50 text-[11px] text-emerald-800 space-y-0.5">

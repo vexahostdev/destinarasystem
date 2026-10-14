@@ -46,7 +46,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Organisasi / Lembaga Adat <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="organization_name" value="{{ old('organization_name', $profile->organization_name ?? 'Badan Pengelola Desa Wisata Adat Penglipuran') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="organization_name" placeholder="Contoh: Badan Pengelola / Pokdarwis ..." value="{{ old('organization_name', $profile->organization_name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
@@ -66,7 +66,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor SK Penetapan / Surat Keputusan
                     </label>
-                    <input type="text" name="legal_document_number" value="{{ old('legal_document_number', $profile->legal_document_number ?? 'SK.BUP-BGL/442/2021 (SK Penetapan Adat)') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="legal_document_number" placeholder="Contoh: SK.BUP-BGL/442/2021" value="{{ old('legal_document_number', $profile->legal_document_number ?? '') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
             </div>
         </div>
@@ -86,14 +86,14 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Lengkap & Gelar PIC <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="contact_name" value="{{ old('contact_name', $user->name ?? 'I Wayan Sudarma, S.Pd.H.') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="contact_name" placeholder="Nama PIC Pengelola..." value="{{ old('contact_name', $user->name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor WhatsApp Aktif <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="contact_phone" value="{{ old('contact_phone', $user->phone ?? '087812349900') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="contact_phone" placeholder="08xxxxxxxxxx" value="{{ old('contact_phone', $user->phone ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                     <span class="text-[10px] text-[#2B211E]/60">Diteruskan ke guru pendamping setelah transaksi lunas</span>
                 </div>
             </div>
@@ -118,21 +118,21 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Bank Penerbit <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="bank_name" value="{{ old('bank_name', $profile->bank_name ?? 'Bank BPD Bali') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="bank_name" placeholder="Contoh: Bank BPD Bali / Mandiri / BCA" value="{{ old('bank_name', $profile->bank_name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor Rekening Bank <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $profile->bank_account_number ?? '012-02-0049182-1') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono font-bold text-[#703A3A] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="bank_account_number" placeholder="Nomor rekening bank..." value="{{ old('bank_account_number', $profile->bank_account_number ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono font-bold text-[#703A3A] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Pemilik Rekening <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="bank_account_holder" value="{{ old('bank_account_holder', $profile->bank_account_holder ?? 'BPD PENGELOLA DESA WISATA PENGLIPURAN') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium uppercase text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="bank_account_holder" placeholder="Atas nama rekening..." value="{{ old('bank_account_holder', $profile->bank_account_holder ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium uppercase text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
             </div>
         </div>

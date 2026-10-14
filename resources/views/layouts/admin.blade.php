@@ -166,16 +166,19 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#703A3A] border border-[#8c5151] text-white flex items-center justify-center text-xs font-bold">
-                        RP
+                        {{ strtoupper(substr(Auth::user()->name ?? 'AD', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-bold text-white truncate">Rian Pratama, S.Hum.</span>
-                        <span class="text-[10px] text-[#d4a373] font-medium truncate">Lead Operasional</span>
+                        <span class="text-xs font-bold text-white truncate">{{ Auth::user()->name ?? 'Admin Operasional' }}</span>
+                        <span class="text-[10px] text-[#d4a373] font-medium truncate">{{ Auth::user()->email ?? 'admin@destinara.id' }}</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar ke Halaman Masuk" class="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                </a>
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" title="Keluar Sesi" class="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                    </button>
+                </form>
             </div>
         </div>
     </aside>

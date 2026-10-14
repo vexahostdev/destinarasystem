@@ -86,7 +86,7 @@
                 <div class="p-3 bg-[#faf6f0] border border-[#2B211E]/10 text-xs space-y-1">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <span class="text-[11px] text-[#2B211E]/70">
-                            PIC: <strong>{{ $booking->user->name }}</strong> (WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $booking->user->phone ?? '081234567890') }}" target="_blank" class="text-[#51634b] font-bold underline">{{ $booking->user->phone ?? '0812-3456-7890' }}</a>)
+                            PIC: <strong>{{ $booking->user->name ?? 'Pemohon' }}</strong> @if(!empty($booking->user->phone)) (WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $booking->user->phone) }}" target="_blank" class="text-[#51634b] font-bold underline">{{ $booking->user->phone }}</a>) @endif
                         </span>
                         <span class="text-[11px] text-[#2B211E]/60">Destinasi: <strong>{{ $booking->destination->name }}</strong></span>
                     </div>
@@ -107,9 +107,13 @@
                         <span class="px-3 py-1 bg-[#51634b]/15 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/30 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span> Terjadwal & Siap
                         </span>
+                    @elseif($booking->status === 'dibayar')
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-300 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Lunas — Perlu Konfirmasi
+                        </span>
                     @elseif($booking->status === 'menunggu_pembayaran')
-                        <span class="px-3 py-1 bg-[#b87a38]/15 text-[#b87a38] text-xs font-bold uppercase tracking-wider border border-[#b87a38]/30 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#b87a38]"></span> Perlu Konfirmasi
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider border border-gray-300 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Menunggu Bayar
                         </span>
                     @elseif($booking->status === 'selesai')
                         <span class="px-3 py-1 bg-[#2B211E]/10 text-[#2B211E]/80 text-xs font-bold uppercase tracking-wider">
@@ -128,7 +132,7 @@
 
                 <!-- Tombol Aksi Cepat -->
                 <div class="flex flex-wrap items-center gap-2">
-                    @if($booking->status === 'menunggu_pembayaran')
+                    @if(in_array($booking->status, ['dibayar', 'menunggu_pembayaran']))
                         <form action="{{ route('mitra.booking.confirm', $booking->id) }}" method="POST">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-[#51634b] text-white hover:bg-[#3f4f3a] text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-xs transition-colors">

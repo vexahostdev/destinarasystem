@@ -96,8 +96,8 @@
                 <span class="material-symbols-outlined text-[14px]">verified</span>
                 <span>Lembaga Adat</span>
             </div>
-            <div class="text-xs font-bold text-[#1E1B1B] truncate">Desa Adat Penglipuran</div>
-            <div class="text-[10px] text-gray-500 mt-0.5">Hak Adat 90% • Protokol FPIC</div>
+            <div class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->partnerProfile->organization_name ?? (Auth::user()->name ?? 'Pengelola Tapak') }}</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Hak Adat 90% • Protokol FPIC Resmi</div>
         </div>
 
         <!-- Navigasi Menu Vertikal Mitra -->
@@ -148,16 +148,19 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#51634b] text-white flex items-center justify-center text-xs font-bold">
-                        WS
+                        {{ strtoupper(substr(Auth::user()->name ?? 'P', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->name ?? 'I Wayan Sudarma' }}</span>
-                        <span class="text-[10px] text-[#51634b] font-medium truncate">Kelian Adat</span>
+                        <span class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->name ?? 'Pengelola Tapak' }}</span>
+                        <span class="text-[10px] text-[#51634b] font-medium truncate">{{ Auth::user()->partnerProfile->organization_type ? ucwords(str_replace('_', ' ', Auth::user()->partnerProfile->organization_type)) : (Auth::user()->email ?? 'Mitra Adat') }}</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#703A3A] hover:bg-white rounded-full transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                </a>
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#703A3A] hover:bg-white rounded-full transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                    </button>
+                </form>
             </div>
         </div>
     </aside>

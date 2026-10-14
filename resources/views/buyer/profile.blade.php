@@ -46,7 +46,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Resmi Lembaga / Sekolah <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="institution_name" value="{{ old('institution_name', $institution->institution_name ?? 'SMA Negeri 1 Candirejo') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="institution_name" placeholder="Contoh: SMA Negeri 1 ..." value="{{ old('institution_name', $institution->institution_name ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
@@ -64,7 +64,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor Pokok Sekolah Nasional (NPSN / NIDN)
                     </label>
-                    <input type="text" name="npsn" value="{{ old('npsn', $institution->npsn ?? '20104567') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="npsn" placeholder="Contoh: 20104567" value="{{ old('npsn', $institution->npsn ?? '') }}" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
@@ -72,8 +72,8 @@
                         Kota / Kabupaten & Provinsi <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" name="city" placeholder="Kabupaten Magelang" value="{{ old('city', $institution->city ?? 'Magelang') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                        <input type="text" name="province" placeholder="Jawa Tengah" value="{{ old('province', $institution->province ?? 'Jawa Tengah') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <input type="text" name="city" placeholder="Kabupaten/Kota" value="{{ old('city', $institution->city ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <input type="text" name="province" placeholder="Provinsi" value="{{ old('province', $institution->province ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                     </div>
                 </div>
 
@@ -81,7 +81,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Alamat Lengkap Kantor / Kampus <span class="text-red-500">*</span>
                     </label>
-                    <textarea name="address" rows="2" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('address', $institution->address ?? 'Jl. Raya Candirejo No. 14, Borobudur, Magelang, Jawa Tengah') }}</textarea>
+                    <textarea name="address" rows="2" placeholder="Alamat lengkap instansi..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('address', $institution->address ?? '') }}</textarea>
                 </div>
             </div>
         </div>
@@ -101,21 +101,21 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Lengkap & Gelar PIC <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="pic_name" value="{{ old('pic_name', $institution->pic_name ?? 'Drs. Bambang Hidayat, M.Pd.') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="pic_name" placeholder="Nama PIC..." value="{{ old('pic_name', $institution->pic_name ?? Auth::user()->name) }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Jabatan Struktural Institusi <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="pic_position" value="{{ old('pic_position', $institution->pic_position ?? 'Wakil Kepala Sekolah Bidang Kesiswaan & Kurikulum') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="pic_position" placeholder="Contoh: Kepala Sekolah / Dosen Pembimbing" value="{{ old('pic_position', $institution->pic_position ?? '') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nomor WhatsApp Aktif <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="pic_phone" value="{{ old('pic_phone', $institution->pic_phone ?? '081234567890') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="pic_phone" placeholder="08xxxxxxxxxx" value="{{ old('pic_phone', $institution->pic_phone ?? Auth::user()->phone) }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-mono text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                     <span class="text-[10px] text-[#2B211E]/60">Digunakan untuk notifikasi status verifikasi tapak secara otomatis</span>
                 </div>
 
@@ -123,7 +123,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Email Dinas / Surat Elektronik <span class="text-red-500">*</span>
                     </label>
-                    <input type="email" name="pic_email" value="{{ old('pic_email', $institution->pic_email ?? 'guru@sman1candirejo.sch.id') }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="email" name="pic_email" placeholder="email@instansi.sch.id" value="{{ old('pic_email', $institution->pic_email ?? Auth::user()->email) }}" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
             </div>
         </div>
@@ -145,7 +145,13 @@
             <div class="p-4 bg-[#faf6f0] border border-[#2B211E]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="space-y-1">
                     <div class="font-bold text-xs text-[#2B211E]">Kop Surat & Stempel Digital Resmi:</div>
-                    <div class="text-[11px] text-[#2B211E]/70">File aktif: <code>kop_surat_sman1candirejo_2026.png</code> (Tersimpan aman di penyimpanan terenkripsi)</div>
+                    <div class="text-[11px] text-[#2B211E]/70">
+                        @if(!empty($institution->official_letterhead))
+                            File aktif: <code>{{ basename($institution->official_letterhead) }}</code> (Tersimpan aman di penyimpanan terenkripsi)
+                        @else
+                            Format berkas: PNG/JPG/PDF (Maks. 2MB)
+                        @endif
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-2">

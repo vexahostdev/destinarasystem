@@ -108,7 +108,7 @@
                                     @click="docModal = true; docTitle = 'Berkas Legalitas {{ $inst->institution_name }} (NPSN: {{ $inst->npsn }})'"
                                     class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#703A3A] hover:underline bg-white px-2 py-1 border border-[#2B211E]/15">
                                 <span class="material-symbols-outlined text-[16px]">description</span>
-                                <span>{{ $inst->official_letterhead ?? 'dokumen_legal_npsn.pdf' }}</span>
+                                <span>{{ $inst->official_letterhead ? basename($inst->official_letterhead) : 'Belum unggah berkas' }}</span>
                                 <span class="material-symbols-outlined text-[14px]">visibility</span>
                             </button>
                         </div>
@@ -185,7 +185,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs bg-[#faf6f0] p-3 border border-[#2B211E]/10">
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">SK Penetapan / Akta:</span>
-                                <span class="font-mono font-bold text-[#2B211E]">{{ $p->legal_document_number ?? 'SK-ADAT/DESA/2024' }}</span>
+                                <span class="font-mono font-bold text-[#2B211E]">{{ $p->legal_document_number ?? '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">Bank Rekening Penampung:</span>

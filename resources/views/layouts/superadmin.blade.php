@@ -150,16 +150,19 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#4A1E1E] border border-[#6b2c2c] text-white flex items-center justify-center text-xs font-bold">
-                        SP
+                        {{ strtoupper(substr(Auth::user()->name ?? 'SA', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-bold text-white truncate">Dr. Ir. Suryadi Pratama</span>
-                        <span class="text-[10px] text-[#fca5a5] font-medium truncate">Dewan Direksi</span>
+                        <span class="text-xs font-bold text-white truncate">{{ Auth::user()->name ?? 'Super Admin' }}</span>
+                        <span class="text-[10px] text-[#fca5a5] font-medium truncate">{{ Auth::user()->email ?? 'superadmin@destinara.id' }}</span>
                     </div>
                 </div>
-                <a href="{{ route('login') }}" title="Keluar ke Portal Masuk" class="p-2 text-[#d6b4b4] hover:text-white hover:bg-white/5 rounded-full transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                </a>
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" title="Keluar ke Portal Masuk" class="p-2 text-[#d6b4b4] hover:text-white hover:bg-white/5 rounded-full transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                    </button>
+                </form>
             </div>
         </div>
     </aside>

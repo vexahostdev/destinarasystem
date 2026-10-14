@@ -130,7 +130,7 @@
                             @endif
                         </td>
                         <td class="py-3.5 px-4 font-mono text-[#2B211E]/80">
-                            {{ $u->phone ?? '0812-xxxx-xxxx' }}
+                            {{ $u->phone ?? '-' }}
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono font-bold uppercase">
@@ -148,7 +148,7 @@
                                 </button>
                                 @endif
                                 <button type="button" 
-                                        onclick="alert('Tautan setel ulang kata sandi telah dikirimkan ke email {{ $u->email }}')"
+                                        @click="criticalAction = 'reset_password'; targetUserId = {{ $u->id }}; criticalTitle = 'Setel Ulang Sandi: {{ addslashes($u->name) }}'; criticalDesc = 'Instruksi pemulihan kredensial resmi akan dipicu untuk akun {{ $u->email }}.'; confirmText = ''; criticalModal = true"
                                         title="Reset Password" 
                                         class="p-1 text-[#2B211E]/60 hover:text-[#703A3A] transition-colors">
                                     <span class="material-symbols-outlined text-[16px]">lock_reset</span>

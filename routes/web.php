@@ -18,24 +18,26 @@ Route::redirect('/home', '/')->name('home');
 // 2. Detail Destinasi & Silabus Kurikulum Lapangan
 Route::get('/destinasi/{slug}', [PublicController::class, 'showDestinasi'])->name('destinasi.show');
 
+use App\Http\Controllers\AuthController;
+
 // 3. Alur & Cara Kerja Kemitraan
 Route::get('/cara-kerja', [PublicController::class, 'caraKerja'])->name('cara-kerja');
 
 // 5. Pendaftaran Akun (Split-screen)
-Route::get('/daftar', [PublicController::class, 'register'])->name('register');
-Route::get('/register', [PublicController::class, 'register']);
+Route::get('/daftar', [AuthController::class, 'showRegisterForm'])->name('register');
+Route::get('/register', [AuthController::class, 'showRegisterForm']);
+Route::post('/daftar', [AuthController::class, 'register'])->name('register.post');
+Route::post('/register', [AuthController::class, 'register']);
 
 // 6. Masuk Akun / Login
-Route::get('/masuk', [PublicController::class, 'login'])->name('login');
-Route::get('/login', [PublicController::class, 'login']);
+Route::get('/masuk', [AuthController::class, 'showLoginForm'])->name('login');
+Route::get('/login', [AuthController::class, 'showLoginForm']);
+Route::post('/masuk', [AuthController::class, 'login'])->name('login.post');
+Route::post('/login', [AuthController::class, 'login']);
 
 // 7. Logout Akun
-Route::match(['get', 'post'], '/logout', function() {
-    \Illuminate\Support\Facades\Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    return redirect()->route('destinasi.index');
-})->name('logout');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -45,7 +47,7 @@ Route::match(['get', 'post'], '/logout', function() {
 */
 use App\Http\Controllers\BuyerController;
 
-Route::prefix('buyer')->name('buyer.')->group(function () {
+Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'role:buyer'])->group(function () {
     // 1. Dashboard Buyer
     Route::get('/dashboard', [BuyerController::class, 'dashboard'])->name('dashboard');
 
@@ -69,13 +71,18 @@ Route::prefix('buyer')->name('buyer.')->group(function () {
 
     // Helper: Unduh Dokumen Resmi (Invoice, e-Pass, Draf Izin)
     Route::get('/booking/{code}/dokumen/{type}', [BuyerController::class, 'downloadDoc'])->name('document.download');
-
-    // Helper: Quick Login Demo Buyer
-    Route::get('/quick-login', [BuyerController::class, 'quickLogin'])->name('quick-login');
 });
 
-// Alias rute umum
-Route::get('/dashboard', [BuyerController::class, 'dashboard']);
+// Pengalihan cerdas /dashboard ke portal sesuai peran
+Route::get('/dashboard', function() {
+    if (!Auth::check()) return redirect()->route('login');
+    return match(Auth::user()->role) {
+        'partner', 'mitra' => redirect()->route('mitra.dashboard'),
+        'admin' => redirect()->route('admin.dashboard'),
+        'super_admin', 'superadmin' => redirect()->route('superadmin.dashboard'),
+        default => redirect()->route('buyer.dashboard'),
+    };
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -85,7 +92,7 @@ Route::get('/dashboard', [BuyerController::class, 'dashboard']);
 */
 use App\Http\Controllers\PartnerController;
 
-Route::prefix('mitra')->name('mitra.')->group(function () {
+Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'role:partner'])->group(function () {
     // 1. Dashboard Mitra
     Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
 
@@ -112,9 +119,6 @@ Route::prefix('mitra')->name('mitra.')->group(function () {
     // 7. Profil Pengelola & Rekening Payout
     Route::get('/profil', [PartnerController::class, 'profile'])->name('profile');
     Route::post('/profil/update', [PartnerController::class, 'updateProfile'])->name('profile.update');
-
-// Helper: Quick Login Demo Mitra
-    Route::get('/quick-login', [PartnerController::class, 'quickLogin'])->name('quick-login');
 });
 
 /*
@@ -125,7 +129,7 @@ Route::prefix('mitra')->name('mitra.')->group(function () {
 */
 use App\Http\Controllers\AdminController;
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin|super_admin'])->group(function () {
     // 1. Dashboard Admin Harian
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
@@ -151,9 +155,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // 7. Pusat Notifikasi & Log Queue
     Route::get('/log-notifikasi', [AdminController::class, 'notificationLogs'])->name('notifications.index');
     Route::post('/log-notifikasi/{id}/retry', [AdminController::class, 'retryNotification'])->name('notifications.retry');
-
-    // Helper: Quick Login Demo Admin
-    Route::get('/quick-login', [AdminController::class, 'quickLogin'])->name('quick-login');
 });
 
 /*
@@ -164,7 +165,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 */
 use App\Http\Controllers\SuperAdminController;
 
-Route::prefix('superadmin')->name('superadmin.')->group(function () {
+Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:super_admin'])->group(function () {
     // 1. Dashboard Kontrol Ekosistem
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
 
@@ -182,9 +183,6 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
     // 5. Rekonsiliasi Keuangan & Audit Log Master
     Route::get('/rekonsiliasi', [SuperAdminController::class, 'reconciliation'])->name('reconciliation');
     Route::post('/rekonsiliasi/tutup-buku', [SuperAdminController::class, 'triggerReconciliation'])->name('reconciliation.trigger');
-
-    // Helper: Quick Login Demo Super Admin
-    Route::get('/quick-login', [SuperAdminController::class, 'quickLogin'])->name('quick-login');
 });
 
 

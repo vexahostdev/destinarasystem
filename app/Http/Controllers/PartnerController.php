@@ -10,22 +10,18 @@ use App\Models\PartnerPayout;
 use App\Models\Destination;
 use App\Models\AvailabilitySlot;
 use App\Models\Booking;
+use App\Models\Document;
+use App\Models\NotificationLog;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class PartnerController extends Controller
 {
     /**
-     * Helper autentikasi demo Mitra Pengelola Tapak
+     * Helper mendapatkan user Mitra Pengelola aktif di sesi
      */
     protected function ensurePartnerAuth()
     {
-        if (!Auth::check() || Auth::user()->role !== 'partner') {
-            $partner = User::where('email', 'mitra@penglipuran.id')->first();
-            if ($partner) {
-                Auth::login($partner);
-            }
-        }
         return Auth::user();
     }
 
@@ -130,14 +126,21 @@ class PartnerController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Mock data bulanan untuk grafik bar
-        $monthlyEarnings = [
-            ['month' => 'Mei', 'gross' => 2200000, 'net' => 1980000],
-            ['month' => 'Jun', 'gross' => 3100000, 'net' => 2790000],
-            ['month' => 'Jul', 'gross' => 2800000, 'net' => 2520000],
-            ['month' => 'Agu', 'gross' => 4300000, 'net' => 3870000],
-            ['month' => 'Sep', 'gross' => 3251000, 'net' => 2925900],
-        ];
+        // Rekonsiliasi data riil pendapatan 5 bulan terakhir dari basis data
+        $monthlyEarnings = [];
+        for ($i = 4; $i >= 0; $i--) {
+            $point = Carbon::now()->subMonths($i);
+            $payoutsThisMonth = PartnerPayout::where('partner_id', $user->id)
+                ->whereYear('created_at', $point->year)
+                ->whereMonth('created_at', $point->month)
+                ->get();
+
+            $monthlyEarnings[] = [
+                'month' => $point->translatedFormat('M'),
+                'gross' => (float)$payoutsThisMonth->sum('gross_amount'),
+                'net' => (float)$payoutsThisMonth->sum('net_amount'),
+            ];
+        }
 
         return view('partner.income', compact(
             'user',
@@ -164,7 +167,7 @@ class PartnerController extends Controller
             $pending->update([
                 'status' => 'transferred',
                 'transferred_at' => Carbon::now(),
-                'receipt_doc_path' => 'assets/docs/payout-simulated.pdf',
+                'receipt_doc_path' => 'payouts/receipt-TRF-' . $pending->id . '.pdf',
             ]);
 
             return redirect()->route('mitra.income')
@@ -274,20 +277,69 @@ class PartnerController extends Controller
     }
 
     /**
-     * Aksi Konfirmasi Penerimaan Booking Masuk
+     * Aksi Konfirmasi Penerimaan Booking Masuk (Alur PRD v1.0 Tahap 6)
      */
     public function confirmBooking($id)
     {
         $user = $this->ensurePartnerAuth();
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 
-        $booking = Booking::whereIn('destination_id', $destinationIds)->findOrFail($id);
+        $booking = Booking::with(['institution', 'destination', 'documents'])
+            ->whereIn('destination_id', $destinationIds)
+            ->findOrFail($id);
+
         $booking->update([
             'status' => 'dikonfirmasi',
             'internal_notes' => ($booking->internal_notes ? $booking->internal_notes . ' ' : '') . '[Dikonfirmasi Pengelola Tapak pada ' . Carbon::now()->translatedFormat('d M Y, H:i') . ']',
         ]);
 
-        return redirect()->back()->with('success', 'Rombongan ' . $booking->institution->institution_name . ' (' . $booking->participant_count . ' peserta) berhasil dikonfirmasi diterima!');
+        // 1. Update atau Buat Slot Ketersediaan Kalender
+        $slotDate = Carbon::parse($booking->planned_date_start)->format('Y-m-d');
+        $slot = AvailabilitySlot::firstOrCreate(
+            ['destination_id' => $booking->destination_id, 'date' => $slotDate],
+            ['capacity' => 100, 'booked_count' => 0, 'status' => 'open']
+        );
+        $slot->booked_count += $booking->participant_count;
+        if ($slot->booked_count >= $slot->capacity) {
+            $slot->status = 'full';
+        }
+        $slot->save();
+
+        // 2. Generate Dokumen Resmi (Surat Konfirmasi & Draf Izin)
+        if (!$booking->documents()->where('type', 'surat_konfirmasi')->exists()) {
+            Document::create([
+                'booking_id' => $booking->id,
+                'type' => 'surat_konfirmasi',
+                'title' => 'Surat Konfirmasi Kunjungan & e-Pass #' . $booking->booking_code,
+                'file_path' => 'assets/docs/epass-' . strtolower($booking->booking_code) . '.pdf',
+                'generated_at' => Carbon::now(),
+            ]);
+        }
+
+        if ($booking->needs_permit_letter && !$booking->documents()->where('type', 'draf_surat_izin')->exists()) {
+            Document::create([
+                'booking_id' => $booking->id,
+                'type' => 'draf_surat_izin',
+                'title' => 'Draf Surat Permohonan Izin Riset Lapangan #' . $booking->booking_code,
+                'file_path' => 'assets/docs/izin-' . strtolower($booking->booking_code) . '.pdf',
+                'generated_at' => Carbon::now(),
+            ]);
+        }
+
+        // 3. Notifikasi Otomatis ke Buyer & Admin
+        NotificationLog::create([
+            'recipient_type' => 'buyer',
+            'recipient_name' => $booking->institution->pic_name ?? 'Penanggung Jawab',
+            'channel' => 'whatsapp',
+            'target' => $booking->institution->pic_phone ?? '0812-0000-0000',
+            'event_type' => 'epass_issued',
+            'title' => 'Reservasi #' . $booking->booking_code . ' Dikonfirmasi!',
+            'preview_text' => 'Kabar gembira! Pengelola tapak ' . $booking->destination->name . ' telah menyetujui kunjungan rombongan Anda. e-Pass resmi kini dapat diunduh.',
+            'status' => 'sent',
+            'sent_at' => Carbon::now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Rombongan ' . $booking->institution->institution_name . ' (' . $booking->participant_count . ' peserta) berhasil dikonfirmasi diterima! Dokumen e-Pass dan surat izin telah diterbitkan.');
     }
 
     /**
@@ -298,12 +350,27 @@ class PartnerController extends Controller
         $user = $this->ensurePartnerAuth();
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 
-        $booking = Booking::whereIn('destination_id', $destinationIds)->findOrFail($id);
+        $booking = Booking::with(['institution', 'destination'])
+            ->whereIn('destination_id', $destinationIds)
+            ->findOrFail($id);
+
         $reason = $request->input('reason', 'Kapasitas balai adat penuh karena upacara adat.');
 
         $booking->update([
             'status' => 'batal',
             'internal_notes' => ($booking->internal_notes ? $booking->internal_notes . ' ' : '') . '[Ditolak Pengelola: ' . $reason . ']',
+        ]);
+
+        NotificationLog::create([
+            'recipient_type' => 'buyer',
+            'recipient_name' => $booking->institution->pic_name ?? 'Penanggung Jawab',
+            'channel' => 'whatsapp',
+            'target' => $booking->institution->pic_phone ?? '0812-0000-0000',
+            'event_type' => 'payment_reminder',
+            'title' => 'Pengajuan Booking #' . $booking->booking_code . ' Ditolak',
+            'preview_text' => 'Mohon maaf, pengajuan booking tapak belum dapat diterima dengan alasan: ' . $reason,
+            'status' => 'sent',
+            'sent_at' => Carbon::now(),
         ]);
 
         return redirect()->back()->with('error', 'Booking rombongan #' . $booking->booking_code . ' telah ditolak dengan alasan: ' . $reason);
@@ -422,17 +489,5 @@ class PartnerController extends Controller
 
         return redirect()->route('mitra.profile')
             ->with('success', 'Profil lembaga pengelola dan nomor rekening pencairan berhasil diperbarui.');
-    }
-
-    /**
-     * Akses Cepat Demo Mitra
-     */
-    public function quickLogin()
-    {
-        $partner = User::where('email', 'mitra@penglipuran.id')->first();
-        if ($partner) {
-            Auth::login($partner);
-        }
-        return redirect()->route('mitra.dashboard');
     }
 }

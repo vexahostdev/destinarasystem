@@ -10,7 +10,7 @@
         <div>
             <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#703A3A] mb-1">
                 <span class="material-symbols-outlined text-[16px]">account_balance</span>
-                <span>{{ $institution->institution_name ?? 'SMA Negeri 1 Candirejo' }}</span>
+                <span>{{ $institution->institution_name ?? (Auth::user()->name ?? 'Institusi Terdaftar') }}</span>
                 <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] uppercase font-bold border border-emerald-200/50">Terverifikasi</span>
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B] tracking-tight">Ruang Kerja Perjalanan Akademik</h1>

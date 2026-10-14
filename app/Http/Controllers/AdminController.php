@@ -11,31 +11,13 @@ use App\Models\Booking;
 use App\Models\Document;
 use App\Models\NotificationLog;
 use App\Models\AuditLog;
+use App\Models\PartnerPayout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class AdminController extends Controller
 {
-    /**
-     * Quick Login untuk demonstrasi peran Admin Operasional
-     */
-    public function quickLogin()
-    {
-        $admin = User::where('role', 'admin')->first();
-        if (!$admin) {
-            $admin = User::firstOrCreate(
-                ['email' => 'admin@destinara.id'],
-                [
-                    'name' => 'Rian Pratama, S.Hum.',
-                    'password' => bcrypt('password'),
-                    'role' => 'admin',
-                    'phone' => '0812-8877-6655',
-                ]
-            );
-        }
-        Auth::login($admin);
-        return redirect()->route('admin.dashboard')->with('success', 'Selamat datang di Konsol Admin Operasional Destinara.');
-    }
 
     /**
      * Halaman 1: Dashboard Admin Harian
@@ -282,9 +264,9 @@ class AdminController extends Controller
 
         if ($status !== 'all') {
             if ($status === 'confirmed') {
-                $query->whereIn('status', ['confirmed', 'dikonfirmasi', 'dibayar']);
+                $query->whereIn('status', ['confirmed', 'dikonfirmasi']);
             } elseif ($status === 'pending_confirmation') {
-                $query->whereIn('status', ['pending_confirmation', 'review_mitra']);
+                $query->whereIn('status', ['pending_confirmation', 'review_mitra', 'dibayar']);
             } elseif ($status === 'awaiting_payment') {
                 $query->whereIn('status', ['awaiting_payment', 'menunggu_pembayaran']);
             } elseif ($status === 'completed') {
@@ -312,9 +294,9 @@ class AdminController extends Controller
 
         $statusCounts = [
             'all' => Booking::count(),
-            'pending_confirmation' => Booking::whereIn('status', ['pending_confirmation', 'review_mitra'])->count(),
+            'pending_confirmation' => Booking::whereIn('status', ['pending_confirmation', 'review_mitra', 'dibayar'])->count(),
             'awaiting_payment' => Booking::whereIn('status', ['awaiting_payment', 'menunggu_pembayaran'])->count(),
-            'confirmed' => Booking::whereIn('status', ['confirmed', 'dikonfirmasi', 'dibayar'])->count(),
+            'confirmed' => Booking::whereIn('status', ['confirmed', 'dikonfirmasi'])->count(),
             'completed' => Booking::whereIn('status', ['completed', 'selesai'])->count(),
             'cancelled' => Booking::whereIn('status', ['cancelled', 'batal'])->count(),
         ];
@@ -327,12 +309,23 @@ class AdminController extends Controller
      */
     public function updateBookingStatus(Request $request, $id)
     {
-        $booking = Booking::findOrFail($id);
-        $action = $request->input('action'); // force_confirm, reschedule, cancel
+        $booking = Booking::with(['destination.partner', 'payment'])->findOrFail($id);
+        $action = $request->input('action'); // force_confirm, reschedule, complete, cancel
 
         if ($action === 'force_confirm') {
-            $booking->status = 'confirmed';
+            $booking->status = 'dikonfirmasi';
             $booking->save();
+
+            // Buat dokumen resmi jika belum ada
+            if (!$booking->documents()->where('type', 'surat_konfirmasi')->exists()) {
+                Document::create([
+                    'booking_id' => $booking->id,
+                    'type' => 'surat_konfirmasi',
+                    'title' => 'Surat Konfirmasi Kunjungan & e-Pass #' . $booking->booking_code,
+                    'file_path' => 'assets/docs/epass-' . strtolower($booking->booking_code) . '.pdf',
+                    'generated_at' => Carbon::now(),
+                ]);
+            }
 
             AuditLog::create([
                 'user_id' => Auth::id(),
@@ -344,6 +337,40 @@ class AdminController extends Controller
             ]);
 
             return back()->with('success', "Booking {$booking->booking_code} berhasil dikonfirmasi secara resmi!");
+        } elseif ($action === 'complete') {
+            $booking->status = 'selesai';
+            $booking->save();
+
+            // Buat record PartnerPayout otomatis (90% hak mitra, 10% komisi platform)
+            $partnerId = $booking->destination->partner_id ?? null;
+            if ($partnerId) {
+                $gross = $booking->subtotal_amount > 0 ? $booking->subtotal_amount : $booking->total_amount;
+                $commission = round($gross * 0.10, 2);
+                $net = $gross - $commission;
+
+                PartnerPayout::firstOrCreate(
+                    ['booking_id' => $booking->id],
+                    [
+                        'partner_id' => $partnerId,
+                        'payout_reference' => 'PO-' . date('Ymd') . '-' . strtoupper(Str::random(6)),
+                        'gross_amount' => $gross,
+                        'commission' => $commission,
+                        'net_amount' => $net,
+                        'status' => 'pending',
+                    ]
+                );
+            }
+
+            AuditLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'complete_booking',
+                'entity_type' => 'Booking',
+                'entity_id' => $booking->id,
+                'description' => "Kunjungan booking {$booking->booking_code} ditandai selesai. Saldo payout mitra telah dibuat.",
+                'ip_address' => $request->ip(),
+            ]);
+
+            return back()->with('success', "Booking {$booking->booking_code} telah ditandai SELESAI. Dana payout siap ditarik oleh Mitra di panel pendapatan.");
         } elseif ($action === 'reschedule') {
             $newDate = $request->input('visit_date');
             $oldDate = $booking->visit_date;
@@ -361,7 +388,7 @@ class AdminController extends Controller
 
             return back()->with('success', "Tanggal kunjungan untuk {$booking->booking_code} berhasil diubah ke {$newDate}.");
         } elseif ($action === 'cancel') {
-            $booking->status = 'cancelled';
+            $booking->status = 'batal';
             $booking->save();
 
             AuditLog::create([

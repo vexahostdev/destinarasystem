@@ -126,17 +126,32 @@
                 </div>
             </div>
 
+            <!-- Alert Errors -->
+            @if($errors->any())
+                <div class="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-800 space-y-1">
+                    @foreach($errors->all() as $error)
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-red-600 shrink-0">error</span>
+                            <span>{{ $error }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
             <!-- Registration Form Inputs -->
-            <form onsubmit="event.preventDefault(); alert('Pendaftaran berhasil disimulasikan! Menuju panel pengguna...'); window.location.href='{{ route('destinasi.index') }}';" class="space-y-4">
+            <form action="{{ route('register.post') }}" method="POST" class="space-y-4">
+                @csrf
+                <input type="hidden" name="role" :value="role">
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nama PIC</label>
-                        <input type="text" required placeholder="Contoh: Ryan Prasetya" 
+                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="Contoh: Ryan Prasetya" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5" x-text="role === 'buyer' ? 'Nama Sekolah / Kampus' : 'Nama Desa / Sanggar'"></label>
-                        <input type="text" required placeholder="Contoh: SMA Negeri 1 / Desa Wonosadi" 
+                        <input type="text" name="org_name" value="{{ old('org_name') }}" required placeholder="Contoh: SMA Negeri 1 / Desa Wonosadi" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                 </div>
@@ -144,19 +159,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Email Resmi</label>
-                        <input type="email" required placeholder="nama@instansi.sch.id" 
+                        <input type="email" name="email" value="{{ old('email') }}" required placeholder="nama@instansi.sch.id" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nomor WhatsApp</label>
-                        <input type="tel" required placeholder="0812-xxxx-xxxx" 
+                        <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="0812-xxxx-xxxx" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Kata Sandi</label>
-                    <input type="password" required placeholder="Minimal 8 karakter" 
+                    <input type="password" name="password" required placeholder="Minimal 8 karakter" 
                            class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                 </div>
 

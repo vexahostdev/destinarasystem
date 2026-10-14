@@ -54,4 +54,53 @@ class Destination extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    // Accessor aliases for seamless public view compatibility
+    public function getPriceAttribute()
+    {
+        return $this->price_per_pax ?? 45000;
+    }
+
+    public function getPriceFormattedAttribute()
+    {
+        return 'Rp ' . number_format($this->price_per_pax ?? 45000, 0, ',', '.');
+    }
+
+    public function getImageAttribute()
+    {
+        if (!empty($this->cover_image)) {
+            return str_starts_with($this->cover_image, 'http') ? $this->cover_image : asset($this->cover_image);
+        }
+        return asset('assets/img/hd/hero-fieldwork.jpg');
+    }
+
+    public function getGalleryAttribute()
+    {
+        if (!empty($this->gallery_images) && is_array($this->gallery_images)) {
+            return array_map(function($img) {
+                return str_starts_with($img, 'http') ? $img : asset($img);
+            }, $this->gallery_images);
+        }
+        return [$this->image];
+    }
+
+    public function getHighlightsAttribute()
+    {
+        return $this->educational_highlights ?? $this->description;
+    }
+
+    public function getRatingAttribute()
+    {
+        return '4.9';
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return 98;
+    }
+
+    public function getCategoryCodeAttribute()
+    {
+        return $this->category;
+    }
 }

@@ -16,16 +16,10 @@ use Illuminate\Support\Str;
 class BuyerController extends Controller
 {
     /**
-     * Helper untuk memastikan user buyer aktif di sesi (otomatis login demo buyer jika belum login)
+     * Helper untuk mendapatkan user buyer aktif di sesi
      */
     protected function ensureBuyerAuth()
     {
-        if (!Auth::check() || Auth::user()->role !== 'buyer') {
-            $buyer = User::where('email', 'guru@sman1candirejo.sch.id')->first();
-            if ($buyer) {
-                Auth::login($buyer);
-            }
-        }
         return Auth::user();
     }
 
@@ -97,7 +91,7 @@ class BuyerController extends Controller
         $destinations = Destination::where('status', 'published')->get();
 
         // Cek jika ada parameter pre-selected destination
-        $selectedSlug = $request->query('destinasi');
+        $selectedSlug = $request->query('destinasi') ?? $request->query('tapak');
         $selectedDestination = $selectedSlug 
             ? Destination::where('slug', $selectedSlug)->first() 
             : $destinations->first();
@@ -234,7 +228,7 @@ class BuyerController extends Controller
     {
         $user = $this->ensureBuyerAuth();
 
-        $booking = Booking::with(['payment', 'documents'])
+        $booking = Booking::with(['destination.partner', 'institution', 'payment', 'documents'])
             ->where('booking_code', $code)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -250,34 +244,39 @@ class BuyerController extends Controller
             ]);
         }
 
-        // Perbarui Status Booking menjadi Dikonfirmasi
+        // Perbarui Status Booking menjadi 'dibayar' sesuai Alur PRD v1.0
+        // (Menunggu konfirmasi slot oleh Mitra Pengelola Tapak)
         $booking->update([
-            'status' => 'dikonfirmasi',
+            'status' => 'dibayar',
         ]);
 
-        // Generate Dokumen Konfirmasi & Draf Surat Izin jika belum ada
-        if (!$booking->documents()->where('type', 'surat_konfirmasi')->exists()) {
-            Document::create([
-                'booking_id' => $booking->id,
-                'type' => 'surat_konfirmasi',
-                'title' => 'Surat Konfirmasi Kunjungan & e-Pass #' . $booking->booking_code,
-                'file_path' => 'assets/docs/epass-' . strtolower($booking->booking_code) . '.pdf',
-                'generated_at' => Carbon::now(),
-            ]);
-        }
+        // Kirim Log Notifikasi ke Pengelola Tapak & Buyer
+        \App\Models\NotificationLog::create([
+            'recipient_type' => 'partner',
+            'recipient_name' => $booking->destination->partner->name ?? 'Pengelola Tapak',
+            'channel' => 'whatsapp',
+            'target' => $booking->destination->partner->phone ?? '0812-3456-7890',
+            'event_type' => 'booking_created',
+            'title' => 'Pembayaran Booking #' . $booking->booking_code . ' Diterima',
+            'preview_text' => 'Rombongan ' . ($booking->institution->institution_name ?? 'Institusi') . ' (' . $booking->participant_count . ' peserta) telah menyelesaikan pembayaran dan menunggu konfirmasi kesiapan slot dari Anda.',
+            'status' => 'sent',
+            'sent_at' => Carbon::now(),
+        ]);
 
-        if ($booking->needs_permit_letter && !$booking->documents()->where('type', 'draf_surat_izin')->exists()) {
-            Document::create([
-                'booking_id' => $booking->id,
-                'type' => 'draf_surat_izin',
-                'title' => 'Draf Surat Permohonan Izin Riset Lapangan #' . $booking->booking_code,
-                'file_path' => 'assets/docs/izin-' . strtolower($booking->booking_code) . '.pdf',
-                'generated_at' => Carbon::now(),
-            ]);
-        }
+        \App\Models\NotificationLog::create([
+            'recipient_type' => 'buyer',
+            'recipient_name' => $user->name,
+            'channel' => 'email',
+            'target' => $user->email,
+            'event_type' => 'payment_reminder',
+            'title' => 'Pembayaran Booking #' . $booking->booking_code . ' Lunas',
+            'preview_text' => 'Pembayaran Anda berhasil diverifikasi. Pengelola tapak sedang meninjau kesiapan slot rombongan.',
+            'status' => 'sent',
+            'sent_at' => Carbon::now(),
+        ]);
 
         return redirect()->route('buyer.booking.show', $booking->booking_code)
-            ->with('success', 'Pembayaran sebesar Rp ' . number_format($booking->total_amount, 0, ',', '.') . ' berhasil diverifikasi lunas! Dokumen e-Pass dan Surat Izin siap diunduh.');
+            ->with('success', 'Pembayaran sebesar Rp ' . number_format($booking->total_amount, 0, ',', '.') . ' berhasil diverifikasi lunas! Status pengajuan kini: DIBAYAR (Menunggu konfirmasi kesiapan slot oleh Pengelola Tapak).');
     }
 
     /**
@@ -382,19 +381,6 @@ class BuyerController extends Controller
             ->where('booking_code', $code)
             ->where('user_id', $user->id)
             ->firstOrFail();
-
         return view('buyer.documents.template', compact('booking', 'type'));
-    }
-
-    /**
-     * Switch / Quick Demo Login untuk Penguji
-     */
-    public function quickLogin()
-    {
-        $buyer = User::where('email', 'guru@sman1candirejo.sch.id')->first();
-        if ($buyer) {
-            Auth::login($buyer);
-        }
-        return redirect()->route('buyer.dashboard');
     }
 }

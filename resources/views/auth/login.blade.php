@@ -45,13 +45,44 @@
             </p>
         </div>
 
+        <!-- Alert Flash Message -->
+        @if(session('success'))
+            <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-emerald-600 shrink-0">check_circle</span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-red-600 shrink-0">error</span>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+        @if(session('warning'))
+            <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base text-amber-600 shrink-0">warning</span>
+                <span>{{ session('warning') }}</span>
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-800 space-y-1">
+                @foreach($errors->all() as $error)
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base text-red-600 shrink-0">error</span>
+                        <span>{{ $error }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <!-- Form Login -->
-        <form onsubmit="event.preventDefault(); alert('Login berhasil disimulasikan! Menuju dashboard...'); window.location.href='{{ route('destinasi.index') }}';" class="space-y-4">
+        <form action="{{ route('login.post') }}" method="POST" class="space-y-4">
+            @csrf
             
             <div>
                 <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Email Resmi</label>
                 <div class="relative">
-                    <input type="email" required placeholder="nama@instansi.sch.id" 
+                    <input type="email" name="email" value="{{ old('email') }}" required placeholder="nama@instansi.sch.id" 
                            class="w-full text-xs pl-10 pr-4 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">mail</span>
                 </div>
@@ -60,7 +91,7 @@
             <div>
                 <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Kata Sandi</label>
                 <div class="relative">
-                    <input type="password" required placeholder="Masukkan kata sandi" 
+                    <input type="password" name="password" required placeholder="Masukkan kata sandi" 
                            class="w-full text-xs pl-10 pr-4 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
                     <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">lock</span>
                 </div>
@@ -68,10 +99,10 @@
 
             <div class="flex items-center justify-between text-xs pt-1">
                 <label class="flex items-center gap-2 text-gray-600 cursor-pointer">
-                    <input type="checkbox" class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                    <input type="checkbox" name="remember" class="rounded text-[#703A3A] focus:ring-[#703A3A]">
                     <span>Ingat saya</span>
                 </label>
-                <a href="#" onclick="alert('Alur pemulihan sandi: Masukkan email instansi untuk menerima tautan.')" class="text-[#703A3A] font-semibold hover:underline">
+                <a href="mailto:admin@destinara.id?subject=Bantuan%20Akses%20dan%20Reset%20Sandi%20Destinara" class="text-[#703A3A] font-semibold hover:underline">
                     Lupa sandi?
                 </a>
             </div>
@@ -82,30 +113,7 @@
             </button>
         </form>
 
-        <!-- Quick Demo Access for Evaluator -->
-        <div class="space-y-2 pt-2">
-            <div class="flex items-center gap-2 text-[10px] text-gray-400 uppercase tracking-wider font-bold">
-                <div class="h-px bg-gray-200 flex-1"></div>
-                <span>Akses Pengujian Cepat</span>
-                <div class="h-px bg-gray-200 flex-1"></div>
-            </div>
-            <a href="{{ route('buyer.quick-login') }}" class="w-full py-2.5 px-4 bg-[#FAF7F5] hover:bg-[#703A3A] hover:text-white rounded-xl border border-gray-200 text-[#703A3A] text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">school</span>
-                <span>Masuk Demo: Buyer Institusi</span>
-            </a>
-            <a href="{{ route('mitra.quick-login') }}" class="w-full py-2.5 px-4 bg-[#FAF7F5] hover:bg-[#51634b] hover:text-white rounded-xl border border-gray-200 text-[#51634b] text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">nature_people</span>
-                <span>Masuk Demo: Mitra Pengelola</span>
-            </a>
-            <a href="{{ route('admin.quick-login') }}" class="w-full py-2.5 px-4 bg-[#FAF7F5] hover:bg-[#2B3A4A] hover:text-white rounded-xl border border-gray-200 text-[#2B3A4A] text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                <span>Masuk Demo: Admin Operasional</span>
-            </a>
-            <a href="{{ route('superadmin.quick-login') }}" class="w-full py-2.5 px-4 bg-[#FAF7F5] hover:bg-[#4A1E1E] hover:text-white rounded-xl border border-gray-200 text-[#4A1E1E] text-xs font-bold transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">shield</span>
-                <span>Masuk Demo: Super Admin</span>
-            </a>
-        </div>
+
 
         <!-- Institutional Security Notice -->
         <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/50 text-[11px] text-emerald-800 flex items-center gap-2">

@@ -24,6 +24,10 @@
                     <span class="px-3 py-1 bg-[#51634b]/15 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/30 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-[#51634b]"></span> Terkonfirmasi & Lunas
                     </span>
+                @elseif($booking->status === 'dibayar')
+                    <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-300 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Dibayar (Menunggu Konfirmasi Mitra)
+                    </span>
                 @elseif($booking->status === 'menunggu_pembayaran')
                     <span class="px-3 py-1 bg-[#b87a38]/15 text-[#b87a38] text-xs font-bold uppercase tracking-wider border border-[#b87a38]/30 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-[#b87a38]"></span> Menunggu Pembayaran
