@@ -23,20 +23,32 @@ use App\Http\Controllers\AuthController;
 // 3. Alur & Cara Kerja Kemitraan
 Route::get('/cara-kerja', [PublicController::class, 'caraKerja'])->name('cara-kerja');
 
-// 5. Pendaftaran Akun (Split-screen)
+// 5. Pendaftaran Akun
 Route::get('/daftar', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::get('/register', [AuthController::class, 'showRegisterForm']);
 Route::post('/daftar', [AuthController::class, 'register'])->name('register.post');
-Route::post('/register', [AuthController::class, 'register']);
 
 // 6. Masuk Akun / Login
 Route::get('/masuk', [AuthController::class, 'showLoginForm'])->name('login');
-Route::get('/login', [AuthController::class, 'showLoginForm']);
 Route::post('/masuk', [AuthController::class, 'login'])->name('login.post');
-Route::post('/login', [AuthController::class, 'login']);
 
-// 7. Logout Akun
-Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+// 7. Logout Akun (POST saja - SPEC K11 & §13)
+Route::post('/keluar', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout']);
+
+// Legacy redirects (SPEC §13)
+Route::redirect('/login', '/masuk', 301);
+Route::redirect('/register', '/daftar', 301);
+
+// 8. Password Reset
+Route::get('/lupa-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('/lupa-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+// 9. Email Verification
+Route::get('/email/verifikasi', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
+Route::get('/email/verifikasi/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['auth', 'signed'])->name('verification.verify');
+Route::post('/email/verifikasi/kirim-ulang', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 
 /*
