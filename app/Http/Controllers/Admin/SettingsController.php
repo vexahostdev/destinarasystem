@@ -22,35 +22,61 @@ class SettingsController extends Controller
     public function index(Request $request)
     {
         $registry = config('destinara.settings', []);
-        $activeGroup = $request->query('group', 'general');
+        $user = $request->user();
 
-        // Group registry items
+        $groupLabels = [
+            'general' => 'Umum & Operasional',
+            'booking' => 'Reservasi & SLA',
+            'finance' => 'Keuangan & Komisi',
+            'payment' => 'Gerbang Pembayaran',
+            'email' => 'Email SMTP',
+            'whatsapp' => 'WhatsApp Gateway',
+            'notification' => 'Notifikasi & Peringatan',
+            'documents' => 'Format Dokumen',
+        ];
+
         $groupedSettings = [];
+        $availableGroups = [];
+
         foreach ($registry as $item) {
             $group = $item['group'] ?? 'general';
+            $permission = $item['permission'] ?? ("settings.{$group}");
+
+            if ($user && ! $user->can($permission)) {
+                continue;
+            }
+
             $key = $item['key'] ?? null;
             if ($key) {
                 $item['current_value'] = $this->settings->get($key);
                 $groupedSettings[$group][] = $item;
+                $availableGroups[$group] = $groupLabels[$group] ?? ucfirst($group);
             }
         }
 
-        $groups = [
-            'general' => 'Umum & Operasional',
-            'company' => 'Identitas Perusahaan',
-            'booking' => 'Reservasi & SLA',
-            'payment' => 'Gerbang Pembayaran',
-            'whatsapp' => 'WhatsApp Gateway',
-            'email' => 'Email SMTP',
-            'finance' => 'Keuangan & Dokumen',
-        ];
+        if (empty($availableGroups)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah pengaturan sistem.');
+        }
 
-        return view('admin.settings.index', compact('groupedSettings', 'groups', 'activeGroup'));
+        $activeGroup = $request->query('group');
+        if (! $activeGroup || ! isset($availableGroups[$activeGroup])) {
+            $activeGroup = array_key_first($availableGroups);
+        }
+
+        return view('admin.settings.index', [
+            'groupedSettings' => $groupedSettings,
+            'groups' => $availableGroups,
+            'activeGroup' => $activeGroup,
+        ]);
     }
 
     public function update(Request $request)
     {
         $registry = config('destinara.settings', []);
+        $user = $request->user();
+
+        $validationRules = [];
+        $keysToUpdate = [];
 
         foreach ($registry as $item) {
             $key = $item['key'] ?? null;
@@ -59,16 +85,67 @@ class SettingsController extends Controller
             }
 
             $underscoreKey = str_replace('.', '_', $key);
-            if ($request->has($underscoreKey)) {
-                $this->settings->set($key, $request->input($underscoreKey));
-            } elseif ($request->has($key)) {
-                $this->settings->set($key, $request->input($key));
+            $hasField = $request->has($underscoreKey) || $request->has($key);
+
+            if ($hasField) {
+                $group = $item['group'] ?? 'general';
+                $permission = $item['permission'] ?? ("settings.{$group}");
+
+                if ($user && ! $user->can($permission)) {
+                    abort(403, "Anda tidak memiliki izin untuk mengubah pengaturan grup '{$group}'.");
+                }
+
+                $inputKey = $request->has($underscoreKey) ? $underscoreKey : $key;
+                if (! empty($item['rules'])) {
+                    $validationRules[$inputKey] = $item['rules'];
+                }
+                $keysToUpdate[$key] = [
+                    'input_key' => $inputKey,
+                    'type' => $item['type'] ?? 'string',
+                ];
             }
+        }
+
+        if (! empty($validationRules)) {
+            $request->validate($validationRules);
+        }
+
+        foreach ($keysToUpdate as $key => $meta) {
+            $val = $request->input($meta['input_key']);
+            if ($meta['type'] === 'bool') {
+                $val = (bool) $val;
+            } elseif ($meta['type'] === 'int') {
+                $val = (int) $val;
+            } elseif ($meta['type'] === 'json' && is_string($val)) {
+                $decoded = json_decode($val, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $val = $decoded;
+                }
+            }
+            $this->settings->set($key, $val);
         }
 
         AuditLogger::log('settings_updated', null, 'Memperbarui konfigurasi pengaturan sistem.');
 
         return back()->with('success', 'Pengaturan sistem berhasil disimpan dan diperbarui di cache.');
+    }
+
+    /**
+     * Delegator Tes Koneksi untuk Route /pengaturan/test/{target}
+     */
+    public function testConnection(
+        Request $request,
+        string $target,
+        VexaHostClient $waClient,
+        PaymentGatewayManager $gatewayManager
+    ) {
+        return match ($target) {
+            'whatsapp' => $this->testWhatsApp($request, $waClient),
+            'mail', 'email' => $this->testMail($request),
+            'xendit' => $this->testXendit($gatewayManager),
+            'midtrans' => $this->testMidtrans($gatewayManager),
+            default => back()->with('error', "Target pengujian koneksi '{$target}' tidak dikenali."),
+        };
     }
 
     /**
@@ -93,7 +170,7 @@ class SettingsController extends Controller
      */
     public function testMail(Request $request)
     {
-        $recipient = $request->input('test_email', Auth::user()->email ?? 'admin@destinara.id');
+        $recipient = $request->input('test_email', \Illuminate\Support\Facades\Auth::user()->email ?? 'admin@destinara.id');
 
         try {
             Mail::raw('Ini adalah email uji coba dari konsol admin Destinara pada '.now()->toRfc850String(), function ($message) use ($recipient) {

@@ -147,20 +147,16 @@
                 <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 mb-6">
                     @auth
                         @php
-                            $userRole = Auth::user()->role ?? 'buyer';
-                            $roleRoute = match($userRole) {
-                                'buyer' => 'buyer.dashboard',
-                                'mitra' => 'mitra.dashboard',
-                                'admin' => 'admin.dashboard',
-                                'superadmin' => 'superadmin.dashboard',
+                            $user = Auth::user();
+                            $roleRoute = match(true) {
+                                $user->isPartner() => 'mitra.dashboard',
+                                $user->isInternal() => 'admin.dashboard',
                                 default => 'buyer.dashboard',
                             };
-                            $roleLabel = match($userRole) {
-                                'buyer' => 'Buyer Institusi',
-                                'mitra' => 'Mitra Pengelola Tapak',
-                                'admin' => 'Admin Sistem',
-                                'superadmin' => 'Super Admin',
-                                default => 'Dashboard',
+                            $roleLabel = match(true) {
+                                $user->isPartner() => 'Mitra Pengelola Tapak',
+                                $user->isInternal() => 'Admin Sistem',
+                                default => 'Buyer Institusi',
                             };
                         @endphp
                         <div class="flex items-center justify-between mb-3">

@@ -15,9 +15,11 @@ return [
 
     'allowed_origins' => array_values(array_filter([
         config('destinara.compro_url', env('COMPRO_URL', 'https://destinara.my.id')),
-        'http://localhost:8000',
-        'http://127.0.0.1:8000',
-        'http://localhost:3000',
+        ...(in_array(env('APP_ENV'), ['local', 'testing']) ? [
+            'http://localhost:8000',
+            'http://127.0.0.1:8000',
+            'http://localhost:3000',
+        ] : []),
     ])),
 
     'allowed_origins_patterns' => [],

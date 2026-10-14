@@ -84,7 +84,7 @@
                                     class="border border-stone-300 text-stone-700 px-4 py-2 rounded-full text-xs font-bold uppercase hover:bg-stone-50">
                                 Tes Koneksi WhatsApp
                             </button>
-                        @elseif($grpKey === 'mail')
+                        @elseif($grpKey === 'email' || $grpKey === 'mail')
                             <button type="submit" formaction="{{ route('admin.settings.test', 'mail') }}"
                                     class="border border-stone-300 text-stone-700 px-4 py-2 rounded-full text-xs font-bold uppercase hover:bg-stone-50">
                                 Tes Kirim Email SMTP

@@ -183,10 +183,15 @@
             </div>
 
             <!-- Right: Saldo Siap Tarik & Quick Action -->
-            <div class="flex items-center gap-3">
+                @php
+                    $readyBalance = Auth::check() ? \App\Models\PartnerPayout::where('partner_id', Auth::id())
+                        ->where('status', \App\Enums\PayoutStatus::PENDING)
+                        ->where('eligible_at', '<=', now())
+                        ->sum('net_amount') : 0;
+                @endphp
                 <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#faf6f0] border border-[#2B211E]/15 text-xs hover:border-[#51634b] transition-colors">
                     <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Siap Tarik:</span>
-                    <span class="font-bold font-mono text-[#51634b]">Rp 1.417.500</span>
+                    <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($readyBalance, 0, ',', '.') }}</span>
                 </a>
 
                 <a href="{{ route('mitra.availability') }}" class="rgs-btn-outline px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">

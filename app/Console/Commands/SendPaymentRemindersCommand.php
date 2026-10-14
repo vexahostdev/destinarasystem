@@ -16,7 +16,7 @@ class SendPaymentRemindersCommand extends Command
 
     public function handle(NotificationDispatcher $notifier): int
     {
-        $reminderHours = (int) setting('payment_reminder_hours', 2);
+        $reminderHours = (int) setting('payment_reminder_hours_before_expiry', 6);
         $threshold = now()->addHours($reminderHours);
 
         $bookings = Booking::where('status', BookingStatus::MENUNGGU_PEMBAYARAN)

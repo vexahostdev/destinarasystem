@@ -8,7 +8,7 @@
     peserta: 30,
     tipe: 'study_tour',
     basePrice: {{ $destination['price'] }},
-    get guidePrice() { return this.tipe === 'study_tour' ? 250000 : 150000; },
+    guidePrice: {{ (int) ($model->addons->where('is_active', true)->first()?->price ?? 0) }},
     get subtotal() { return this.peserta * this.basePrice; },
     get total() { return this.subtotal + this.guidePrice; },
     formatRupiah(val) {
@@ -343,7 +343,7 @@
                 <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(subtotal)"></span>
               </div>
               <div class="flex justify-between text-gray-600">
-                <span>Pemandu Adat Resmi:</span>
+                <span>{{ $model->addons->where('is_active', true)->first()?->name ?? 'Layanan Pendamping' }}:</span>
                 <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(guidePrice)"></span>
               </div>
               <div class="flex justify-between text-sm font-extrabold text-[#1E1B1B] pt-2 border-t border-gray-200">

@@ -375,7 +375,7 @@
                     </div>
 
                     <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                        <span class="text-[#2B211E]/70">Premi Asuransi Siswa (Rp 2.000/pax)</span>
+                        <span class="text-[#2B211E]/70">Premi Asuransi Siswa (Rp {{ number_format(setting('insurance_per_pax', 2000), 0, ',', '.') }}/pax)</span>
                         <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
                     </div>
 

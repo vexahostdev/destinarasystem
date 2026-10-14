@@ -21,9 +21,12 @@ class RuntimeConfigServiceProvider extends ServiceProvider
         // Apply runtime configuration on boot
         $this->applyRuntimeConfig($settings);
 
-        // Long-running queue workers must reapply settings before each job
+        // Long-running queue workers must reapply settings and purge stale smtp before each job
         Queue::before(function () use ($settings) {
             $this->applyRuntimeConfig($settings);
+            if (! app()->environment('testing')) {
+                \Illuminate\Support\Facades\Mail::purge('smtp');
+            }
         });
     }
 

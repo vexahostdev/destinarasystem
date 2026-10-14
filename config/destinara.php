@@ -59,6 +59,7 @@ return [
         'settings.payment',
         'settings.email',
         'settings.whatsapp',
+        'settings.notification',
         'settings.documents',
         'audit_logs.view',
         'analytics.view',
@@ -583,7 +584,7 @@ return [
             'type' => 'json',
             'default' => ['admin@destinara.my.id'],
             'rules' => 'nullable|array',
-            'permission' => 'settings.general',
+            'permission' => 'settings.notification',
         ],
         [
             'key' => 'admin_alert_whatsapp',
@@ -592,7 +593,7 @@ return [
             'type' => 'json',
             'default' => ['6281234567890'],
             'rules' => 'nullable|array',
-            'permission' => 'settings.general',
+            'permission' => 'settings.notification',
         ],
 
         // GROUP: DOCUMENTS

@@ -190,4 +190,79 @@ class AdminPortalTest extends TestCase
         $response->assertSee('Diagnostik', false);
         $response->assertSee('Database Relasional (MySQL)', false);
     }
+
+    public function test_settings_test_connection_endpoints(): void
+    {
+        Http::fake([
+            'https://wa.vexahostcloud.my.id/api/v1/*' => Http::response(['status' => 'connected'], 200),
+            'https://api.xendit.co/*' => Http::response(['balance' => 5000000], 200),
+            'https://api.sandbox.midtrans.com/*' => Http::response(['status_code' => '200'], 200),
+        ]);
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $this->actingAs($this->superAdmin);
+
+        // WhatsApp test
+        $response = $this->post(route('admin.settings.test', 'whatsapp'));
+        $response->assertRedirect();
+
+        // Mail test
+        $response = $this->post(route('admin.settings.test', 'mail'), ['test_email' => 'admin@destinara.id']);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Xendit test
+        $response = $this->post(route('admin.settings.test', 'xendit'));
+        $response->assertRedirect();
+
+        // Midtrans test
+        $response = $this->post(route('admin.settings.test', 'midtrans'));
+        $response->assertRedirect();
+    }
+
+    public function test_settings_group_permissions_and_validation(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        // Invalid validation should fail (e.g. min_lead_days must be between 1 and 90)
+        $response = $this->post(route('admin.settings.update'), [
+            'min_lead_days' => 999,
+        ]);
+        $response->assertSessionHasErrors(['min_lead_days']);
+    }
+
+    public function test_all_setting_keys_used_in_codebase_exist_in_registry(): void
+    {
+        $registeredKeys = collect(config('destinara.settings'))->pluck('key')->all();
+
+        $scanDirs = [
+            app_path(),
+            resource_path('views'),
+        ];
+
+        $usedKeys = [];
+
+        foreach ($scanDirs as $dir) {
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+            foreach ($iterator as $file) {
+                if ($file->isDir() || $file->getFilename() === 'helpers.php' || ! in_array($file->getExtension(), ['php', 'blade'])) {
+                    continue;
+                }
+                $content = file_get_contents($file->getPathname());
+                if (preg_match_all("/setting\(\s*['\"]([a-zA-Z0-9_\.]+)['\"]/", $content, $matches)) {
+                    foreach ($matches[1] as $k) {
+                        $usedKeys[$k] = true;
+                    }
+                }
+            }
+        }
+
+        $usedKeyList = array_keys($usedKeys);
+        $orphanKeys = array_diff($usedKeyList, $registeredKeys);
+
+        $this->assertEmpty(
+            $orphanKeys,
+            'Orphan setting keys found in codebase that are missing from config/destinara.php: ' . implode(', ', $orphanKeys)
+        );
+    }
 }

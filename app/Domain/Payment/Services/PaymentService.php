@@ -158,7 +158,7 @@ class PaymentService
             $this->availabilityService->promoteHeldToBooked($lockedBooking);
 
             // 6. Set partner confirm deadline according to SLA (SPEC §7.1)
-            $partnerSlaHours = (int) setting('partner_sla_hours', 24);
+            $partnerSlaHours = (int) setting('partner_confirm_sla_hours', 48);
             $lockedBooking->partner_confirm_deadline = now()->addHours($partnerSlaHours);
             $lockedBooking->save();
 
