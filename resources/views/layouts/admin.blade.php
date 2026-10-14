@@ -349,51 +349,10 @@
             </div>
         </header>
 
-        <!-- Flash Messages Editorial -->
-        @if(session('success'))
-            <div class="bg-[#51634b] text-white px-4 py-3 border-b border-[#3b4937]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">verified</span>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-        @if(session('warning'))
-            <div class="bg-[#b87a38] text-white px-4 py-3 border-b border-[#925f28]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">warning</span>
-                        <span>{{ session('warning') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-        @if(session('info'))
-            <div class="bg-[#2B3A4A] text-white px-4 py-3 border-b border-[#1f2a36]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">info</span>
-                        <span>{{ session('info') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
         <!-- Main Content Container -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <x-flash />
+            <x-form-errors />
             @yield('content')
         </main>
 
