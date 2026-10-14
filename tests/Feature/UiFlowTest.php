@@ -16,6 +16,7 @@ use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\Institution;
+use App\Models\OrganizationType;
 use App\Models\Package;
 use App\Models\PartnerProfile;
 use App\Models\Payment;
@@ -89,6 +90,8 @@ class UiFlowTest extends TestCase
             'verification_status' => VerificationStatus::VERIFIED,
         ]);
 
+        $orgType = OrganizationType::first() ?? OrganizationType::create(['name' => 'Kelompok Sadar Wisata', 'slug' => 'pokdarwis']);
+
         // Create Partner
         $this->partner = User::factory()->create([
             'name' => 'Pak Joko Pengelola',
@@ -99,7 +102,7 @@ class UiFlowTest extends TestCase
         PartnerProfile::create([
             'user_id' => $this->partner->id,
             'organization_name' => 'Pokdarwis Watu Makmur',
-            'organization_type_id' => 1,
+            'organization_type_id' => $orgType->id,
             'legal_document_number' => 'SK-DESA-01/2026',
             'address' => 'Desa Karang, Bantul',
             'province_id' => $this->province->id,
@@ -283,10 +286,11 @@ class UiFlowTest extends TestCase
             'account_type' => AccountType::PARTNER,
             'status' => 'active',
         ]);
+        $orgType = OrganizationType::first() ?? OrganizationType::create(['name' => 'Kelompok Sadar Wisata', 'slug' => 'pokdarwis']);
         $profile = PartnerProfile::create([
             'user_id' => $unverifiedPartner->id,
             'organization_name' => 'Pokdarwis Baru Mandiri',
-            'organization_type_id' => 1,
+            'organization_type_id' => $orgType->id,
             'legal_document_number' => 'SK-MANDIRI-2026',
             'address' => 'Desa Baru, Bantul',
             'province_id' => $this->province->id,
