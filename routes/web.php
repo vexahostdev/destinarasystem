@@ -54,12 +54,14 @@ Route::get('/email/verifikasi', [AuthController::class, 'showVerificationNotice'
 Route::get('/email/verifikasi/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['auth', 'signed'])->name('verification.verify');
 Route::post('/email/verifikasi/kirim-ulang', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-// 10. Webhooks (SPEC §9.5, §13)
+// 10. Webhooks (SPEC §9.5, §10.1, §13)
 use App\Http\Controllers\Webhooks\PaymentWebhookController;
+use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 
 Route::prefix('webhooks')->group(function () {
     Route::post('/payments/xendit', [PaymentWebhookController::class, 'handleXendit'])->middleware('throttle:120,1');
     Route::post('/payments/midtrans', [PaymentWebhookController::class, 'handleMidtrans'])->middleware('throttle:120,1');
+    Route::post('/whatsapp', [WhatsAppWebhookController::class, 'handle'])->middleware('throttle:120,1');
 });
 
 
