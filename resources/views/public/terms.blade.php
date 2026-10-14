@@ -23,7 +23,7 @@
       
       <section class="space-y-3">
         <h2 class="text-base sm:text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">1. Ketentuan Umum</h2>
-        <p>1.1. Platform Destinara (layanan.destinara.my.id) dikelola oleh PT Destinara Edukasi Nusantara sebagai perantara teknologi resmi antara institusi pendidikan (sekolah, universitas, lembaga riset) dan pengelola tapak kearifan lokal (desa wisata, komunitas adat, taman konservasi).</p>
+        <p>1.1. Platform Destinara (layanan.destinara.my.id) dikelola oleh PT DESTINARA CHAKRAWAL ARTHA sebagai perantara teknologi resmi antara institusi pendidikan (sekolah, universitas, lembaga riset) dan pengelola tapak kearifan lokal (desa wisata, komunitas adat, taman konservasi).</p>
         <p>1.2. Dengan mendaftar, mengakses, atau membuat pesanan di platform ini, Pengguna menyatakan telah membaca, memahami, dan menyetujui seluruh isi Syarat & Ketentuan ini.</p>
       </section>
 

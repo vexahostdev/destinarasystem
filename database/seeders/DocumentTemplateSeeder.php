@@ -102,7 +102,7 @@ HTML,
     </table>
 </div>
 <div class="doc-notice success">
-    <p><strong>STATUS: LUNAS</strong> — Kwitansi ini merupakan bukti pembayaran elektronik yang sah dari PT Destinara Edukasi Nusantara.</p>
+    <p><strong>STATUS: LUNAS</strong> — Kwitansi ini merupakan bukti pembayaran elektronik yang sah dari PT DESTINARA CHAKRAWAL ARTHA.</p>
 </div>
 HTML,
             ],

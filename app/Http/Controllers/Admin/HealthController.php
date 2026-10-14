@@ -97,25 +97,83 @@ class HealthController extends Controller
         ];
 
         // 5. Payment Gateways
-        $start = microtime(true);
-        $xenditOk = $this->xenditGateway->testConnection();
-        $latency = round((microtime(true) - $start) * 1000, 2);
-        $checks['xendit'] = [
-            'name' => 'Xendit Invoice v2 Gateway',
-            'status' => $xenditOk ? 'healthy' : 'unhealthy',
-            'latency' => "{$latency} ms",
-            'detail' => $xenditOk ? 'Kredensial & koneksi Xendit valid.' : 'Gagal menghubungi Xendit API.',
-        ];
+        $enabledGateways = setting('enabled_gateways', ['xendit', 'manual_transfer']);
+        if (! is_array($enabledGateways)) {
+            $enabledGateways = json_decode((string) $enabledGateways, true) ?? [];
+        }
 
-        $start = microtime(true);
-        $midtransOk = $this->midtransGateway->testConnection();
-        $latency = round((microtime(true) - $start) * 1000, 2);
-        $checks['midtrans'] = [
-            'name' => 'Midtrans Snap Payment Gateway',
-            'status' => $midtransOk ? 'healthy' : 'unhealthy',
-            'latency' => "{$latency} ms",
-            'detail' => $midtransOk ? 'Koneksi Midtrans terverifikasi.' : 'Gagal menghubungi Midtrans Snap API.',
-        ];
+        if (in_array('xendit', $enabledGateways)) {
+            $start = microtime(true);
+            $xenditOk = $this->xenditGateway->testConnection();
+            $latency = round((microtime(true) - $start) * 1000, 2);
+            $checks['xendit'] = [
+                'name' => 'Xendit Invoice v2 Gateway',
+                'status' => $xenditOk ? 'healthy' : 'unhealthy',
+                'latency' => "{$latency} ms",
+                'detail' => $xenditOk ? 'Kredensial & koneksi Xendit valid.' : 'Gagal menghubungi Xendit API.',
+            ];
+        } else {
+            $checks['xendit'] = [
+                'name' => 'Xendit Invoice v2 Gateway',
+                'status' => 'info',
+                'latency' => '-',
+                'detail' => 'Xendit dinonaktifkan di pengaturan pembayaran.',
+            ];
+        }
+
+        if (in_array('midtrans', $enabledGateways)) {
+            $start = microtime(true);
+            $midtransOk = $this->midtransGateway->testConnection();
+            $latency = round((microtime(true) - $start) * 1000, 2);
+            $checks['midtrans'] = [
+                'name' => 'Midtrans Snap Payment Gateway',
+                'status' => $midtransOk ? 'healthy' : 'unhealthy',
+                'latency' => "{$latency} ms",
+                'detail' => $midtransOk ? 'Koneksi Midtrans terverifikasi.' : 'Gagal menghubungi Midtrans Snap API.',
+            ];
+        } else {
+            $checks['midtrans'] = [
+                'name' => 'Midtrans Snap Payment Gateway',
+                'status' => 'info',
+                'latency' => '-',
+                'detail' => 'Midtrans dinonaktifkan di pengaturan pembayaran.',
+            ];
+        }
+
+        // 6. Email SMTP Health Check
+        $smtpHost = setting('smtp_host');
+        $smtpPort = (int) setting('smtp_port', 587);
+        $smtpUser = setting('smtp_username');
+        $smtpPass = setting('smtp_password');
+
+        if (! empty($smtpHost) && ! empty($smtpUser) && ! empty($smtpPass)) {
+            $start = microtime(true);
+            $fp = @fsockopen($smtpHost, $smtpPort, $errno, $errstr, 2);
+            $latency = round((microtime(true) - $start) * 1000, 2);
+            if ($fp) {
+                fclose($fp);
+                $checks['smtp'] = [
+                    'name' => 'Email SMTP (Brevo / Relay)',
+                    'status' => 'healthy',
+                    'latency' => "{$latency} ms",
+                    'detail' => "Server SMTP {$smtpHost}:{$smtpPort} terhubung dan siap mengirim.",
+                ];
+            } else {
+                $checks['smtp'] = [
+                    'name' => 'Email SMTP (Brevo / Relay)',
+                    'status' => 'unhealthy',
+                    'latency' => "{$latency} ms",
+                    'detail' => "Tidak dapat terhubung ke {$smtpHost}:{$smtpPort} ({$errstr}).",
+                ];
+            }
+        } else {
+            $checks['smtp'] = [
+                'name' => 'Email SMTP (Brevo / Relay)',
+                'status' => 'warning',
+                'latency' => '-',
+                'detail' => 'Kredensial SMTP belum lengkap di pengaturan sistem (menggunakan mailer log).',
+            ];
+        }
 
         // 6. Storage & Disk
         try {

@@ -10,11 +10,15 @@ use Illuminate\Support\ServiceProvider;
 
 class RuntimeConfigServiceProvider extends ServiceProvider
 {
+    protected ?string $initialMailer = null;
+
     public function register(): void
     {
         $this->app->singleton(SettingsRepository::class, function () {
             return new SettingsRepository;
         });
+
+        $this->initialMailer = config('mail.default', 'log');
     }
 
     public function boot(SettingsRepository $settings): void
@@ -62,7 +66,7 @@ class RuntimeConfigServiceProvider extends ServiceProvider
                 ]);
             } else {
                 config([
-                    'mail.default' => env('MAIL_MAILER', 'log'),
+                    'mail.default' => $this->initialMailer ?? config('mail.default', 'log'),
                 ]);
             }
 

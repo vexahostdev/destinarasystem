@@ -75,6 +75,14 @@ class SettingsController extends Controller
     {
         $registry = config('destinara.settings', []);
         $user = $request->user();
+        $targetGroup = $request->input('group');
+
+        if ($targetGroup) {
+            $permission = "settings.{$targetGroup}";
+            if ($user && ! $user->can($permission)) {
+                abort(403, "Anda tidak memiliki izin untuk mengubah pengaturan grup '{$targetGroup}'.");
+            }
+        }
 
         $validationRules = [];
         $keysToUpdate = [];
@@ -85,11 +93,15 @@ class SettingsController extends Controller
                 continue;
             }
 
+            $group = $item['group'] ?? 'general';
+            if ($targetGroup && $group !== $targetGroup) {
+                continue;
+            }
+
             $underscoreKey = str_replace('.', '_', $key);
             $hasField = $request->has($underscoreKey) || $request->has($key);
 
             if ($hasField) {
-                $group = $item['group'] ?? 'general';
                 $permission = $item['permission'] ?? ("settings.{$group}");
 
                 if ($user && ! $user->can($permission)) {
@@ -97,6 +109,27 @@ class SettingsController extends Controller
                 }
 
                 $inputKey = $request->has($underscoreKey) ? $underscoreKey : $key;
+
+                // Handle JSON fields pre-decoding before validation
+                if (($item['type'] ?? '') === 'json') {
+                    $raw = $request->input($inputKey);
+                    if (is_string($raw)) {
+                        $trimmed = trim($raw);
+                        if ($trimmed === '' || $trimmed === '[]' || $trimmed === '{}') {
+                            $request->merge([$inputKey => []]);
+                        } else {
+                            $decoded = json_decode($trimmed, true);
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                $request->merge([$inputKey => $decoded]);
+                            } else {
+                                return back()
+                                    ->withInput()
+                                    ->withErrors([$inputKey => "Format JSON pada pengaturan '{$item['label']}' tidak valid."]);
+                            }
+                        }
+                    }
+                }
+
                 if (! empty($item['rules'])) {
                     $validationRules[$inputKey] = $item['rules'];
                 }
@@ -113,10 +146,12 @@ class SettingsController extends Controller
 
         foreach ($keysToUpdate as $key => $meta) {
             $val = $request->input($meta['input_key']);
-            if ($meta['type'] === 'bool') {
-                $val = (bool) $val;
-            } elseif ($meta['type'] === 'int') {
+            if ($meta['type'] === 'bool' || $meta['type'] === 'boolean') {
+                $val = filter_var($val, FILTER_VALIDATE_BOOLEAN);
+            } elseif ($meta['type'] === 'int' || $meta['type'] === 'integer' || $meta['type'] === 'money') {
                 $val = (int) $val;
+            } elseif ($meta['type'] === 'float' || $meta['type'] === 'percent') {
+                $val = (float) $val;
             } elseif ($meta['type'] === 'json' && is_string($val)) {
                 $decoded = json_decode($val, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
@@ -126,9 +161,14 @@ class SettingsController extends Controller
             $this->settings->set($key, $val);
         }
 
-        AuditLogger::log('settings_updated', null, 'Memperbarui konfigurasi pengaturan sistem.');
+        AuditLogger::log('settings_updated', null, 'Memperbarui konfigurasi pengaturan sistem'.($targetGroup ? " grup '{$targetGroup}'" : '').'.');
 
-        return back()->with('success', 'Pengaturan sistem berhasil disimpan dan diperbarui di cache.');
+        $redirectUrl = route('admin.settings.index');
+        if ($targetGroup) {
+            $redirectUrl .= '?group='.urlencode($targetGroup);
+        }
+
+        return redirect($redirectUrl)->with('success', 'Pengaturan sistem berhasil disimpan dan diperbarui di cache.');
     }
 
     /**
