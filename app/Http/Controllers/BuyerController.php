@@ -11,7 +11,6 @@ use App\Enums\PaymentStatus;
 use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\Destination;
-use App\Models\NotificationLog;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -158,9 +157,9 @@ class BuyerController extends Controller
             BookingStatus::BERLANGSUNG,
             BookingStatus::SELESAI,
         ]);
-        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $bookingService = app(BookingService::class);
         $refundCalc = $bookingService->calculateRefund($booking, 'buyer');
-        $banks = \App\Models\Bank::where('is_active', true)->orderBy('name')->get();
+        $banks = Bank::where('is_active', true)->orderBy('name')->get();
         $canCancel = (bool) setting('allow_buyer_cancel', true) && in_array($booking->status, [
             BookingStatus::MENUNGGU_PEMBAYARAN,
             BookingStatus::DIBAYAR,

@@ -2,44 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Booking\Services\AvailabilityService;
+use App\Domain\Booking\Services\BookingService;
 use App\Domain\Booking\Services\CheckInService;
-use App\Domain\Booking\StateMachine\BookingStateMachine;
 use App\Domain\Catalog\Services\AvailabilityCalendarService;
+use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Catalog\Services\ReviewService;
-use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
-use App\Enums\DocumentType;
-use App\Enums\PaymentStatus;
-use App\Enums\RefundStatus;
-use App\Jobs\GenerateDocumentJob;
+use App\Enums\VerificationStatus;
+use App\Events\DestinationSubmitted;
+use App\Models\Addon;
 use App\Models\AvailabilitySlot;
 use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
-use App\Models\NotificationLog;
-use App\Models\OrganizationType;
-use App\Models\PartnerPayout;
-use App\Models\PartnerProfile;
-use App\Models\Province;
-use App\Models\Refund;
-use App\Domain\Booking\Services\BookingService;
-use App\Domain\Catalog\Services\DestinationService;
-use App\Models\Addon;
 use App\Models\DestinationContact;
 use App\Models\DestinationMedia;
 use App\Models\Facility;
+use App\Models\OrganizationType;
 use App\Models\Package;
-use App\Models\PartnerDocument;
+use App\Models\PartnerPayout;
+use App\Models\PartnerProfile;
+use App\Models\Province;
 use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PartnerController extends Controller
@@ -299,7 +291,7 @@ class PartnerController extends Controller
 
         try {
             $this->destinationService->submitForReview($destination, Auth::user());
-            \App\Events\DestinationSubmitted::dispatch($destination, Auth::user());
+            DestinationSubmitted::dispatch($destination, Auth::user());
 
             return back()->with('success', "Destinasi '{$destination->name}' berhasil diajukan untuk kurasi tim Destinara.");
         } catch (\Throwable $e) {
@@ -791,7 +783,7 @@ class PartnerController extends Controller
         }
 
         $doc = $profile->documents()->findOrFail($id);
-        \Illuminate\Support\Facades\Storage::disk('local')->delete($doc->file_path);
+        Storage::disk('local')->delete($doc->file_path);
         $doc->delete();
 
         return redirect()->back()->with('success', 'Dokumen legalitas berhasil dihapus.');
@@ -808,7 +800,7 @@ class PartnerController extends Controller
             abort(403);
         }
 
-        $profile->verification_status = \App\Enums\VerificationStatus::PENDING;
+        $profile->verification_status = VerificationStatus::PENDING;
         $profile->save();
 
         return redirect()->back()->with('success', 'Pengajuan verifikasi berhasil dikirimkan ke administrator. Kami akan memproses verifikasi berkas legalitas Anda.');

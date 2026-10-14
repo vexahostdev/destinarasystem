@@ -132,22 +132,24 @@
             <!-- Kolom Kanan: Status & Aksi Tindakan Cepat -->
             <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
                 <!-- Status Badge -->
-                <div>
-                    @if($booking->status === 'dikonfirmasi')
+                    @php
+                        $st = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (string)$booking->status;
+                    @endphp
+                    @if($st === 'dikonfirmasi' || $st === 'dibayar')
                         <span class="px-3 py-1 bg-[#51634b]/15 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/30 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span> Terkonfirmasi / Lunas
                         </span>
-                    @elseif($booking->status === 'menunggu_pembayaran')
+                    @elseif($st === 'menunggu_pembayaran')
                         <span class="px-3 py-1 bg-[#b87a38]/15 text-[#b87a38] text-xs font-bold uppercase tracking-wider border border-[#b87a38]/30 flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#b87a38]"></span> Menunggu Pembayaran
                         </span>
-                    @elseif($booking->status === 'selesai')
+                    @elseif($st === 'selesai')
                         <span class="px-3 py-1 bg-[#2B211E]/10 text-[#2B211E]/80 text-xs font-bold uppercase tracking-wider border border-[#2B211E]/20">
                             Ekskursi Selesai
                         </span>
                     @else
                         <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold uppercase tracking-wider">
-                            {{ ucfirst($booking->status) }}
+                            {{ $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->label() : ucfirst((string)$booking->status) }}
                         </span>
                     @endif
                 </div>

@@ -96,30 +96,33 @@
             <div class="lg:col-span-4 relative aspect-video sm:aspect-4/3 rounded-2xl bg-gray-100 overflow-hidden shadow-xs">
                 <img src="{{ asset($nextBooking->destination->cover_image) }}" alt="{{ $nextBooking->destination->name }}" class="w-full h-full object-cover">
                 <div class="absolute top-2.5 left-2.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider">
-                    {{ strtoupper(str_replace('_', ' ', $nextBooking->destination->category)) }}
+                    {{ strtoupper($nextBooking->destination->category?->name ?? (is_string($nextBooking->destination->category) ? $nextBooking->destination->category : 'Tapak Edukasi')) }}
                 </div>
             </div>
 
             <!-- Detail Info Rombongan -->
             <div class="lg:col-span-8 space-y-4">
                 <div class="flex flex-wrap items-center gap-2">
-                    @if($nextBooking->status === 'dikonfirmasi')
+                    @php
+                        $nextSt = $nextBooking->status instanceof \App\Enums\BookingStatus ? $nextBooking->status->value : (string)$nextBooking->status;
+                    @endphp
+                    @if($nextSt === 'dikonfirmasi' || $nextSt === 'dibayar')
                         <span class="px-3 py-1 rounded-full bg-emerald-50 text-[#51634b] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-emerald-200/50">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span> Terkonfirmasi
                         </span>
-                    @elseif($nextBooking->status === 'menunggu_pembayaran')
+                    @elseif($nextSt === 'menunggu_pembayaran')
                         <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 border border-amber-200/50">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Menunggu Pembayaran
                         </span>
                     @else
                         <span class="px-3 py-1 rounded-full bg-[#703A3A]/10 text-[#703A3A] text-xs font-bold uppercase tracking-wider">
-                            {{ ucfirst(str_replace('_', ' ', $nextBooking->status)) }}
+                            {{ $nextBooking->status instanceof \App\Enums\BookingStatus ? $nextBooking->status->label() : ucfirst((string)$nextBooking->status) }}
                         </span>
                     @endif
 
                     <span class="text-xs text-gray-300">•</span>
                     <span class="text-xs font-bold text-[#703A3A] uppercase tracking-wide">
-                        {{ $nextBooking->inquiry_type === 'study_tour' ? 'Study Tour Kurikulum P5' : 'Penelitian Lapangan' }}
+                        {{ ($nextBooking->inquiry_type instanceof \App\Enums\InquiryType ? $nextBooking->inquiry_type->value : (string)$nextBooking->inquiry_type) === 'study_tour' ? 'Study Tour Kurikulum P5' : 'Penelitian Lapangan' }}
                     </span>
                 </div>
 
@@ -169,7 +172,7 @@
                             Detail Dossier
                         </a>
 
-                        @if($nextBooking->status === 'menunggu_pembayaran')
+                        @if($nextSt === 'menunggu_pembayaran')
                             <a href="{{ route('buyer.booking.payment', $nextBooking->booking_code) }}" class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-xs transition-all">
                                 <span class="material-symbols-outlined text-[16px]">credit_card</span>
                                 <span>Bayar Tagihan</span>
@@ -223,21 +226,25 @@
                     </div>
 
                     <div class="flex items-center sm:flex-col sm:items-end justify-between gap-2">
-                        @if($b->status === 'dikonfirmasi')
+                        @php
+                            $bSt = $b->status instanceof \App\Enums\BookingStatus ? $b->status->value : (string)$b->status;
+                            $bLabel = $b->status instanceof \App\Enums\BookingStatus ? $b->status->label() : ucfirst((string)$b->status);
+                        @endphp
+                        @if($bSt === 'dikonfirmasi')
                             <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-[#51634b] text-[10px] font-bold uppercase tracking-wider">
                                 Siap Berangkat
                             </span>
-                        @elseif($b->status === 'menunggu_pembayaran')
+                        @elseif($bSt === 'menunggu_pembayaran')
                             <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
                                 Belum Bayar
                             </span>
-                        @elseif($b->status === 'selesai')
+                        @elseif($bSt === 'selesai')
                             <span class="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider">
                                 Selesai
                             </span>
                         @else
                             <span class="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-wider">
-                                {{ ucfirst($b->status) }}
+                                {{ $bLabel }}
                             </span>
                         @endif
 

@@ -88,8 +88,12 @@ class DestinationCatalog extends Component
                 ->orderBy('packages_min_price_per_pax', 'asc');
         } elseif ($this->sort === 'highest_capacity') {
             $query->orderBy('default_daily_capacity', 'desc');
+        } elseif ($this->sort === 'popular') {
+            $query->withAvg('reviews', 'rating')
+                ->orderByDesc('reviews_avg_rating')
+                ->latest();
         } else {
-            $query->orderBy('rating', 'desc')->latest();
+            $query->latest();
         }
 
         $destinations = $query->paginate(12);

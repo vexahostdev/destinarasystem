@@ -20,25 +20,29 @@
                     Dossier Pesanan: {{ $booking->destination->name }}
                 </h1>
 
-                @if($booking->status === 'dikonfirmasi')
+                @php
+                    $bSt = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (string)$booking->status;
+                    $bLabel = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->label() : ucfirst((string)$booking->status);
+                @endphp
+                @if($bSt === 'dikonfirmasi')
                     <span class="px-3 py-1 bg-[#51634b]/15 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/30 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-[#51634b]"></span> Terkonfirmasi & Lunas
                     </span>
-                @elseif($booking->status === 'dibayar')
+                @elseif($bSt === 'dibayar')
                     <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-300 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Dibayar (Menunggu Konfirmasi Mitra)
                     </span>
-                @elseif($booking->status === 'menunggu_pembayaran')
+                @elseif($bSt === 'menunggu_pembayaran')
                     <span class="px-3 py-1 bg-[#b87a38]/15 text-[#b87a38] text-xs font-bold uppercase tracking-wider border border-[#b87a38]/30 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-[#b87a38]"></span> Menunggu Pembayaran
                     </span>
-                @elseif($booking->status === 'selesai')
+                @elseif($bSt === 'selesai')
                     <span class="px-3 py-1 bg-[#2B211E]/15 text-[#2B211E] text-xs font-bold uppercase tracking-wider border border-[#2B211E]/30">
                         Ekskursi Selesai
                     </span>
                 @else
                     <span class="px-3 py-1 bg-gray-200 text-gray-800 text-xs font-bold uppercase tracking-wider">
-                        {{ ucfirst($booking->status) }}
+                        {{ $bLabel }}
                     </span>
                 @endif
             </div>
@@ -49,7 +53,7 @@
 
         <!-- Tombol Aksi Cepat Sesuai Status -->
         <div class="flex flex-wrap items-center gap-2">
-            @if($booking->status === \App\Enums\BookingStatus::MENUNGGU_PEMBAYARAN || $booking->status === 'menunggu_pembayaran')
+            @if($bSt === 'menunggu_pembayaran')
                 <a href="{{ route('buyer.booking.payment', $booking->booking_code) }}" class="rgs-btn-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">payment</span>
                     <span>Lanjutkan Pembayaran</span>
@@ -280,7 +284,7 @@
                     </div>
                     <div>
                         <span class="text-[#2B211E]/60 block text-[11px]">Kategori Ekskursi</span>
-                        <span class="font-bold text-[#703A3A] uppercase">{{ str_replace('_', ' ', $booking->inquiry_type) }}</span>
+                        <span class="font-bold text-[#703A3A] uppercase">{{ $booking->inquiry_type instanceof \App\Enums\InquiryType ? $booking->inquiry_type->label() : str_replace('_', ' ', (string)$booking->inquiry_type) }}</span>
                     </div>
                     <div>
                         <span class="text-[#2B211E]/60 block text-[11px]">Tanggal Pelaksanaan</span>
@@ -451,8 +455,12 @@
                             <span class="material-symbols-outlined text-[18px]">credit_card</span>
                         </a>
                     @else
+                        @php
+                            $rawMethod = $booking->payment->payment_method ?? 'VA';
+                            $methodStr = $rawMethod instanceof \UnitEnum ? $rawMethod->value : (string)$rawMethod;
+                        @endphp
                         <div class="p-3 bg-[#51634b]/8 border border-[#51634b]/20 text-[11px] text-[#51634b] font-medium leading-relaxed">
-                            ✓ Pembayaran telah diterima via <strong>{{ strtoupper(str_replace('_', ' ', $booking->payment->payment_method ?? 'VA')) }}</strong> pada {{ $booking->payment->paid_at ? $booking->payment->paid_at->translatedFormat('d M Y, H:i') : '-' }} WIB.
+                            ✓ Pembayaran telah diterima via <strong>{{ strtoupper(str_replace('_', ' ', $methodStr)) }}</strong> pada {{ $booking->payment->paid_at ? $booking->payment->paid_at->translatedFormat('d M Y, H:i') : '-' }} WIB.
                         </div>
                     @endif
                 </div>
