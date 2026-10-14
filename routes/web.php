@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\PublicController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +28,7 @@ Route::get('/syarat-ketentuan', [PublicController::class, 'terms'])->name('terms
 
 // 4. Verifikasi Keabsahan Dokumen (SPEC §11, §13)
 Route::get('/verifikasi/{hash}', [PublicController::class, 'verifyDocument'])->name('verification.document');
-Route::get('/dokumen/unduh/{document}', [\App\Http\Controllers\DocumentController::class, 'download'])->middleware('auth')->name('documents.download');
+Route::get('/dokumen/unduh/{document}', [DocumentController::class, 'download'])->middleware('auth')->name('documents.download');
 
 // 5. Pendaftaran Akun
 Route::get('/daftar', [AuthController::class, 'showRegisterForm'])->name('register');
@@ -65,7 +66,6 @@ Route::prefix('webhooks')->group(function () {
     Route::post('/payments/midtrans', [PaymentWebhookController::class, 'handleMidtrans'])->middleware('throttle:120,1');
     Route::post('/whatsapp', [WhatsAppWebhookController::class, 'handle'])->middleware('throttle:120,1');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -108,8 +108,10 @@ Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:b
 });
 
 // Pengalihan cerdas /dashboard ke portal sesuai tipe akun
-Route::get('/dashboard', function() {
-    if (!Auth::check()) return redirect()->route('login');
+Route::get('/dashboard', function () {
+    if (! Auth::check()) {
+        return redirect()->route('login');
+    }
     $user = Auth::user();
     if ($user->isPartner()) {
         return redirect()->route('mitra.dashboard');
@@ -117,6 +119,7 @@ Route::get('/dashboard', function() {
     if ($user->isInternal()) {
         return redirect()->route('admin.dashboard');
     }
+
     return redirect()->route('buyer.dashboard');
 })->middleware('auth')->name('dashboard');
 
@@ -168,7 +171,7 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
 });
 
 // Route alias for partner dashboard
-Route::get('/partner/dashboard', fn() => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
+Route::get('/partner/dashboard', fn () => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
 
 // Named alias for signed URL generation
 Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->middleware(['signed'])->name('partner.checkin.show');
@@ -180,19 +183,19 @@ Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->
 | Seluruh modul operasional & dewan eksekutif disatukan dalam prefix /admin
 | dengan pengamanan akun internal dan sistem izin granular Spatie (SPEC §4)
 */
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\Admin\FinanceController;
-use App\Http\Controllers\Admin\MasterDataController;
-use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\TeamController;
-use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\AnalyticsController;
-use App\Http\Controllers\Admin\HealthController;
-use App\Http\Controllers\Admin\ReviewController;
-use App\Http\Controllers\Admin\VoucherController;
-use App\Http\Controllers\Admin\SiteContentController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DocumentAdminController;
+use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\HealthController;
+use App\Http\Controllers\Admin\MasterDataController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\SiteContentController;
+use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\AdminController;
 
 // Pengalihan permanen URL lama superadmin ke admin (SPEC §13, §14.4)
 Route::redirect('/superadmin/{any?}', '/admin/{any?}', 301)->where('any', '.*');
@@ -303,8 +306,3 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     // 17. System Health Diagnostics
     Route::get('/system-health', [HealthController::class, 'index'])->middleware('can:system_health.view')->name('health.index');
 });
-
-
-
-
-

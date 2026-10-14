@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Destination extends Model
 {
-    use HasFactory, SoftDeletes, Auditable;
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'partner_id',
@@ -164,10 +165,10 @@ class Destination extends Model
     protected static function booted(): void
     {
         static::saved(function () {
-            \Illuminate\Support\Facades\Cache::increment('public_api_version');
+            Cache::increment('public_api_version');
         });
         static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::increment('public_api_version');
+            Cache::increment('public_api_version');
         });
     }
 }

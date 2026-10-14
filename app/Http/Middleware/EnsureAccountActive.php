@@ -17,14 +17,14 @@ class EnsureAccountActive
         $user = $request->user();
 
         if ($user && $user->isSuspended()) {
-            $reason = $user->suspended_reason ? ': ' . $user->suspended_reason : '.';
+            $reason = $user->suspended_reason ? ': '.$user->suspended_reason : '.';
 
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Akun Anda telah ditangguhkan oleh administrator' . $reason,
+                'email' => 'Akun Anda telah ditangguhkan oleh administrator'.$reason,
             ]);
         }
 

@@ -1,8 +1,9 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Providers\RuntimeConfigServiceProvider;
 
 return [
     AppServiceProvider::class,
-    App\Providers\RuntimeConfigServiceProvider::class,
+    RuntimeConfigServiceProvider::class,
 ];

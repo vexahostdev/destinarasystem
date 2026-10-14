@@ -12,7 +12,6 @@ use App\Enums\PaymentStatus;
 use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
 use App\Enums\VerificationStatus;
-use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
@@ -35,9 +34,13 @@ class FinanceTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $partnerUser;
+
     protected User $adminUser;
+
     protected Booking $booking;
+
     protected Payment $payment;
 
     protected function setUp(): void

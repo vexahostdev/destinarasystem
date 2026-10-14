@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Domain\Booking\Exceptions\InvalidBookingTransitionException;
-use App\Domain\Booking\Services\AvailabilityService;
 use App\Domain\Booking\Services\BookingCodeGenerator;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Booking\Services\PricingService;
@@ -15,7 +14,6 @@ use App\Enums\DestinationStatus;
 use App\Enums\VerificationStatus;
 use App\Models\Addon;
 use App\Models\AvailabilitySlot;
-use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\Institution;
@@ -35,10 +33,15 @@ class BookingTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $partnerUser;
+
     protected Destination $destination;
+
     protected Package $package;
+
     protected AvailabilitySlot $slot;
+
     protected CancellationPolicy $cancellationPolicy;
 
     protected function setUp(): void

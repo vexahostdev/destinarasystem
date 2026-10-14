@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 class EnforcePartnerSlaCommand extends Command
 {
     protected $signature = 'bookings:partner-sla';
+
     protected $description = 'Enforce partner confirmation SLA: send reminders and auto-cancel passed deadlines (SPEC §12)';
 
     public function handle(
@@ -42,7 +43,7 @@ class EnforcePartnerSlaCommand extends Command
                 'user' => $booking->user,
                 'destination_name' => $booking->destination->name,
                 'booking_code' => $booking->booking_code,
-                'refund_amount' => 'Rp ' . number_format($booking->total_amount, 0, ',', '.'),
+                'refund_amount' => 'Rp '.number_format($booking->total_amount, 0, ',', '.'),
             ], ['buyer', 'partner', 'admin']);
 
             $cancelledCount++;
@@ -68,7 +69,7 @@ class EnforcePartnerSlaCommand extends Command
                     'destination_name' => $booking->destination->name,
                     'booking_code' => $booking->booking_code,
                     'institution_name' => $booking->institution?->institution_name ?? 'Institusi Pemesan',
-                    'deadline' => $booking->partner_confirm_deadline->format('d/m/Y H:i') . ' WIB',
+                    'deadline' => $booking->partner_confirm_deadline->format('d/m/Y H:i').' WIB',
                 ], ['partner', 'admin']);
 
                 $remindedCount++;

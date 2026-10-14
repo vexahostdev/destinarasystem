@@ -16,26 +16,44 @@ use Livewire\Component;
 class BookingForm extends Component
 {
     public Destination $destination;
+
     public ?int $packageId = null;
+
     public string $inquiryType = 'study_tour';
+
     public ?string $plannedDateStart = null;
+
     public int $participantCount = 10;
+
     public int $companionCount = 2;
+
     public array $selectedAddonIds = [];
+
     public ?string $voucherCode = '';
+
     public ?string $purposeNotes = '';
+
     public bool $needsPermitLetter = false;
+
     public ?string $permitDetails = '';
 
     // Calculation results
     public int $subtotal = 0;
+
     public int $addonsTotal = 0;
+
     public int $insuranceTotal = 0;
+
     public int $platformFee = 0;
+
     public int $discount = 0;
+
     public int $grandTotal = 0;
+
     public bool $isSlotAvailable = true;
+
     public string $availabilityMessage = '';
+
     public ?string $voucherError = null;
 
     public function mount(Destination $destination, ?string $preselectedPackage = null): void
@@ -44,7 +62,7 @@ class BookingForm extends Component
         $activePackages = $this->destination->packages;
 
         if ($activePackages->isNotEmpty()) {
-            $defaultPackage = $preselectedPackage 
+            $defaultPackage = $preselectedPackage
                 ? $activePackages->firstWhere('slug', $preselectedPackage) ?? $activePackages->first()
                 : $activePackages->first();
 
@@ -170,6 +188,7 @@ class BookingForm extends Component
 
         if (! $this->isSlotAvailable) {
             $this->addError('plannedDateStart', 'Kapasitas slot tapak tidak mencukupi untuk tanggal dan kuota yang dipilih.');
+
             return;
         }
 

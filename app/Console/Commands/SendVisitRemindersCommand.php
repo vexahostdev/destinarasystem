@@ -11,6 +11,7 @@ use Illuminate\Console\Command;
 class SendVisitRemindersCommand extends Command
 {
     protected $signature = 'bookings:visit-reminders';
+
     protected $description = 'Send upcoming visit reminder to buyers and partners H-N before visit date (SPEC §12)';
 
     public function handle(NotificationDispatcher $notifier): int

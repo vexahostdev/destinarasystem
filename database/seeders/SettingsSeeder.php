@@ -21,6 +21,7 @@ class SettingsSeeder extends Seeder
                 $setting->group = $item['group'];
                 $setting->is_encrypted = $item['type'] === 'secret';
                 $setting->save();
+
                 continue;
             }
 

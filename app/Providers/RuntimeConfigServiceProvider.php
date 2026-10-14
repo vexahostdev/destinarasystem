@@ -12,7 +12,7 @@ class RuntimeConfigServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SettingsRepository::class, function () {
-            return new SettingsRepository();
+            return new SettingsRepository;
         });
     }
 

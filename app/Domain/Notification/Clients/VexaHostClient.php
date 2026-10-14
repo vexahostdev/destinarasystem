@@ -20,9 +20,9 @@ class VexaHostClient
         $clean = preg_replace('/[^\d]/', '', $phone);
 
         if (str_starts_with($clean, '08')) {
-            $clean = '628' . substr($clean, 2);
+            $clean = '628'.substr($clean, 2);
         } elseif (str_starts_with($clean, '8')) {
-            $clean = '628' . substr($clean, 1);
+            $clean = '628'.substr($clean, 1);
         }
 
         if (! preg_match('/^62\d{8,13}$/', $clean)) {
@@ -84,7 +84,7 @@ class VexaHostClient
         }
 
         if ($response->failed()) {
-            throw new RuntimeException("VexaHost Server Error [{$status}]: " . $response->body());
+            throw new RuntimeException("VexaHost Server Error [{$status}]: ".$response->body());
         }
 
         $data = $response->json();
@@ -113,12 +113,12 @@ class VexaHostClient
             'X-Api-Key' => $apiKey,
             'Accept' => 'application/json',
         ])->timeout(30)
-          ->attach('file', file_get_contents($filePath), basename($filePath))
-          ->post("{$baseUrl}/messages/media", [
-              'to' => $normalizedPhone,
-              'caption' => $caption,
-              'type' => $type,
-          ]);
+            ->attach('file', file_get_contents($filePath), basename($filePath))
+            ->post("{$baseUrl}/messages/media", [
+                'to' => $normalizedPhone,
+                'caption' => $caption,
+                'type' => $type,
+            ]);
 
         $status = $response->status();
 
@@ -134,7 +134,7 @@ class VexaHostClient
         }
 
         if ($response->failed()) {
-            throw new RuntimeException("VexaHost Media Server Error [{$status}]: " . $response->body());
+            throw new RuntimeException("VexaHost Media Server Error [{$status}]: ".$response->body());
         }
 
         $data = $response->json();

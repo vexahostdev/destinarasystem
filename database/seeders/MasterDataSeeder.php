@@ -11,7 +11,6 @@ use App\Models\InstitutionType;
 use App\Models\OrganizationType;
 use App\Models\Province;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class MasterDataSeeder extends Seeder
 {

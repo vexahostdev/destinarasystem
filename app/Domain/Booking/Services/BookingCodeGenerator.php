@@ -16,7 +16,7 @@ class BookingCodeGenerator
      */
     public static function generate(): string
     {
-        $prefix = 'DST-' . now()->format('ymd') . '-';
+        $prefix = 'DST-'.now()->format('ymd').'-';
         $maxAttempts = 10;
 
         for ($i = 0; $i < $maxAttempts; $i++) {
@@ -25,7 +25,7 @@ class BookingCodeGenerator
                 $randomPart .= self::CROCKFORD_ALPHABET[random_int(0, strlen(self::CROCKFORD_ALPHABET) - 1)];
             }
 
-            $candidate = $prefix . $randomPart;
+            $candidate = $prefix.$randomPart;
 
             if (! Booking::where('booking_code', $candidate)->exists()) {
                 return $candidate;
@@ -33,6 +33,6 @@ class BookingCodeGenerator
         }
 
         // Fallback with microsecond entropy if needed
-        return $prefix . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+        return $prefix.strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
     }
 }

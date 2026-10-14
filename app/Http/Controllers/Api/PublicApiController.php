@@ -33,7 +33,7 @@ class PublicApiController extends Controller
     {
         $version = $this->cacheVersion();
         $queryString = http_build_query($request->query());
-        $cacheKey = "public_api_v{$version}_destinations_" . md5($queryString);
+        $cacheKey = "public_api_v{$version}_destinations_".md5($queryString);
 
         $destinations = Cache::remember($cacheKey, 300, function () use ($request) {
             $query = Destination::with(['category', 'province', 'packages'])
@@ -52,8 +52,8 @@ class PublicApiController extends Controller
                 $prov = $request->query('province');
                 $query->whereHas('province', function ($q) use ($prov) {
                     $q->where('name', 'like', "%{$prov}%")
-                      ->orWhere('slug', $prov)
-                      ->orWhere('id', $prov);
+                        ->orWhere('slug', $prov)
+                        ->orWhere('id', $prov);
                 });
             }
 

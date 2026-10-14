@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class GeneratePayoutsCommand extends Command
 {
     protected $signature = 'payouts:generate';
+
     protected $description = 'Generate partner payouts for eligible completed bookings (SPEC §12)';
 
     public function handle(PayoutService $payoutService): int

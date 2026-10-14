@@ -82,6 +82,7 @@ class ReconciliationService
                 if ($existing->status !== 'closed') {
                     $existing->update($attributes);
                 }
+
                 return $existing;
             }
 
@@ -115,7 +116,7 @@ class ReconciliationService
             AuditLogger::log(
                 action: 'reconciliation_closed',
                 target: $recon,
-                description: "Tutup buku periode {$period} berhasil dilakukan oleh {$admin->name}. Pendapatan bersih: Rp " . number_format($recon->net_platform_revenue, 0, ',', '.'),
+                description: "Tutup buku periode {$period} berhasil dilakukan oleh {$admin->name}. Pendapatan bersih: Rp ".number_format($recon->net_platform_revenue, 0, ',', '.'),
                 userId: $admin->id
             );
 

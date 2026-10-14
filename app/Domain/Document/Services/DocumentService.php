@@ -8,13 +8,11 @@ use App\Enums\DocumentType;
 use App\Models\Booking;
 use App\Models\Document;
 use App\Models\DocumentTemplate;
-use App\Models\PartnerPayout;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-use RuntimeException;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class DocumentService
@@ -60,10 +58,10 @@ class DocumentService
                 $checkinQrBase64 = base64_encode($checkinQrSvg);
 
                 $checkinBox = '<div class="text-center mt-4 mb-4" style="border: 2px dashed #8C5151; padding: 15px; border-radius: 8px; background: #FFF5F5;">'
-                    . '<h3 style="color: #8C5151; margin-top:0;">QR PASUKAN MASUK TAPAK (CHECK-IN)</h3>'
-                    . '<img src="data:image/svg+xml;base64,' . $checkinQrBase64 . '" width="150" height="150" alt="QR Check-in">'
-                    . '<p style="font-size: 9pt; color: #4A5568; margin-bottom: 0;">Tunjukkan QR Code ini kepada pengelola destinasi saat tiba di lokasi untuk proses check-in rombongan.</p>'
-                    . '</div>';
+                    .'<h3 style="color: #8C5151; margin-top:0;">QR PASUKAN MASUK TAPAK (CHECK-IN)</h3>'
+                    .'<img src="data:image/svg+xml;base64,'.$checkinQrBase64.'" width="150" height="150" alt="QR Check-in">'
+                    .'<p style="font-size: 9pt; color: #4A5568; margin-bottom: 0;">Tunjukkan QR Code ini kepada pengelola destinasi saat tiba di lokasi untuk proses check-in rombongan.</p>'
+                    .'</div>';
 
                 if (str_contains($bodyHtml, '{{qr_checkin}}')) {
                     $bodyHtml = str_replace('{{qr_checkin}}', $checkinBox, $bodyHtml);
@@ -132,21 +130,21 @@ class DocumentService
         $itemsTable = '<table class="data-table"><thead><tr><th>Uraian Layanan</th><th class="text-center">Kuantitas</th><th class="text-right">Harga Satuan</th><th class="text-right">Subtotal</th></tr></thead><tbody>';
         foreach ($booking->items as $item) {
             $itemsTable .= '<tr>'
-                . '<td>' . htmlspecialchars($item->name) . '</td>'
-                . '<td class="text-center">' . $item->quantity . '</td>'
-                . '<td class="text-right">Rp ' . number_format($item->unit_price, 0, ',', '.') . '</td>'
-                . '<td class="text-right">Rp ' . number_format($item->total, 0, ',', '.') . '</td>'
-                . '</tr>';
+                .'<td>'.htmlspecialchars($item->name).'</td>'
+                .'<td class="text-center">'.$item->quantity.'</td>'
+                .'<td class="text-right">Rp '.number_format($item->unit_price, 0, ',', '.').'</td>'
+                .'<td class="text-right">Rp '.number_format($item->total, 0, ',', '.').'</td>'
+                .'</tr>';
         }
-        $itemsTable .= '<tr style="font-weight:bold; background:#F7FAFC;"><td colspan="3" class="text-right">Total Tagihan:</td><td class="text-right">Rp ' . number_format($booking->total_amount, 0, ',', '.') . '</td></tr>';
+        $itemsTable .= '<tr style="font-weight:bold; background:#F7FAFC;"><td colspan="3" class="text-right">Total Tagihan:</td><td class="text-right">Rp '.number_format($booking->total_amount, 0, ',', '.').'</td></tr>';
         $itemsTable .= '</tbody></table>';
 
         $replacements = [
             '{{booking.code}}' => $booking->booking_code,
             '{{booking.created_at}}' => $booking->created_at->format('d/m/Y'),
-            '{{booking.visit_date}}' => $booking->planned_date_start->format('d/m/Y') . ' s.d. ' . $booking->planned_date_end->format('d/m/Y'),
+            '{{booking.visit_date}}' => $booking->planned_date_start->format('d/m/Y').' s.d. '.$booking->planned_date_end->format('d/m/Y'),
             '{{booking.pax}}' => (string) $booking->participant_count,
-            '{{booking.total_amount}}' => 'Rp ' . number_format($booking->total_amount, 0, ',', '.'),
+            '{{booking.total_amount}}' => 'Rp '.number_format($booking->total_amount, 0, ',', '.'),
             '{{destination.name}}' => $destination->name,
             '{{destination.city}}' => $destination->city,
             '{{destination.province}}' => $destination->province?->name ?? 'DI Yogyakarta',

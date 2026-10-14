@@ -18,11 +18,11 @@ class AuditLogController extends Controller
         }
 
         if ($request->filled('action')) {
-            $query->where('action', 'like', '%' . $request->query('action') . '%');
+            $query->where('action', 'like', '%'.$request->query('action').'%');
         }
 
         if ($request->filled('target_type')) {
-            $query->where('target_type', 'like', '%' . $request->query('target_type') . '%');
+            $query->where('target_type', 'like', '%'.$request->query('target_type').'%');
         }
 
         if ($request->filled('date_from')) {

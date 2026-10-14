@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\Institution;
-use App\Models\PartnerProfile;
 use App\Models\Province;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -72,7 +71,7 @@ class AnalyticsController extends Controller
             DB::raw("{$monthExpr} as month"),
             DB::raw("SUM(CASE WHEN status IN ('dibayar', 'dikonfirmasi', 'berlangsung', 'selesai') THEN total_amount ELSE 0 END) as monthly_gmv"),
             DB::raw("SUM(CASE WHEN status IN ('dibayar', 'dikonfirmasi', 'berlangsung', 'selesai') THEN commission_amount ELSE 0 END) as monthly_rev"),
-            DB::raw("COUNT(*) as total_bookings")
+            DB::raw('COUNT(*) as total_bookings')
         )
             ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
             ->groupBy('month')
@@ -157,7 +156,7 @@ class AnalyticsController extends Controller
             ->latest('id')
             ->get();
 
-        $filename = 'destinara-analytics-' . now()->format('YmdHis') . '.csv';
+        $filename = 'destinara-analytics-'.now()->format('YmdHis').'.csv';
 
         return response()->streamDownload(function () use ($bookings) {
             $handle = fopen('php://output', 'w');

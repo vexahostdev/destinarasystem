@@ -18,9 +18,8 @@ class NotificationDispatcher
     /**
      * Dispatch notification across active channels to specified audiences (SPEC §10.1).
      *
-     * @param string $eventKey
-     * @param array $context Placeholders and models (e.g. ['booking' => $b, 'user' => $u, 'total_amount' => 'Rp 1.000.000'])
-     * @param array<string> $audiences List of audiences ('buyer', 'partner', 'admin')
+     * @param  array  $context  Placeholders and models (e.g. ['booking' => $b, 'user' => $u, 'total_amount' => 'Rp 1.000.000'])
+     * @param  array<string>  $audiences  List of audiences ('buyer', 'partner', 'admin')
      * @return array<NotificationLog> Created notification logs
      */
     public function send(string $eventKey, array $context, array $audiences = ['buyer']): array

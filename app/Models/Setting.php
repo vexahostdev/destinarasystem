@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'key',
@@ -58,6 +58,7 @@ class Setting extends Model
     {
         if ($value === null || $value === '') {
             $this->attributes['value'] = null;
+
             return;
         }
 

@@ -8,6 +8,7 @@ use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\VerificationStatus;
 use App\Livewire\Buyer\BookingForm;
+use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
@@ -16,7 +17,6 @@ use App\Models\Package;
 use App\Models\PartnerProfile;
 use App\Models\Province;
 use App\Models\User;
-use App\Models\Wishlist;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -26,8 +26,11 @@ class BuyerPortalTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $partner;
+
     protected Destination $destination;
+
     protected Package $package;
 
     protected function setUp(): void
@@ -104,7 +107,7 @@ class BuyerPortalTest extends TestCase
         $this->actingAs($this->buyer);
 
         $this->get('/buyer/dashboard')->assertStatus(200);
-        $this->get('/buyer/booking/create?tapak=' . $this->destination->slug)->assertStatus(200);
+        $this->get('/buyer/booking/create?tapak='.$this->destination->slug)->assertStatus(200);
     }
 
     public function test_livewire_booking_form_calculates_and_submits(): void
@@ -158,7 +161,7 @@ class BuyerPortalTest extends TestCase
     public function test_buyer_cannot_access_other_buyers_booking_dossier(): void
     {
         $otherBuyer = User::factory()->create(['account_type' => AccountType::BUYER]);
-        $booking = \App\Models\Booking::create([
+        $booking = Booking::create([
             'booking_code' => app(BookingCodeGenerator::class)->generate(),
             'user_id' => $otherBuyer->id,
             'institution_id' => $this->buyer->institution->id,
@@ -182,6 +185,6 @@ class BuyerPortalTest extends TestCase
         ]);
 
         $this->actingAs($this->buyer);
-        $this->get('/buyer/booking/' . $booking->booking_code)->assertStatus(404);
+        $this->get('/buyer/booking/'.$booking->booking_code)->assertStatus(404);
     }
 }

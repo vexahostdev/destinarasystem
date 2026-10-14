@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Booking\Services\BookingService;
 use App\Domain\Catalog\Services\ReviewService;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\BookingStatus;
@@ -11,7 +10,6 @@ use App\Enums\PaymentStatus;
 use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\Destination;
-use App\Models\Institution;
 use App\Models\NotificationLog;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
@@ -98,8 +96,8 @@ class BuyerController extends Controller
         $destinations = Destination::where('status', DestinationStatus::PUBLISHED)->get();
 
         $selectedSlug = $request->query('destinasi') ?? $request->query('tapak');
-        $selectedDestination = $selectedSlug 
-            ? Destination::with(['packages', 'addons'])->where('slug', $selectedSlug)->first() 
+        $selectedDestination = $selectedSlug
+            ? Destination::with(['packages', 'addons'])->where('slug', $selectedSlug)->first()
             : $destinations->first();
 
         if (! $selectedDestination && $destinations->isNotEmpty()) {
@@ -149,9 +147,9 @@ class BuyerController extends Controller
             'review',
             'institution',
         ])
-        ->where('booking_code', $code)
-        ->where('user_id', $user->id)
-        ->firstOrFail();
+            ->where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
 
         $isPaid = in_array($booking->status, [
             BookingStatus::DIBAYAR,

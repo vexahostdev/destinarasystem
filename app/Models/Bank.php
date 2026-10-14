@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bank extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'name',

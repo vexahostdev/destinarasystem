@@ -2,19 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Booking\Services\AvailabilityService;
 use App\Domain\Booking\Services\BookingCodeGenerator;
+use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
-use App\Enums\PackageType;
 use App\Models\Booking;
-use App\Models\BookingSlotAllocation;
+use App\Models\CancellationPolicy;
 use App\Models\Destination;
+use App\Models\Institution;
 use App\Models\Package;
+use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -31,7 +35,7 @@ class SchedulerTest extends TestCase
 
     public function test_whatsapp_health_check_command_records_health(): void
     {
-        app(\App\Domain\Settings\SettingsRepository::class)->set('wa_api_key', 'test-api-key');
+        app(SettingsRepository::class)->set('wa_api_key', 'test-api-key');
 
         Http::fake([
             '*wa.vexahostcloud.my.id*' => Http::response(['status' => 'ok', 'device' => 'connected'], 200),
@@ -51,8 +55,8 @@ class SchedulerTest extends TestCase
         $partner = User::factory()->create(['account_type' => AccountType::PARTNER]);
         $buyer = User::factory()->create(['account_type' => AccountType::BUYER]);
 
-        $province = \App\Models\Province::first();
-        $policy = \App\Models\CancellationPolicy::first();
+        $province = Province::first();
+        $policy = CancellationPolicy::first();
 
         $destination = Destination::create([
             'partner_id' => $partner->id,
@@ -79,7 +83,7 @@ class SchedulerTest extends TestCase
             'is_active' => true,
         ]);
 
-        $institution = \App\Models\Institution::create([
+        $institution = Institution::create([
             'user_id' => $buyer->id,
             'institution_name' => 'SMP 1 Test',
             'pic_name' => 'Budi',
@@ -110,8 +114,8 @@ class SchedulerTest extends TestCase
             'expires_at' => now()->subMinutes(10), // expired!
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($booking) {
-            app(\App\Domain\Booking\Services\AvailabilityService::class)->holdSlots($booking);
+        DB::transaction(function () use ($booking) {
+            app(AvailabilityService::class)->holdSlots($booking);
         });
 
         Artisan::call('bookings:expire-unpaid');

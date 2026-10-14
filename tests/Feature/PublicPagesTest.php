@@ -62,7 +62,7 @@ class PublicPagesTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->get('/destinasi/' . $destination->slug);
+        $response = $this->get('/destinasi/'.$destination->slug);
         $response->assertStatus(200);
         $response->assertSee('Wana Wisata Kalibiru');
         $response->assertSee('Kulon Progo');

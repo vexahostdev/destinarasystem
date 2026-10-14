@@ -14,20 +14,19 @@ class MediaService
 
     public function __construct()
     {
-        $this->imageManager = new ImageManager(new Driver());
+        $this->imageManager = new ImageManager(new Driver);
     }
 
     /**
      * Store and optimize an uploaded image (GD driver, resize max 1600x1200, webp or original).
      *
-     * @param UploadedFile $file
-     * @param string $directory (e.g. 'destinations/covers' or 'destinations/gallery')
+     * @param  string  $directory  (e.g. 'destinations/covers' or 'destinations/gallery')
      * @return string Relative path stored on the public disk
      */
     public function storeOptimizedImage(UploadedFile $file, string $directory = 'destinations'): string
     {
-        $fileName = Str::uuid() . '.webp';
-        $fullPath = $directory . '/' . $fileName;
+        $fileName = Str::uuid().'.webp';
+        $fullPath = $directory.'/'.$fileName;
 
         // Read and scale down image
         $image = $this->imageManager->read($file->getRealPath());

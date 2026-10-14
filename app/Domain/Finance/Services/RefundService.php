@@ -30,8 +30,8 @@ class RefundService
         return DB::transaction(function () use ($refund, $admin, $proofFile, $note) {
             $lockedRefund = Refund::where('id', $refund->id)->lockForUpdate()->first();
 
-            $dir = 'private/refunds/' . now()->format('Y/m');
-            $fileName = "refund_{$lockedRefund->id}_" . uniqid() . '.' . $proofFile->getClientOriginalExtension();
+            $dir = 'private/refunds/'.now()->format('Y/m');
+            $fileName = "refund_{$lockedRefund->id}_".uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, $fileName, 'local');
 
             $lockedRefund->status = RefundStatus::COMPLETED;
@@ -51,7 +51,7 @@ class RefundService
             AuditLogger::log(
                 action: 'refund_completed',
                 target: $lockedRefund,
-                description: "Refund sebesar Rp " . number_format($lockedRefund->amount, 0, ',', '.') . " untuk booking {$lockedRefund->booking->booking_code} berhasil diproses oleh {$admin->name}.",
+                description: 'Refund sebesar Rp '.number_format($lockedRefund->amount, 0, ',', '.')." untuk booking {$lockedRefund->booking->booking_code} berhasil diproses oleh {$admin->name}.",
                 userId: $admin->id
             );
 

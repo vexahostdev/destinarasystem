@@ -15,8 +15,11 @@ class DestinationCatalog extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $category = '';
+
     public string $province = '';
+
     public string $sort = 'popular';
 
     protected $queryString = [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\Document;
 use Illuminate\Http\Request;
@@ -43,17 +44,17 @@ class PublicController extends Controller
             'facilities',
             'reviews.user',
             'contacts',
-            'slots' => fn($q) => $q->where('date', '>=', now()->toDateString())->orderBy('date')->limit(30),
+            'slots' => fn ($q) => $q->where('date', '>=', now()->toDateString())->orderBy('date')->limit(30),
         ])
-        ->where('slug', $slug)
-        ->where('status', DestinationStatus::PUBLISHED)
-        ->firstOrFail();
+            ->where('slug', $slug)
+            ->where('status', DestinationStatus::PUBLISHED)
+            ->firstOrFail();
 
         // Reveal rule SPEC §8.5
         $canRevealContacts = false;
         if (auth()->check()) {
             $user = auth()->user();
-            $canRevealContacts = \App\Models\Booking::where('user_id', $user->id)
+            $canRevealContacts = Booking::where('user_id', $user->id)
                 ->where('destination_id', $destination->id)
                 ->whereIn('status', [BookingStatus::DIKONFIRMASI, BookingStatus::BERLANGSUNG])
                 ->exists() || $user->hasRole('admin') || $user->hasRole('super_admin');
@@ -61,7 +62,7 @@ class PublicController extends Controller
 
         $minPrice = $destination->packages->min('price_per_pax') ?? 0;
         $gallery = $destination->media->isNotEmpty()
-            ? $destination->media->map(fn($m) => asset('storage/' . $m->file_path))->all()
+            ? $destination->media->map(fn ($m) => asset('storage/'.$m->file_path))->all()
             : ['https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=1200&q=80'];
 
         $destinationData = [
@@ -75,7 +76,7 @@ class PublicController extends Controller
             'highlights' => Str::limit($destination->description, 200),
             'description' => $destination->description,
             'price' => $minPrice,
-            'price_formatted' => 'Rp ' . number_format($minPrice, 0, ',', '.'),
+            'price_formatted' => 'Rp '.number_format($minPrice, 0, ',', '.'),
             'capacity' => $destination->default_daily_capacity ?? 100,
             'rating' => $destination->reviews->count() > 0 ? number_format($destination->rating, 1) : null,
             'reviews_count' => $destination->reviews->count(),
@@ -95,7 +96,7 @@ class PublicController extends Controller
                     'role' => $c->role,
                     'phone' => $canRevealContacts
                         ? $c->phone
-                        : (substr($c->phone, 0, 4) . '-****-' . substr($c->phone, -4)),
+                        : (substr($c->phone, 0, 4).'-****-'.substr($c->phone, -4)),
                     'is_revealed' => $canRevealContacts,
                 ];
             }),

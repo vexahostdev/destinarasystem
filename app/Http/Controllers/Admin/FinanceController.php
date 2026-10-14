@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Finance\Services\PayoutService;
 use App\Domain\Finance\Services\ReconciliationService;
 use App\Domain\Finance\Services\RefundService;
+use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\PaymentStatus;
 use App\Enums\PayoutStatus;
@@ -14,7 +15,6 @@ use App\Models\FinancialReconciliation;
 use App\Models\PartnerPayout;
 use App\Models\Payment;
 use App\Models\Refund;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,7 +37,7 @@ class FinanceController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('external_id', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%");
+                    ->orWhere('id', 'like', "%{$search}%");
             });
         }
 
@@ -49,7 +49,7 @@ class FinanceController extends Controller
     /**
      * Cek Status Transaksi ke Gateway
      */
-    public function checkGatewayStatus(Request $request, $id, \App\Domain\Payment\Services\PaymentGatewayManager $gatewayManager)
+    public function checkGatewayStatus(Request $request, $id, PaymentGatewayManager $gatewayManager)
     {
         $payment = Payment::findOrFail($id);
         if ($payment->gateway === 'manual_transfer') {
@@ -59,9 +59,10 @@ class FinanceController extends Controller
         try {
             $driver = $gatewayManager->driver($payment->gateway);
             $res = $driver->checkStatus($payment->external_id);
-            return back()->with('info', 'Status gateway terverifikasi: ' . json_encode($res));
+
+            return back()->with('info', 'Status gateway terverifikasi: '.json_encode($res));
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal cek status gateway: ' . $e->getMessage());
+            return back()->with('error', 'Gagal cek status gateway: '.$e->getMessage());
         }
     }
 
@@ -100,6 +101,7 @@ class FinanceController extends Controller
 
         try {
             $paymentService->verifyManualPayment($payment, $user, true);
+
             return back()->with('success', "Pembayaran transfer manual {$payment->external_id} berhasil disetujui!");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -120,6 +122,7 @@ class FinanceController extends Controller
 
         try {
             $paymentService->verifyManualPayment($payment, $user, false, $request->reason);
+
             return back()->with('warning', "Pembayaran {$payment->external_id} telah ditolak.");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -167,6 +170,7 @@ class FinanceController extends Controller
 
         try {
             $refundService->process($refund, $user, $request->file('proof_file'), $request->note);
+
             return back()->with('success', "Refund #{$refund->id} berhasil diproses!");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -187,6 +191,7 @@ class FinanceController extends Controller
 
         try {
             $refundService->reject($refund, $user, $request->reason);
+
             return back()->with('warning', "Refund #{$refund->id} telah ditolak.");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -226,6 +231,7 @@ class FinanceController extends Controller
     {
         try {
             $count = $payoutService->generateEligiblePayouts();
+
             return back()->with('success', "Berhasil membuat {$count} draft payout baru dari pesanan yang telah selesai.");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -247,6 +253,7 @@ class FinanceController extends Controller
 
         try {
             $payoutService->processTransfer($payout, $user, $request->file('proof_file'), $request->note);
+
             return back()->with('success', "Payout {$payout->payout_number} berhasil dicatat sebagai ditransfer!");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -316,6 +323,7 @@ class FinanceController extends Controller
 
         try {
             $reconService->closePeriod($period, $user, $notes);
+
             return back()->with('success', "Periode rekonsiliasi {$period} resmi ditutup buku.");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());

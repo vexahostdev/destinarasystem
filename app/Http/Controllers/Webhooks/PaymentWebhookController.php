@@ -87,7 +87,7 @@ class PaymentWebhookController extends Controller
 
             return response()->json(['message' => 'Webhook processed successfully.'], 200);
         } catch (\Throwable $e) {
-            Log::error('Error processing Xendit webhook: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error processing Xendit webhook: '.$e->getMessage(), ['exception' => $e]);
             $log->update([
                 'error' => $e->getMessage(),
             ]);
@@ -168,7 +168,7 @@ class PaymentWebhookController extends Controller
 
             return response()->json(['message' => 'Webhook processed successfully.'], 200);
         } catch (\Throwable $e) {
-            Log::error('Error processing Midtrans webhook: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error processing Midtrans webhook: '.$e->getMessage(), ['exception' => $e]);
             $log->update([
                 'error' => $e->getMessage(),
             ]);

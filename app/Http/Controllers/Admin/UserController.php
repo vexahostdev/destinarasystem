@@ -29,8 +29,8 @@ class UserController extends Controller
             $s = $request->query('search');
             $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('email', 'like', "%{$s}%")
-                  ->orWhere('phone', 'like', "%{$s}%");
+                    ->orWhere('email', 'like', "%{$s}%")
+                    ->orWhere('phone', 'like', "%{$s}%");
             });
         }
 
@@ -68,10 +68,11 @@ class UserController extends Controller
         AuditLogger::log(
             action: 'toggle_user_status',
             target: $user,
-            description: "Status pengguna {$user->name} diubah menjadi {$user->status}." . ($user->suspended_reason ? " Alasan: {$user->suspended_reason}" : '')
+            description: "Status pengguna {$user->name} diubah menjadi {$user->status}.".($user->suspended_reason ? " Alasan: {$user->suspended_reason}" : '')
         );
 
         $actionLabel = $user->status === 'active' ? 'diaktifkan kembali' : 'ditangguhkan';
+
         return back()->with('success', "Akun {$user->name} berhasil {$actionLabel}.");
     }
 
@@ -124,6 +125,6 @@ class UserController extends Controller
             description: "Tarif komisi khusus mitra {$user->name} diatur menjadi {$validated['commission_rate']}%."
         );
 
-        return back()->with('success', "Tarif komisi mitra berhasil diperbarui.");
+        return back()->with('success', 'Tarif komisi mitra berhasil diperbarui.');
     }
 }

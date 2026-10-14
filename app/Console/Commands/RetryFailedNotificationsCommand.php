@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 class RetryFailedNotificationsCommand extends Command
 {
     protected $signature = 'notifications:retry-failed';
+
     protected $description = 'Retry retryable failed notification logs up to maximum 3 attempts (SPEC §12)';
 
     public function handle(): int
@@ -19,11 +20,11 @@ class RetryFailedNotificationsCommand extends Command
             ->where(function ($q) {
                 // Exclude known non-retryable errors
                 $q->whereNull('error')
-                  ->orWhere(function ($sub) {
-                      $sub->where('error', 'not like', '%422%')
-                          ->where('error', 'not like', '%tidak valid%')
-                          ->where('error', 'not like', '%belum dikonfigurasi%');
-                  });
+                    ->orWhere(function ($sub) {
+                        $sub->where('error', 'not like', '%422%')
+                            ->where('error', 'not like', '%tidak valid%')
+                            ->where('error', 'not like', '%belum dikonfigurasi%');
+                    });
             })
             ->get();
 

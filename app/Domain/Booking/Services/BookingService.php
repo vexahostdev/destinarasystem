@@ -10,6 +10,7 @@ use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
 use App\Models\Booking;
 use App\Models\BookingItem;
+use App\Models\BookingStatusHistory;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\Package;
@@ -178,7 +179,7 @@ class BookingService
             ]);
 
             // Record initial status timeline history (null -> menunggu_pembayaran)
-            \App\Models\BookingStatusHistory::create([
+            BookingStatusHistory::create([
                 'booking_id' => $booking->id,
                 'from_status' => null,
                 'to_status' => BookingStatus::MENUNGGU_PEMBAYARAN,
@@ -384,7 +385,7 @@ class BookingService
      */
     public function reschedule(Booking $booking, Carbon $newStartDate, User $admin, string $reason): Booking
     {
-        return DB::transaction(function () use ($booking, $newStartDate, $admin, $reason) {
+        return DB::transaction(function () use ($booking, $newStartDate, $reason) {
             $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
 
             if (! in_array($locked->status, [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI])) {

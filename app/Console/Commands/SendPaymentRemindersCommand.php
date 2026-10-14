@@ -11,6 +11,7 @@ use Illuminate\Console\Command;
 class SendPaymentRemindersCommand extends Command
 {
     protected $signature = 'payments:send-reminders';
+
     protected $description = 'Send payment deadline reminders to buyers before expiry (SPEC §12)';
 
     public function handle(NotificationDispatcher $notifier): int
@@ -45,9 +46,9 @@ class SendPaymentRemindersCommand extends Command
                 'user' => $booking->user,
                 'destination_name' => $booking->destination->name,
                 'booking_code' => $booking->booking_code,
-                'total_amount' => 'Rp ' . number_format($booking->total_amount, 0, ',', '.'),
+                'total_amount' => 'Rp '.number_format($booking->total_amount, 0, ',', '.'),
                 'payment_url' => $paymentUrl,
-                'expires_at' => $booking->expires_at->format('d/m/Y H:i') . ' WIB',
+                'expires_at' => $booking->expires_at->format('d/m/Y H:i').' WIB',
             ], ['buyer']);
 
             $count++;

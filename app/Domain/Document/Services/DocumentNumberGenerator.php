@@ -60,6 +60,7 @@ class DocumentNumberGenerator
             // Replace {SEQ:n}
             return preg_replace_callback('/\{SEQ:(\d+)\}/', function ($matches) use ($nextNum) {
                 $padding = (int) $matches[1];
+
                 return sprintf("%0{$padding}d", $nextNum);
             }, $formatted);
         });

@@ -19,8 +19,8 @@ class TemplateRenderer
         $replacements = [];
         foreach ($merged as $key => $value) {
             $valStr = is_scalar($value) ? (string) $value : '';
-            $replacements['{' . $key . '}'] = $valStr;
-            $replacements['{{' . $key . '}}'] = $valStr;
+            $replacements['{'.$key.'}'] = $valStr;
+            $replacements['{{'.$key.'}}'] = $valStr;
         }
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);

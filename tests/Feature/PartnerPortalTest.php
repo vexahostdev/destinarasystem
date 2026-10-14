@@ -13,7 +13,6 @@ use App\Models\AvailabilitySlot;
 use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
-use App\Models\CheckIn;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\Institution;
@@ -21,7 +20,6 @@ use App\Models\Package;
 use App\Models\PartnerProfile;
 use App\Models\Payment;
 use App\Models\Province;
-use App\Models\Refund;
 use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
@@ -34,9 +32,13 @@ class PartnerPortalTest extends TestCase
     use RefreshDatabase;
 
     protected User $partner;
+
     protected User $buyer;
+
     protected Destination $destination;
+
     protected Package $package;
+
     protected Bank $bank;
 
     protected function setUp(): void

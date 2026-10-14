@@ -48,8 +48,6 @@ class SettingsController extends Controller
         return view('admin.settings.index', compact('groupedSettings', 'groups', 'activeGroup'));
     }
 
-    /**
-     */
     public function update(Request $request)
     {
         $registry = config('destinara.settings', []);
@@ -81,11 +79,12 @@ class SettingsController extends Controller
         try {
             $health = $client->checkHealth();
             if ($health['success'] ?? false) {
-                return back()->with('success', 'Koneksi ke VexaHost WhatsApp API BERHASIL! Status: ' . ($health['data']['status'] ?? 'Ready'));
+                return back()->with('success', 'Koneksi ke VexaHost WhatsApp API BERHASIL! Status: '.($health['data']['status'] ?? 'Ready'));
             }
-            return back()->with('error', 'Respon VexaHost: ' . ($health['error'] ?? 'Gagal menghubungi server gateway.'));
+
+            return back()->with('error', 'Respon VexaHost: '.($health['error'] ?? 'Gagal menghubungi server gateway.'));
         } catch (\Throwable $e) {
-            return back()->with('error', 'Tes WhatsApp gagal: ' . $e->getMessage());
+            return back()->with('error', 'Tes WhatsApp gagal: '.$e->getMessage());
         }
     }
 
@@ -97,14 +96,14 @@ class SettingsController extends Controller
         $recipient = $request->input('test_email', Auth::user()->email ?? 'admin@destinara.id');
 
         try {
-            Mail::raw("Ini adalah email uji coba dari konsol admin Destinara pada " . now()->toRfc850String(), function ($message) use ($recipient) {
+            Mail::raw('Ini adalah email uji coba dari konsol admin Destinara pada '.now()->toRfc850String(), function ($message) use ($recipient) {
                 $message->to($recipient)
                     ->subject('Tes Koneksi Email SMTP — Destinara');
             });
 
             return back()->with('success', "Email tes koneksi berhasil dikirim ke {$recipient}!");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Tes SMTP gagal: ' . $e->getMessage());
+            return back()->with('error', 'Tes SMTP gagal: '.$e->getMessage());
         }
     }
 
@@ -120,9 +119,10 @@ class SettingsController extends Controller
             if ($success) {
                 return back()->with('success', 'Koneksi ke Xendit Invoice API v2 BERHASIL! Kredensial valid.');
             }
+
             return back()->with('error', 'Gagal memverifikasi saldo / kredensial Xendit. Periksa Secret Key.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Tes Xendit gagal: ' . $e->getMessage());
+            return back()->with('error', 'Tes Xendit gagal: '.$e->getMessage());
         }
     }
 
@@ -138,9 +138,10 @@ class SettingsController extends Controller
             if ($success) {
                 return back()->with('success', 'Koneksi ke Midtrans Snap API BERHASIL! Server key valid.');
             }
+
             return back()->with('error', 'Gagal memverifikasi kredensial Midtrans Snap.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Tes Midtrans gagal: ' . $e->getMessage());
+            return back()->with('error', 'Tes Midtrans gagal: '.$e->getMessage());
         }
     }
 }

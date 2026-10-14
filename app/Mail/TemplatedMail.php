@@ -14,9 +14,7 @@ class TemplatedMail extends Mailable
     use Queueable, SerializesModels;
 
     /**
-     * @param string $subjectText
-     * @param string $bodyHtml
-     * @param array $fileAttachments Array of absolute file paths or Attachment instances
+     * @param  array  $fileAttachments  Array of absolute file paths or Attachment instances
      */
     public function __construct(
         public string $subjectText,

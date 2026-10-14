@@ -108,6 +108,7 @@ class SettingsRepository
                 return $item;
             }
         }
+
         return null;
     }
 }

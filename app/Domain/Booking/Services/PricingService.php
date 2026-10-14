@@ -13,12 +13,8 @@ class PricingService
     /**
      * Calculate comprehensive booking pricing breakdown according to SPEC §8.2.
      *
-     * @param Package $package
-     * @param int $pax
-     * @param array $selectedAddonIds Array of addon IDs or map of [addon_id => quantity]
-     * @param Voucher|null $voucher
-     * @param int|null $userId (for voucher validation)
-     * @return PricingResult
+     * @param  array  $selectedAddonIds  Array of addon IDs or map of [addon_id => quantity]
+     * @param  int|null  $userId  (for voucher validation)
      */
     public function calculate(
         Package $package,

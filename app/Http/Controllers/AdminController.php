@@ -168,7 +168,7 @@ class AdminController extends Controller
             $s = $request->query('search');
             $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('city', 'like', "%{$s}%");
+                    ->orWhere('city', 'like', "%{$s}%");
             });
         }
 
@@ -211,6 +211,7 @@ class AdminController extends Controller
     public function toggleDestinationActive(Destination $destination)
     {
         $this->destinationService->toggleActive($destination);
+
         return back()->with('success', "Status aktif destinasi '{$destination->name}' berhasil diperbarui.");
     }
 
@@ -322,8 +323,8 @@ class AdminController extends Controller
         if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('booking_code', 'like', "%{$search}%")
-                  ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('user.institution', fn ($iq) => $iq->where('institution_name', 'like', "%{$search}%"));
+                    ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('user.institution', fn ($iq) => $iq->where('institution_name', 'like', "%{$search}%"));
             });
         }
 
@@ -365,19 +366,23 @@ class AdminController extends Controller
 
         if ($action === 'force_confirm') {
             $this->bookingService->confirm($booking, Auth::user());
+
             return back()->with('success', "Reservasi {$booking->booking_code} berhasil dikonfirmasi secara resmi.");
         } elseif ($action === 'complete') {
             $this->bookingService->complete($booking, Auth::user(), 'Selesai melalui intervensi admin.');
+
             return back()->with('success', "Reservasi {$booking->booking_code} telah ditandai selesai.");
         } elseif ($action === 'cancel') {
             $reason = $request->input('reason', 'Dibatalkan oleh admin operasional');
             $overridePercent = $request->filled('refund_percent') ? (int) $request->input('refund_percent') : null;
             $this->bookingService->cancel($booking, Auth::user(), $reason, 'admin', $overridePercent);
+
             return back()->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
         } elseif ($action === 'reschedule') {
             $newDate = Carbon::parse($request->input('new_date'));
             $reason = $request->input('reschedule_reason', 'Perubahan jadwal oleh admin');
             $this->bookingService->reschedule($booking, $newDate, Auth::user(), $reason);
+
             return back()->with('success', "Jadwal kunjungan reservasi {$booking->booking_code} berhasil diperbarui.");
         }
 
@@ -433,6 +438,7 @@ class AdminController extends Controller
     public function notificationTemplates()
     {
         $templates = NotificationTemplate::all();
+
         return view('admin.notifications.templates', compact('templates'));
     }
 
@@ -453,6 +459,6 @@ class AdminController extends Controller
             description: "Template notifikasi {$template->event_key} ({$template->channel->value}) diperbarui."
         );
 
-        return back()->with('success', "Template notifikasi berhasil diperbarui.");
+        return back()->with('success', 'Template notifikasi berhasil diperbarui.');
     }
 }

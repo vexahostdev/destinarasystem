@@ -19,7 +19,9 @@ class AdminPortalTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $buyer;
+
     protected User $partner;
 
     protected function setUp(): void

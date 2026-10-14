@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentTemplate extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'type',

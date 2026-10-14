@@ -10,7 +10,6 @@ use App\Enums\DestinationStatus;
 use App\Enums\VerificationStatus;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
-use App\Models\CheckIn;
 use App\Models\Destination;
 use App\Models\Institution;
 use App\Models\Package;
@@ -29,8 +28,11 @@ class CheckInReviewTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $partnerUser;
+
     protected Destination $destination;
+
     protected Booking $booking;
 
     protected function setUp(): void

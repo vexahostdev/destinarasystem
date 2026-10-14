@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -42,7 +41,7 @@ class HealthController extends Controller
                 'name' => 'Database Relasional (MySQL)',
                 'status' => 'unhealthy',
                 'latency' => '-',
-                'detail' => 'Koneksi gagal: ' . $e->getMessage(),
+                'detail' => 'Koneksi gagal: '.$e->getMessage(),
             ];
         }
 
@@ -61,7 +60,7 @@ class HealthController extends Controller
                 'name' => 'Background Queue Worker',
                 'status' => 'warning',
                 'latency' => '-',
-                'detail' => 'Tabel queue tidak dapat diakses: ' . $e->getMessage(),
+                'detail' => 'Tabel queue tidak dapat diakses: '.$e->getMessage(),
             ];
         }
 
@@ -118,7 +117,7 @@ class HealthController extends Controller
 
         // 6. Storage & Disk
         try {
-            $testFile = 'health_check_' . time() . '.txt';
+            $testFile = 'health_check_'.time().'.txt';
             Storage::disk('local')->put($testFile, 'OK');
             Storage::disk('local')->delete($testFile);
             $checks['storage'] = [
@@ -132,7 +131,7 @@ class HealthController extends Controller
                 'name' => 'Penyimpanan Dokumen & Storage',
                 'status' => 'unhealthy',
                 'latency' => '-',
-                'detail' => 'Storage tidak dapat ditulisi: ' . $e->getMessage(),
+                'detail' => 'Storage tidak dapat ditulisi: '.$e->getMessage(),
             ];
         }
 
@@ -140,7 +139,7 @@ class HealthController extends Controller
         $backupPath = storage_path('app/backup');
         $lastBackupTime = '-';
         if (is_dir($backupPath)) {
-            $files = glob($backupPath . '/*.zip');
+            $files = glob($backupPath.'/*.zip');
             if (! empty($files)) {
                 $latest = max(array_map('filemtime', $files));
                 $lastBackupTime = Carbon::createFromTimestamp($latest)->diffForHumans();

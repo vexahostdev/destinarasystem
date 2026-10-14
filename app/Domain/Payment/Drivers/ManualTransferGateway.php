@@ -38,7 +38,7 @@ class ManualTransferGateway implements PaymentGateway
     public function parseWebhook(Request $request): WebhookResult
     {
         return new WebhookResult(
-            eventId: 'manual-' . uniqid(),
+            eventId: 'manual-'.uniqid(),
             externalId: $request->input('external_id', ''),
             status: PaymentStatus::PENDING
         );

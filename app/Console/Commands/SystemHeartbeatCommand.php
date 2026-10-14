@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 class SystemHeartbeatCommand extends Command
 {
     protected $signature = 'system:heartbeat';
+
     protected $description = 'Rekam heartbeat operasional sistem berkala';
 
     public function handle(): int
@@ -16,6 +17,7 @@ class SystemHeartbeatCommand extends Command
         Cache::put('system_last_heartbeat_at', $timestamp, now()->addMinutes(10));
 
         $this->info("System heartbeat updated at {$timestamp}");
+
         return self::SUCCESS;
     }
 }

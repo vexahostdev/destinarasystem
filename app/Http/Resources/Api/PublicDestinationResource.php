@@ -37,8 +37,8 @@ class PublicDestinationResource extends JsonResource
             'rating_count' => (int) ($this->rating_count ?? 0),
             'suitable_for' => $this->suitable_for ?? [],
             'is_featured' => (bool) $this->is_featured,
-            'detail_url' => url('/destinasi/' . $this->slug),
-            'booking_url' => url('/buyer/booking/create?destinasi=' . $this->slug),
+            'detail_url' => url('/destinasi/'.$this->slug),
+            'booking_url' => url('/buyer/booking/create?destinasi='.$this->slug),
         ];
     }
 }

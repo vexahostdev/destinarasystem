@@ -26,6 +26,7 @@ class WhatsAppWebhookController extends Controller
 
         if (empty($secret) || empty($receivedSignature) || ! hash_equals($expectedSignature, $receivedSignature)) {
             Log::warning('WhatsApp Webhook rejected: Signature mismatch or missing secret.');
+
             return response()->noContent(401);
         }
 
@@ -74,7 +75,7 @@ class WhatsAppWebhookController extends Controller
 
             $waLog->update(['processed_at' => now()]);
         } catch (\Throwable $e) {
-            Log::error('Error processing WhatsApp webhook: ' . $e->getMessage());
+            Log::error('Error processing WhatsApp webhook: '.$e->getMessage());
         }
 
         return response()->noContent(204);

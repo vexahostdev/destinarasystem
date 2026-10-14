@@ -21,10 +21,15 @@ class PublicApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $partner;
+
     protected DestinationCategory $category;
+
     protected Province $province;
+
     protected CancellationPolicy $policy;
+
     protected Destination $publishedDestination;
+
     protected Destination $draftDestination;
 
     protected function setUp(): void

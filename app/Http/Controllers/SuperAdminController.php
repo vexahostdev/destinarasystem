@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Destination;
-use App\Models\Institution;
-use App\Models\PartnerProfile;
-use App\Models\Booking;
-use App\Models\Payment;
-use App\Models\PartnerPayout;
 use App\Models\AuditLog;
-use App\Models\NotificationLog;
-use App\Models\SystemSetting;
+use App\Models\Booking;
+use App\Models\Destination;
 use App\Models\FinancialReconciliation;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Artisan;
+use App\Models\PartnerPayout;
+use App\Models\SystemSetting;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 
 class SuperAdminController extends Controller
 {
@@ -28,22 +24,22 @@ class SuperAdminController extends Controller
         $totalUsers = User::count();
         $totalDestinations = Destination::where('status', 'published')->count();
         $totalBookings = Booking::count();
-        
+
         // GMV & Keuangan Makro Berbasis Data Riil
         $totalGmv = (float) Booking::whereIn('status', ['dibayar', 'dikonfirmasi', 'selesai'])->sum('total_amount');
-        
+
         $payoutCommission = (float) PartnerPayout::sum('commission');
         $platformCommissionTotal = $payoutCommission > 0 ? $payoutCommission : ($totalGmv * 0.10);
-        
+
         $partnerPayoutsTotal = (float) PartnerPayout::where('status', 'transferred')->sum('net_amount');
         $escrowHolding = (float) Booking::whereIn('status', ['dibayar', 'dikonfirmasi'])->sum('total_amount');
 
         // Health Checks Dinamis
         $dbDriver = config('database.default', 'mysql');
         $dbName = config("database.connections.{$dbDriver}.database", 'db_destinarasystem');
-        
+
         $services = [
-            ['name' => "Database Relasional (" . strtoupper($dbDriver) . ": {$dbName})", 'status' => 'healthy', 'latency' => '0.8ms', 'detail' => 'Active Connection'],
+            ['name' => 'Database Relasional ('.strtoupper($dbDriver).": {$dbName})", 'status' => 'healthy', 'latency' => '0.8ms', 'detail' => 'Active Connection'],
             ['name' => 'Midtrans Payment Gateway Snap', 'status' => 'healthy', 'latency' => '112ms', 'detail' => 'Sandbox Core API'],
             ['name' => 'Fonnte WhatsApp API Dispatcher', 'status' => 'healthy', 'latency' => '85ms', 'detail' => 'WebHook Standby'],
             ['name' => 'SMTP Official Mailer Notification', 'status' => 'healthy', 'latency' => '120ms', 'detail' => 'Queue Worker Active'],
@@ -71,6 +67,7 @@ class SuperAdminController extends Controller
     public function settings()
     {
         $settings = SystemSetting::all()->groupBy('group');
+
         return view('superadmin.settings', compact('settings'));
     }
 
@@ -110,10 +107,10 @@ class SuperAdminController extends Controller
             $query->where('role', $role);
         }
 
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -163,7 +160,7 @@ class SuperAdminController extends Controller
             AuditLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'critical_maintenance_toggle',
-                'description' => ($new === '1') 
+                'description' => ($new === '1')
                     ? 'Super Admin mengaktifkan Maintenance Mode darurat ekosistem.'
                     : 'Super Admin menonaktifkan Maintenance Mode (Sistem Normal).',
                 'ip_address' => $request->ip(),
@@ -173,7 +170,7 @@ class SuperAdminController extends Controller
         } elseif ($action === 'suspend_user') {
             $userId = $request->input('target_user_id');
             $targetUser = User::findOrFail($userId);
-            
+
             AuditLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'critical_suspend_user',
@@ -187,7 +184,7 @@ class SuperAdminController extends Controller
         } elseif ($action === 'reset_password') {
             $userId = $request->input('target_user_id');
             $targetUser = User::findOrFail($userId);
-            
+
             AuditLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'critical_reset_password',
@@ -258,7 +255,7 @@ class SuperAdminController extends Controller
 
         // Sebaran Geografis Berdasarkan Destinasi & Wilayah Riil
         $provinces = Destination::where('status', 'published')
-            ->with(['bookings' => function($q) {
+            ->with(['bookings' => function ($q) {
                 $q->whereIn('status', ['dibayar', 'dikonfirmasi', 'selesai']);
             }])
             ->get()
@@ -274,7 +271,7 @@ class SuperAdminController extends Controller
                 'region' => $provName,
                 'share' => $share,
                 'tapak' => $tapakCount,
-                'gmv' => 'Rp ' . number_format($provGmv, 0, ',', '.'),
+                'gmv' => 'Rp '.number_format($provGmv, 0, ',', '.'),
             ];
         }
 

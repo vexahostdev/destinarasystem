@@ -46,9 +46,9 @@ class CheckInService
 
             if ($now->lt($earliestAllowed) || $now->gt($latestAllowed)) {
                 throw new InvalidArgumentException(
-                    "Check-in hanya dapat dilakukan pada rentang jadwal kunjungan (" .
-                    Carbon::parse($locked->planned_date_start)->format('d/m/Y') . " s.d. " .
-                    Carbon::parse($locked->planned_date_end)->format('d/m/Y') . ")."
+                    'Check-in hanya dapat dilakukan pada rentang jadwal kunjungan ('.
+                    Carbon::parse($locked->planned_date_start)->format('d/m/Y').' s.d. '.
+                    Carbon::parse($locked->planned_date_end)->format('d/m/Y').').'
                 );
             }
 

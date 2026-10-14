@@ -23,6 +23,7 @@ if (! function_exists('setting')) {
             foreach ($key as $k => $v) {
                 $repository->set($k, $v);
             }
+
             return true;
         }
 

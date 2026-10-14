@@ -12,12 +12,12 @@ class EnsureUserRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      * @param  string  ...$roles
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')->with('warning', 'Silakan masuk terlebih dahulu untuk mengakses halaman ini.');
         }
 
@@ -36,13 +36,17 @@ class EnsureUserRole
         foreach ($roles as $r) {
             foreach (explode('|', $r) as $subRole) {
                 $subRole = trim($subRole);
-                if ($subRole === 'superadmin') $subRole = 'super_admin';
-                if ($subRole === 'mitra') $subRole = 'partner';
+                if ($subRole === 'superadmin') {
+                    $subRole = 'super_admin';
+                }
+                if ($subRole === 'mitra') {
+                    $subRole = 'partner';
+                }
                 $allowedRoles[] = $subRole;
             }
         }
 
-        if (!in_array($userRole, $allowedRoles)) {
+        if (! in_array($userRole, $allowedRoles)) {
             return match ($userRole) {
                 'buyer' => redirect()->route('buyer.dashboard')->with('error', 'Anda tidak memiliki izin mengakses halaman tersebut.'),
                 'partner' => redirect()->route('mitra.dashboard')->with('error', 'Anda tidak memiliki izin mengakses halaman tersebut.'),

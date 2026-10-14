@@ -13,11 +13,9 @@ use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-use RuntimeException;
 
 class PaymentService
 {
@@ -112,7 +110,7 @@ class PaymentService
                 AuditLogger::log(
                     action: 'payment_amount_mismatch',
                     target: $lockedPayment,
-                    description: "Pembayaran {$lockedPayment->external_id} gagal: Nominal webhook (Rp " . number_format($result->amount, 0, ',', '.') . ") berbeda dari tagihan (Rp " . number_format($lockedPayment->amount, 0, ',', '.') . ")."
+                    description: "Pembayaran {$lockedPayment->external_id} gagal: Nominal webhook (Rp ".number_format($result->amount, 0, ',', '.').') berbeda dari tagihan (Rp '.number_format($lockedPayment->amount, 0, ',', '.').').'
                 );
 
                 return;
@@ -207,8 +205,8 @@ class PaymentService
             throw new InvalidArgumentException('Pembayaran ini tidak dalam status menunggu pembayaran.');
         }
 
-        $dir = 'private/payments/' . now()->format('Y/m');
-        $fileName = 'proof_' . $payment->external_id . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $dir = 'private/payments/'.now()->format('Y/m');
+        $fileName = 'proof_'.$payment->external_id.'_'.uniqid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs($dir, $fileName, 'local');
 
         $payment->proof_path = $path;
@@ -235,7 +233,7 @@ class PaymentService
 
         if ($approved) {
             $result = new WebhookResult(
-                eventId: "manual-verify-{$payment->id}-" . time(),
+                eventId: "manual-verify-{$payment->id}-".time(),
                 externalId: $payment->external_id,
                 status: PaymentStatus::PAID,
                 amount: (int) $payment->amount,

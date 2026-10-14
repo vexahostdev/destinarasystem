@@ -64,7 +64,7 @@ class NotificationTemplateSeeder extends Seeder
                 'channel' => 'database',
                 'audience' => 'admin',
                 'subject' => 'Booking Baru Masuk: {{booking_code}}',
-                'body' => "Booking baru {{booking_code}} dibuat oleh {{institution_name}} untuk {{destination_name}} (Rp {{total_amount}}).",
+                'body' => 'Booking baru {{booking_code}} dibuat oleh {{institution_name}} untuk {{destination_name}} (Rp {{total_amount}}).',
             ],
 
             // payment.reminder
@@ -105,7 +105,7 @@ class NotificationTemplateSeeder extends Seeder
                 'channel' => 'database',
                 'audience' => 'admin',
                 'subject' => 'Pembayaran Masuk: {{booking_code}}',
-                'body' => "Pembayaran untuk {{booking_code}} sebesar Rp {{total_amount}} berhasil diterima via {{payment_gateway}}.",
+                'body' => 'Pembayaran untuk {{booking_code}} sebesar Rp {{total_amount}} berhasil diterima via {{payment_gateway}}.',
             ],
 
             // partner.confirm_reminder
@@ -275,21 +275,21 @@ class NotificationTemplateSeeder extends Seeder
                 'channel' => 'mail',
                 'audience' => 'admin',
                 'subject' => '[ALERT] Sesi WhatsApp Gateway Terputus',
-                'body' => "Peringatan Sistem: Sesi WhatsApp VexaHost terdeteksi terputus pada {{timestamp}}. Notifikasi WhatsApp tidak dapat terkirim sampai sesi dipindai ulang.",
+                'body' => 'Peringatan Sistem: Sesi WhatsApp VexaHost terdeteksi terputus pada {{timestamp}}. Notifikasi WhatsApp tidak dapat terkirim sampai sesi dipindai ulang.',
             ],
             [
                 'event_key' => 'payment.late_received',
                 'channel' => 'mail',
                 'audience' => 'admin',
                 'subject' => '[PERHATIAN] Pembayaran Masuk Melebihi Batas (Late Payment): {{booking_code}}',
-                'body' => "Pembayaran sebesar Rp {{amount}} diterima untuk booking {{booking_code}} yang sudah berstatus {{booking_status}}. Refund otomatis 100% telah disiapkan dalam antrean.",
+                'body' => 'Pembayaran sebesar Rp {{amount}} diterima untuk booking {{booking_code}} yang sudah berstatus {{booking_status}}. Refund otomatis 100% telah disiapkan dalam antrean.',
             ],
             [
                 'event_key' => 'payment.amount_mismatch',
                 'channel' => 'mail',
                 'audience' => 'admin',
                 'subject' => '[DARURAT] Nominal Webhook Pembayaran Tidak Sesuai: {{booking_code}}',
-                'body' => "Nominal pembayaran pada webhook (Rp {{received_amount}}) berbeda dengan tagihan di sistem (Rp {{expected_amount}}) untuk external_id {{external_id}}.",
+                'body' => 'Nominal pembayaran pada webhook (Rp {{received_amount}}) berbeda dengan tagihan di sistem (Rp {{expected_amount}}) untuk external_id {{external_id}}.',
             ],
         ];
 

@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Domain\Audit\AuditLogger;
+use App\Models\AuditLog;
 
 trait Auditable
 {
@@ -10,21 +11,21 @@ trait Auditable
     {
         static::created(function ($model) {
             // Avoid logging audit_logs or recursive triggers
-            if ($model instanceof \App\Models\AuditLog) {
+            if ($model instanceof AuditLog) {
                 return;
             }
 
             AuditLogger::log(
                 action: 'created',
                 target: $model,
-                description: class_basename($model) . ' #' . $model->getKey() . ' dibuat',
+                description: class_basename($model).' #'.$model->getKey().' dibuat',
                 oldValues: null,
                 newValues: $model->getAttributes()
             );
         });
 
         static::updated(function ($model) {
-            if ($model instanceof \App\Models\AuditLog) {
+            if ($model instanceof AuditLog) {
                 return;
             }
 
@@ -41,21 +42,21 @@ trait Auditable
             AuditLogger::log(
                 action: 'updated',
                 target: $model,
-                description: class_basename($model) . ' #' . $model->getKey() . ' diperbarui',
+                description: class_basename($model).' #'.$model->getKey().' diperbarui',
                 oldValues: $original,
                 newValues: $changes
             );
         });
 
         static::deleted(function ($model) {
-            if ($model instanceof \App\Models\AuditLog) {
+            if ($model instanceof AuditLog) {
                 return;
             }
 
             AuditLogger::log(
                 action: 'deleted',
                 target: $model,
-                description: class_basename($model) . ' #' . $model->getKey() . ' dihapus',
+                description: class_basename($model).' #'.$model->getKey().' dihapus',
                 oldValues: $model->getOriginal(),
                 newValues: null
             );

@@ -36,7 +36,7 @@ class DestinationService
             $slug = Str::slug($data['name']);
             $count = Destination::where('slug', 'like', "{$slug}%")->count();
             if ($count > 0) {
-                $slug .= '-' . ($count + 1);
+                $slug .= '-'.($count + 1);
             }
 
             $coverPath = null;
@@ -81,7 +81,7 @@ class DestinationService
      */
     public function updateDestination(Destination $destination, array $data, User $user): Destination
     {
-        return DB::transaction(function () use ($destination, $data, $user) {
+        return DB::transaction(function () use ($destination, $data) {
             if (isset($data['cover_image']) && $data['cover_image'] instanceof UploadedFile) {
                 $this->mediaService->deleteFile($destination->cover_image);
                 $data['cover_image'] = $this->mediaService->storeOptimizedImage($data['cover_image'], 'destinations/covers');
@@ -95,7 +95,7 @@ class DestinationService
                     ->where('id', '!=', $destination->id)
                     ->count();
                 if ($count > 0) {
-                    $slug .= '-' . ($count + 1);
+                    $slug .= '-'.($count + 1);
                 }
                 $data['slug'] = $slug;
             }
@@ -217,10 +217,12 @@ class DestinationService
         if ($contactId) {
             $contact = DestinationContact::where('destination_id', $destination->id)->findOrFail($contactId);
             $contact->update($data);
+
             return $contact;
         }
 
         $data['destination_id'] = $destination->id;
+
         return DestinationContact::create($data);
     }
 
@@ -232,11 +234,13 @@ class DestinationService
         if ($packageId) {
             $pkg = Package::where('destination_id', $destination->id)->findOrFail($packageId);
             $pkg->update($data);
+
             return $pkg;
         }
 
         $data['destination_id'] = $destination->id;
         $data['slug'] = Str::slug($data['name']);
+
         return Package::create($data);
     }
 
@@ -248,10 +252,12 @@ class DestinationService
         if ($addonId) {
             $addon = Addon::where('destination_id', $destination->id)->findOrFail($addonId);
             $addon->update($data);
+
             return $addon;
         }
 
         $data['destination_id'] = $destination->id;
+
         return Addon::create($data);
     }
 
@@ -266,6 +272,7 @@ class DestinationService
 
         if ($existing) {
             $existing->delete();
+
             return false; // Removed
         }
 

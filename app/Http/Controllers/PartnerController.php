@@ -11,10 +11,10 @@ use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Enums\DocumentType;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundStatus;
 use App\Jobs\GenerateDocumentJob;
-use App\Models\Addon;
 use App\Models\AvailabilitySlot;
 use App\Models\Bank;
 use App\Models\Booking;
@@ -23,7 +23,6 @@ use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\NotificationLog;
 use App\Models\OrganizationType;
-use App\Models\Package;
 use App\Models\PartnerPayout;
 use App\Models\PartnerProfile;
 use App\Models\Province;
@@ -201,7 +200,7 @@ class PartnerController extends Controller
         $originalSlug = $slug;
         $counter = 1;
         while (Destination::where('slug', $slug)->exists()) {
-            $slug = "{$originalSlug}-" . $counter++;
+            $slug = "{$originalSlug}-".$counter++;
         }
 
         $dest = Destination::create([
@@ -242,8 +241,8 @@ class PartnerController extends Controller
 
         $destinations = Destination::where('partner_id', $user->id)->get();
         $selectedSlug = $request->query('destinasi');
-        $currentDestination = $selectedSlug 
-            ? Destination::where('slug', $selectedSlug)->where('partner_id', $user->id)->first() 
+        $currentDestination = $selectedSlug
+            ? Destination::where('slug', $selectedSlug)->where('partner_id', $user->id)->first()
             : $destinations->first();
 
         $slots = [];
@@ -323,7 +322,7 @@ class PartnerController extends Controller
         $slot->capacity = (int) $request->capacity;
         $slot->save();
 
-        return redirect()->back()->with('success', 'Slot tanggal ' . Carbon::parse($slot->date)->translatedFormat('d M Y') . ' berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Slot tanggal '.Carbon::parse($slot->date)->translatedFormat('d M Y').' berhasil diperbarui.');
     }
 
     /**
@@ -374,7 +373,7 @@ class PartnerController extends Controller
             return redirect()->back()->with('error', 'Hanya booking berstatus DIBAYAR yang dapat dikonfirmasi oleh mitra.');
         }
 
-        DB::transaction(function () use ($booking, $user, $stateMachine, $availabilityService, $notifier) {
+        DB::transaction(function () use ($booking, $user, $stateMachine, $notifier) {
             $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
 
             // 1. Transition State Machine
@@ -386,9 +385,9 @@ class PartnerController extends Controller
             );
 
             // 2. Dispatch e-Voucher & Surat Izin Generation
-            GenerateDocumentJob::dispatch($locked, \App\Enums\DocumentType::E_VOUCHER, $user);
+            GenerateDocumentJob::dispatch($locked, DocumentType::E_VOUCHER, $user);
             if ($locked->needs_permit_letter) {
-                GenerateDocumentJob::dispatch($locked, \App\Enums\DocumentType::PERMIT_DRAFT, $user);
+                GenerateDocumentJob::dispatch($locked, DocumentType::PERMIT_DRAFT, $user);
             }
 
             // 3. Dispatch Notification

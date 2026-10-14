@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Audit\AuditLogger;
-use App\Enums\AccountType;
 use App\Enums\VerificationStatus;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -54,10 +53,10 @@ class AuthController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $reason = $user->suspended_reason ? ': ' . $user->suspended_reason : '.';
+            $reason = $user->suspended_reason ? ': '.$user->suspended_reason : '.';
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Akun Anda sedang ditangguhkan oleh administrator' . $reason,
+                'email' => 'Akun Anda sedang ditangguhkan oleh administrator'.$reason,
             ])->onlyInput('email');
         }
 
@@ -70,13 +69,13 @@ class AuthController extends Controller
         AuditLogger::log(
             action: 'login',
             target: $user,
-            description: 'User login berhasil (' . $user->account_type->value . ')'
+            description: 'User login berhasil ('.$user->account_type->value.')'
         );
 
         $request->session()->regenerate();
 
         return redirect()->intended($this->getTargetDashboardUrl($user))
-            ->with('success', 'Selamat datang kembali, ' . $user->name . '!');
+            ->with('success', 'Selamat datang kembali, '.$user->name.'!');
     }
 
     /**
@@ -97,9 +96,10 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): RedirectResponse
     {
         // Rate limit register: 3 attempts per minute per IP
-        $throttleKey = 'register|' . $request->ip();
+        $throttleKey = 'register|'.$request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return back()->withErrors([
                 'email' => "Terlalu banyak percobaan pendaftaran. Silakan coba kembali dalam {$seconds} detik.",
             ])->withInput();
@@ -112,7 +112,7 @@ class AuthController extends Controller
         // Normalize phone: 08xx -> 628xx
         $phone = preg_replace('/[^0-9]/', '', $data['phone']);
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
+            $phone = '62'.substr($phone, 1);
         }
 
         $user = DB::transaction(function () use ($data, $accountType, $phone) {
@@ -198,9 +198,10 @@ class AuthController extends Controller
      */
     public function sendResetLinkEmail(ForgotPasswordRequest $request): RedirectResponse
     {
-        $throttleKey = 'forgot-password|' . $request->ip();
+        $throttleKey = 'forgot-password|'.$request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return back()->withErrors([
                 'email' => "Terlalu banyak permintaan reset password. Tunggu {$seconds} detik.",
             ]);

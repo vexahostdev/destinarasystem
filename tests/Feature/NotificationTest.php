@@ -4,15 +4,12 @@ namespace Tests\Feature;
 
 use App\Domain\Notification\Clients\VexaHostClient;
 use App\Domain\Notification\Exceptions\NonRetryableNotificationException;
-use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Domain\Notification\Services\TemplateRenderer;
-use App\Enums\AccountType;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Jobs\SendNotificationJob;
 use App\Mail\TemplatedMail;
 use App\Models\NotificationLog;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;

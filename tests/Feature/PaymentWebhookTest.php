@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Domain\Booking\Services\BookingService;
+use App\Domain\Payment\Services\PaymentService;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
@@ -29,12 +30,19 @@ class PaymentWebhookTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $partnerUser;
+
     protected User $adminUser;
+
     protected Destination $destination;
+
     protected Package $package;
+
     protected AvailabilitySlot $slot;
+
     protected Booking $booking;
+
     protected Payment $payment;
 
     protected function setUp(): void
@@ -260,7 +268,7 @@ class PaymentWebhookTest extends TestCase
         // 2. Valid signature: sha512(order_id + status_code + gross_amount + server_key)
         $serverKey = 'test-midtrans-server-key';
         $grossStr = number_format($this->payment->amount, 2, '.', '');
-        $signature = hash('sha512', $this->payment->external_id . '200' . $grossStr . $serverKey);
+        $signature = hash('sha512', $this->payment->external_id.'200'.$grossStr.$serverKey);
 
         $validPayload = [
             'order_id' => $this->payment->external_id,
@@ -291,7 +299,7 @@ class PaymentWebhookTest extends TestCase
             'expires_at' => $this->booking->expires_at,
         ]);
 
-        $paymentService = app(\App\Domain\Payment\Services\PaymentService::class);
+        $paymentService = app(PaymentService::class);
 
         // 1. Upload proof
         $file = UploadedFile::fake()->create('bukti_transfer.jpg', 500, 'image/jpeg');

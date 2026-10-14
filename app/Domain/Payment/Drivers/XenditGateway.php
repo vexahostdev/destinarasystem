@@ -82,7 +82,7 @@ class XenditGateway implements PaymentGateway
             ->post("{$this->baseUrl}/v2/invoices", $payload);
 
         if ($response->failed()) {
-            throw new RuntimeException('Gagal membuat invoice Xendit: ' . $response->body());
+            throw new RuntimeException('Gagal membuat invoice Xendit: '.$response->body());
         }
 
         $data = $response->json();
@@ -151,7 +151,7 @@ class XenditGateway implements PaymentGateway
             ->get("{$this->baseUrl}/v2/invoices/{$invoiceId}");
 
         if ($response->failed()) {
-            throw new RuntimeException('Gagal mengambil status invoice Xendit: ' . $response->body());
+            throw new RuntimeException('Gagal mengambil status invoice Xendit: '.$response->body());
         }
 
         $data = $response->json();

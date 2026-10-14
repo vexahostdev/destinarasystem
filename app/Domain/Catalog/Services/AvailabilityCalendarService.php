@@ -15,11 +15,7 @@ class AvailabilityCalendarService
     /**
      * Bulk generate availability slots for a date range.
      *
-     * @param Destination $destination
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     * @param array $daysOfWeek (e.g. [1, 2, 3, 4, 5] for Mon-Fri, or 0-6)
-     * @param int $capacity
+     * @param  array  $daysOfWeek  (e.g. [1, 2, 3, 4, 5] for Mon-Fri, or 0-6)
      * @return int Number of slots created or updated
      */
     public function bulkGenerateSlots(

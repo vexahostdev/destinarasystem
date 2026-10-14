@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 class ExpireUnpaidBookingsCommand extends Command
 {
     protected $signature = 'bookings:expire-unpaid';
+
     protected $description = 'Expire unpaid bookings that have passed their payment deadline (SPEC §12)';
 
     public function handle(

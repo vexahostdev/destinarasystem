@@ -67,7 +67,7 @@ class MasterDataController extends Controller
         $cat->is_active = ! $cat->is_active;
         $cat->save();
 
-        AuditLogger::log('master_data_toggled', $cat, "Mengubah status aktif kategori {$cat->name} menjadi: " . ($cat->is_active ? 'aktif' : 'nonaktif'));
+        AuditLogger::log('master_data_toggled', $cat, "Mengubah status aktif kategori {$cat->name} menjadi: ".($cat->is_active ? 'aktif' : 'nonaktif'));
 
         return back()->with('success', "Status kategori {$cat->name} berhasil diperbarui.");
     }
@@ -157,4 +157,3 @@ class MasterDataController extends Controller
         };
     }
 }
-

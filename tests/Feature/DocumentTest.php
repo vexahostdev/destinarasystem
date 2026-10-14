@@ -10,7 +10,6 @@ use App\Enums\DestinationStatus;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Enums\VerificationStatus;
-use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
@@ -30,10 +29,15 @@ class DocumentTest extends TestCase
     use RefreshDatabase;
 
     protected User $buyer;
+
     protected User $unauthorizedBuyer;
+
     protected User $partnerUser;
+
     protected User $adminUser;
+
     protected Destination $destination;
+
     protected Booking $booking;
 
     protected function setUp(): void

@@ -91,7 +91,7 @@ class MidtransGateway implements PaymentGateway
             ->post("{$this->getSnapBaseUrl()}/transactions", $payload);
 
         if ($response->failed()) {
-            throw new RuntimeException('Gagal membuat transaksi Midtrans: ' . $response->body());
+            throw new RuntimeException('Gagal membuat transaksi Midtrans: '.$response->body());
         }
 
         $data = $response->json();
@@ -116,7 +116,7 @@ class MidtransGateway implements PaymentGateway
             return false;
         }
 
-        $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
 
         return hash_equals($expectedSignature, $receivedSignature);
     }
@@ -169,7 +169,7 @@ class MidtransGateway implements PaymentGateway
             ->get("{$this->getApiBaseUrl()}/{$orderId}/status");
 
         if ($response->failed()) {
-            throw new RuntimeException('Gagal mengambil status transaksi Midtrans: ' . $response->body());
+            throw new RuntimeException('Gagal mengambil status transaksi Midtrans: '.$response->body());
         }
 
         $data = $response->json();

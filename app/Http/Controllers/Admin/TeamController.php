@@ -25,6 +25,7 @@ class TeamController extends Controller
         $roles = Role::with('permissions')->get();
         $permissions = Permission::all()->groupBy(function ($perm) {
             $parts = explode('.', $perm->name);
+
             return $parts[0] ?? 'general';
         });
 

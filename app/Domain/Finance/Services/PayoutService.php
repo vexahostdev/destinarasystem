@@ -81,8 +81,8 @@ class PayoutService
         return DB::transaction(function () use ($payout, $admin, $proofFile, $note) {
             $lockedPayout = PartnerPayout::where('id', $payout->id)->lockForUpdate()->first();
 
-            $dir = 'private/payouts/' . now()->format('Y/m');
-            $fileName = "payout_{$lockedPayout->payout_number}_" . uniqid() . '.' . $proofFile->getClientOriginalExtension();
+            $dir = 'private/payouts/'.now()->format('Y/m');
+            $fileName = "payout_{$lockedPayout->payout_number}_".uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, str_replace('/', '_', $fileName), 'local');
 
             $lockedPayout->status = PayoutStatus::TRANSFERRED;
@@ -97,7 +97,7 @@ class PayoutService
             AuditLogger::log(
                 action: 'payout_transferred',
                 target: $lockedPayout,
-                description: "Dana kemitraan {$lockedPayout->payout_number} sebesar Rp " . number_format($lockedPayout->net_amount, 0, ',', '.') . " berhasil ditransfer ke {$lockedPayout->bank_name} ({$lockedPayout->bank_account_number} a.n {$lockedPayout->bank_account_holder}) oleh {$admin->name}.",
+                description: "Dana kemitraan {$lockedPayout->payout_number} sebesar Rp ".number_format($lockedPayout->net_amount, 0, ',', '.')." berhasil ditransfer ke {$lockedPayout->bank_name} ({$lockedPayout->bank_account_number} a.n {$lockedPayout->bank_account_holder}) oleh {$admin->name}.",
                 userId: $admin->id
             );
 
@@ -115,8 +115,8 @@ class PayoutService
         ?string $note = null
     ): int {
         return DB::transaction(function () use ($payoutIds, $admin, $proofFile, $note) {
-            $dir = 'private/payouts/' . now()->format('Y/m');
-            $fileName = 'payout_batch_' . uniqid() . '.' . $proofFile->getClientOriginalExtension();
+            $dir = 'private/payouts/'.now()->format('Y/m');
+            $fileName = 'payout_batch_'.uniqid().'.'.$proofFile->getClientOriginalExtension();
             $proofPath = $proofFile->storeAs($dir, $fileName, 'local');
 
             $payouts = PartnerPayout::whereIn('id', $payoutIds)
@@ -140,7 +140,7 @@ class PayoutService
                 AuditLogger::log(
                     action: 'payout_transferred_batch',
                     target: $payout,
-                    description: "Batch transfer {$payout->payout_number} sebesar Rp " . number_format($payout->net_amount, 0, ',', '.') . " diproses oleh {$admin->name}.",
+                    description: "Batch transfer {$payout->payout_number} sebesar Rp ".number_format($payout->net_amount, 0, ',', '.')." diproses oleh {$admin->name}.",
                     userId: $admin->id
                 );
 

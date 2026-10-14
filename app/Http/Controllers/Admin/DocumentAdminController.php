@@ -36,10 +36,10 @@ class DocumentAdminController extends Controller
             $s = $request->query('search');
             $query->where(function ($q) use ($s) {
                 $q->where('document_number', 'like', "%{$s}%")
-                  ->orWhere('title', 'like', "%{$s}%")
-                  ->orWhereHas('booking', function ($bq) use ($s) {
-                      $bq->where('booking_code', 'like', "%{$s}%");
-                  });
+                    ->orWhere('title', 'like', "%{$s}%")
+                    ->orWhereHas('booking', function ($bq) use ($s) {
+                        $bq->where('booking_code', 'like', "%{$s}%");
+                    });
             });
         }
 
@@ -57,7 +57,7 @@ class DocumentAdminController extends Controller
 
         return response()->file(Storage::disk('local')->path($document->file_path), [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($document->file_path) . '"',
+            'Content-Disposition' => 'inline; filename="'.basename($document->file_path).'"',
         ]);
     }
 
@@ -80,7 +80,7 @@ class DocumentAdminController extends Controller
         AuditLogger::log(
             action: 'document_voided',
             target: $document,
-            description: "Dokumen {$document->document_number} dibatalkan (void) oleh admin " . Auth::user()->name
+            description: "Dokumen {$document->document_number} dibatalkan (void) oleh admin ".Auth::user()->name
         );
 
         return back()->with('success', "Dokumen {$document->document_number} telah ditandai void.");
@@ -89,6 +89,7 @@ class DocumentAdminController extends Controller
     public function templates()
     {
         $templates = DocumentTemplate::all();
+
         return view('admin.documents.templates', compact('templates'));
     }
 
@@ -117,7 +118,7 @@ class DocumentAdminController extends Controller
         $sampleData = [
             '{{booking.code}}' => 'BK/202610/00001',
             '{{booking.created_at}}' => now()->format('d/m/Y'),
-            '{{booking.visit_date}}' => now()->addDays(14)->format('d/m/Y') . ' s.d. ' . now()->addDays(16)->format('d/m/Y'),
+            '{{booking.visit_date}}' => now()->addDays(14)->format('d/m/Y').' s.d. '.now()->addDays(16)->format('d/m/Y'),
             '{{booking.pax}}' => '45',
             '{{booking.total_amount}}' => 'Rp 12.500.000',
             '{{destination.name}}' => 'Desa Edukasi Candi Kedulan',
@@ -147,6 +148,6 @@ class DocumentAdminController extends Controller
 
         $pdf = Pdf::loadHTML($pdfView)->setPaper('a4', 'portrait');
 
-        return $pdf->stream('preview-template-' . $template->type . '.pdf');
+        return $pdf->stream('preview-template-'.$template->type.'.pdf');
     }
 }
