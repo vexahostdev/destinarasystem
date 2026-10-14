@@ -64,12 +64,17 @@ class EnforcePartnerSlaCommand extends Command
                 ->exists();
 
             if (! $alreadyReminded) {
+                $hoursLeft = max(1, (int) round($now->diffInMinutes($booking->partner_confirm_deadline) / 60));
                 $notifier->send('partner.confirm_reminder', [
                     'booking' => $booking,
                     'destination_name' => $booking->destination->name,
                     'booking_code' => $booking->booking_code,
-                    'institution_name' => $booking->institution?->institution_name ?? 'Institusi Pemesan',
+                    'institution_name' => $booking->institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
+                    'organization_name' => $booking->destination?->partner?->partnerProfile?->organization_name ?? $booking->destination?->partner?->name ?? 'Mitra Pengelola',
                     'deadline' => $booking->partner_confirm_deadline->format('d/m/Y H:i').' WIB',
+                    'hours_left' => (string) $hoursLeft,
+                    'partner_url' => route('mitra.bookings'),
+                    'partner_booking_url' => route('mitra.bookings'),
                 ], ['partner', 'admin']);
 
                 $remindedCount++;

@@ -40,13 +40,23 @@ class NotificationDispatcher
             // Resolve recipient info for buyer / partner
             $recipientData = $this->resolveRecipient($audience, $context);
 
+            // Context enrichment based on audience and resolved recipient
+            $audienceContext = $context;
+            if ($audience === 'partner') {
+                $audienceContext['partner_name'] ??= ($recipientData['user']?->name ?? 'Mitra Pengelola');
+                $audienceContext['organization_name'] ??= ($recipientData['user']?->partnerProfile?->organization_name ?? $recipientData['user']?->name ?? 'Mitra Pengelola');
+            } elseif ($audience === 'buyer') {
+                $audienceContext['pic_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
+                $audienceContext['user_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
+            }
+
             foreach ($templates as $template) {
                 // Audience Admin: Channel DATABASE -> disebarkan ke seluruh staf internal berizin
                 if ($audience === 'admin' && $template->channel === NotificationChannel::DATABASE) {
                     $internalUsers = $this->resolveInternalUsersForEvent($eventKey);
                     foreach ($internalUsers as $adminUser) {
-                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $context) : null;
-                        $renderedBody = $this->renderer->render($template->body, $context);
+                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                        $renderedBody = $this->renderer->render($template->body, $audienceContext);
 
                         $log = NotificationLog::create([
                             'notifiable_type' => User::class,
@@ -81,8 +91,8 @@ class NotificationDispatcher
                     }
 
                     foreach ($alertEmails as $email) {
-                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $context) : null;
-                        $renderedBody = $this->renderer->render($template->body, $context);
+                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                        $renderedBody = $this->renderer->render($template->body, $audienceContext);
 
                         $log = NotificationLog::create([
                             'notifiable_type' => null,
@@ -117,8 +127,8 @@ class NotificationDispatcher
                     }
 
                     foreach ($alertPhones as $phone) {
-                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $context) : null;
-                        $renderedBody = $this->renderer->render($template->body, $context);
+                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                        $renderedBody = $this->renderer->render($template->body, $audienceContext);
 
                         $log = NotificationLog::create([
                             'notifiable_type' => null,
@@ -148,8 +158,8 @@ class NotificationDispatcher
                     continue;
                 }
 
-                $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $context) : null;
-                $renderedBody = $this->renderer->render($template->body, $context);
+                $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                $renderedBody = $this->renderer->render($template->body, $audienceContext);
 
                 $log = NotificationLog::create([
                     'notifiable_type' => isset($recipientData['user']) ? User::class : null,

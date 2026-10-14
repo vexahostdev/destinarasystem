@@ -40,7 +40,13 @@ class SendVisitRemindersCommand extends Command
                 'destination_name' => $booking->destination->name,
                 'booking_code' => $booking->booking_code,
                 'visit_date' => $booking->planned_date_start->format('d/m/Y'),
+                'planned_date_start' => $booking->planned_date_start->format('d/m/Y'),
+                'days_left' => (string) $daysBefore,
                 'pax' => $booking->participant_count,
+                'participant_count' => $booking->participant_count,
+                'institution_name' => $booking->institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
+                'pic_name' => $booking->institution?->pic_name ?? $booking->user?->name ?? 'Pengguna',
+                'organization_name' => $booking->destination?->partner?->partnerProfile?->organization_name ?? $booking->destination?->partner?->name ?? 'Mitra Pengelola',
             ], ['buyer', 'partner']);
 
             $count++;

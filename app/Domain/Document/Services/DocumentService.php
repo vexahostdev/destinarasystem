@@ -49,27 +49,24 @@ class DocumentService
             $bodyHtml = $template ? $template->body : '<p>Dokumen resmi Destinara.</p>';
             $title = $template ? $template->title : $type->label();
 
-            // Replace Placeholders
-            $bodyHtml = $this->replaceBookingPlaceholders($bodyHtml, $booking);
-
-            // If E-Voucher, generate signed check-in QR
+            // Prepare E-Voucher check-in QR if needed
+            $checkinQrBase64 = '';
             if ($type === DocumentType::E_VOUCHER) {
                 $checkinUrl = URL::signedRoute('mitra.checkin.show', ['code' => $booking->booking_code]);
                 $checkinQrSvg = QrCode::format('svg')->size(160)->generate($checkinUrl);
                 $checkinQrBase64 = base64_encode($checkinQrSvg);
-
-                $checkinBox = '<div class="text-center mt-4 mb-4" style="border: 2px dashed #8C5151; padding: 15px; border-radius: 8px; background: #FFF5F5;">'
-                    .'<h3 style="color: #8C5151; margin-top:0;">QR PASUKAN MASUK TAPAK (CHECK-IN)</h3>'
-                    .'<img src="data:image/svg+xml;base64,'.$checkinQrBase64.'" width="150" height="150" alt="QR Check-in">'
-                    .'<p style="font-size: 9pt; color: #4A5568; margin-bottom: 0;">Tunjukkan QR Code ini kepada pengelola destinasi saat tiba di lokasi untuk proses check-in rombongan.</p>'
-                    .'</div>';
-
-                if (str_contains($bodyHtml, '{{qr_checkin}}')) {
-                    $bodyHtml = str_replace('{{qr_checkin}}', $checkinBox, $bodyHtml);
-                } else {
-                    $bodyHtml .= $checkinBox;
-                }
             }
+
+            // Replace Placeholders
+            $bodyHtml = $this->replaceBookingPlaceholders(
+                $bodyHtml,
+                $booking,
+                $type,
+                $docNumber,
+                $hash,
+                $qrVerificationBase64,
+                $checkinQrBase64
+            );
 
             // 3. Render DomPDF
             $pdfView = view('pdf.layout', [
@@ -147,20 +144,41 @@ class DocumentService
             $profile = $partner?->partnerProfile;
 
             $replacements = [
-                '{{payout.number}}' => $payout->payout_number,
-                '{{payout.gross_amount}}' => 'Rp '.number_format($payout->gross_amount, 0, ',', '.'),
-                '{{payout.commission_amount}}' => 'Rp '.number_format($payout->commission_amount, 0, ',', '.'),
-                '{{payout.net_amount}}' => 'Rp '.number_format($payout->net_amount, 0, ',', '.'),
-                '{{payout.bank_name}}' => $payout->bank_name ?? '-',
-                '{{payout.bank_account_number}}' => $payout->bank_account_number ?? '-',
-                '{{payout.bank_account_holder}}' => $payout->bank_account_holder ?? '-',
-                '{{payout.transferred_at}}' => $payout->transferred_at ? $payout->transferred_at->format('d/m/Y H:i') : now()->format('d/m/Y H:i'),
-                '{{partner.name}}' => $partner->name,
-                '{{partner.organization}}' => $profile?->organization_name ?? $partner->name,
-                '{{booking.code}}' => $payout->booking ? $payout->booking->booking_code : '-',
+                'document_number' => $docNumber,
+                'payout.number' => $payout->payout_number,
+                'payout_number' => $payout->payout_number,
+                'transferred_at' => $payout->transferred_at ? $payout->transferred_at->translatedFormat('d F Y H:i') : now()->translatedFormat('d F Y H:i'),
+                'organization_name' => $profile?->organization_name ?? $partner?->name ?? 'Mitra Pengelola',
+                'partner.name' => $partner?->name ?? '-',
+                'partner.organization' => $profile?->organization_name ?? $partner?->name ?? '-',
+                'bank_name' => $payout->bank_name ?? '-',
+                'account_number' => $payout->bank_account_number ?? '-',
+                'account_holder' => $payout->bank_account_holder ?? '-',
+                'payout.bank_name' => $payout->bank_name ?? '-',
+                'payout.bank_account_number' => $payout->bank_account_number ?? '-',
+                'payout.bank_account_holder' => $payout->bank_account_holder ?? '-',
+                'payout.transferred_at' => $payout->transferred_at ? $payout->transferred_at->format('d/m/Y H:i') : now()->format('d/m/Y H:i'),
+                'booking_code' => $payout->booking ? $payout->booking->booking_code : '-',
+                'booking.code' => $payout->booking ? $payout->booking->booking_code : '-',
+                'destination_name' => $payout->booking?->destination?->name ?? 'Destinasi Tapak',
+                'gross_amount' => number_format($payout->gross_amount, 0, ',', '.'),
+                'commission_amount' => number_format($payout->commission_amount, 0, ',', '.'),
+                'net_amount' => number_format($payout->net_amount, 0, ',', '.'),
+                'payout.gross_amount' => 'Rp '.number_format($payout->gross_amount, 0, ',', '.'),
+                'payout.commission_amount' => 'Rp '.number_format($payout->commission_amount, 0, ',', '.'),
+                'payout.net_amount' => 'Rp '.number_format($payout->net_amount, 0, ',', '.'),
             ];
 
-            $bodyHtml = str_replace(array_keys($replacements), array_values($replacements), $bodyHtml);
+            $bodyHtml = preg_replace_callback('/\{\{?\s*([a-zA-Z0-9_\.]+)\s*\}?\}/', function ($matches) use ($replacements) {
+                $key = $matches[1];
+                if (array_key_exists($key, $replacements)) {
+                    return (string) $replacements[$key];
+                }
+
+                return '';
+            }, $bodyHtml);
+
+            $bodyHtml = preg_replace('/\{\{?[a-zA-Z0-9_\.]+\}?\}|\{[a-zA-Z0-9_\.]+\}/', '', $bodyHtml);
 
             // 3. Render DomPDF
             $pdfView = view('pdf.layout', [
@@ -213,44 +231,187 @@ class DocumentService
     /**
      * Replace template placeholders with booking data.
      */
-    protected function replaceBookingPlaceholders(string $content, Booking $booking): string
-    {
+    protected function replaceBookingPlaceholders(
+        string $content,
+        Booking $booking,
+        DocumentType $type,
+        string $docNumber,
+        string $hash,
+        string $qrVerificationBase64,
+        string $checkinQrBase64
+    ): string {
         $institution = $booking->institution;
         $destination = $booking->destination;
         $package = $booking->package;
+        $partner = $destination?->partner;
+        $partnerProfile = $partner?->partnerProfile;
+        $payment = $booking->payments()->whereIn('status', [\App\Enums\PaymentStatus::PAID, 'paid'])->latest()->first()
+            ?? $booking->payments()->latest()->first();
 
-        // Render booking items table
-        $itemsTable = '<table class="data-table"><thead><tr><th>Uraian Layanan</th><th class="text-center">Kuantitas</th><th class="text-right">Harga Satuan</th><th class="text-right">Subtotal</th></tr></thead><tbody>';
-        foreach ($booking->items as $item) {
-            $itemsTable .= '<tr>'
-                .'<td>'.htmlspecialchars($item->name).'</td>'
-                .'<td class="text-center">'.$item->quantity.'</td>'
-                .'<td class="text-right">Rp '.number_format($item->unit_price, 0, ',', '.').'</td>'
-                .'<td class="text-right">Rp '.number_format($item->total, 0, ',', '.').'</td>'
+        // Render booking items table rows
+        $itemsRows = '';
+        $no = 1;
+        if ($booking->items->isNotEmpty()) {
+            foreach ($booking->items as $item) {
+                $itemsRows .= '<tr>'
+                    .'<td style="text-align: center;">'.$no++.'</td>'
+                    .'<td>'.htmlspecialchars($item->name).'</td>'
+                    .'<td style="text-align: center;">'.$item->quantity.'</td>'
+                    .'<td style="text-align: right;">Rp '.number_format($item->unit_price, 0, ',', '.').'</td>'
+                    .'<td style="text-align: right;">Rp '.number_format($item->total, 0, ',', '.').'</td>'
+                    .'</tr>';
+            }
+        } elseif ($package) {
+            $itemsRows .= '<tr>'
+                .'<td style="text-align: center;">1</td>'
+                .'<td>'.htmlspecialchars($package->name).'</td>'
+                .'<td style="text-align: center;">'.$booking->participant_count.'</td>'
+                .'<td style="text-align: right;">Rp '.number_format($package->price_per_pax, 0, ',', '.').'</td>'
+                .'<td style="text-align: right;">Rp '.number_format($booking->subtotal_amount, 0, ',', '.').'</td>'
                 .'</tr>';
         }
-        $itemsTable .= '<tr style="font-weight:bold; background:#F7FAFC;"><td colspan="3" class="text-right">Total Tagihan:</td><td class="text-right">Rp '.number_format($booking->total_amount, 0, ',', '.').'</td></tr>';
-        $itemsTable .= '</tbody></table>';
+
+        // Full items table
+        $itemsTable = '<table class="items-table data-table">'
+            .'<thead><tr><th style="text-align: center; width: 40px;">No</th><th>Uraian Layanan</th><th style="text-align: center; width: 80px;">Kuantitas</th><th style="text-align: right; width: 120px;">Harga Satuan</th><th style="text-align: right; width: 140px;">Subtotal</th></tr></thead>'
+            .'<tbody>'.$itemsRows.'</tbody>'
+            .'<tfoot><tr style="font-weight:bold; background:#F7FAFC;"><td colspan="4" style="text-align: right;">Total Tagihan:</td><td style="text-align: right;">Rp '.number_format($booking->total_amount, 0, ',', '.').'</td></tr></tfoot>'
+            .'</table>';
+
+        // Checkin box for e-voucher
+        $checkinBox = '<div class="text-center mt-4 mb-4" style="border: 2px dashed #8C5151; padding: 15px; border-radius: 8px; background: #FFF5F5;">'
+            .'<h3 style="color: #8C5151; margin-top:0;">QR CHECK-IN ROMBONGAN</h3>'
+            .'<img src="data:image/svg+xml;base64,'.$checkinQrBase64.'" width="150" height="150" alt="QR Check-in">'
+            .'<p style="font-size: 9pt; color: #4A5568; margin-bottom: 0;">Tunjukkan QR Code ini kepada pengelola destinasi saat tiba di lokasi untuk proses check-in rombongan.</p>'
+            .'</div>';
+
+        $provinceName = is_string($destination?->province) ? $destination->province : ($destination?->province?->name ?? 'DI Yogyakarta');
 
         $replacements = [
-            '{{booking.code}}' => $booking->booking_code,
-            '{{booking.created_at}}' => $booking->created_at->format('d/m/Y'),
-            '{{booking.visit_date}}' => $booking->planned_date_start->format('d/m/Y').' s.d. '.$booking->planned_date_end->format('d/m/Y'),
-            '{{booking.pax}}' => (string) $booking->participant_count,
-            '{{booking.total_amount}}' => 'Rp '.number_format($booking->total_amount, 0, ',', '.'),
-            '{{destination.name}}' => $destination->name,
-            '{{destination.city}}' => $destination->city,
-            '{{destination.province}}' => $destination->province?->name ?? 'DI Yogyakarta',
-            '{{destination.address}}' => $destination->address ?? '',
-            '{{institution.name}}' => $institution?->institution_name ?? 'Institusi Pemesan',
-            '{{institution.pic}}' => $institution?->pic_name ?? '-',
-            '{{institution.phone}}' => $institution?->pic_phone ?? '-',
-            '{{package.name}}' => $package->name,
-            '{{package.duration}}' => "{$package->duration_days} Hari",
-            '{{items_table}}' => $itemsTable,
+            'document_number' => $docNumber,
+            'document.number' => $docNumber,
+            'booking_code' => $booking->booking_code,
+            'booking.code' => $booking->booking_code,
+            'issue_date' => now()->translatedFormat('d F Y'),
+            'date_issued' => now()->translatedFormat('d F Y'),
+            'created_at' => $booking->created_at->format('d/m/Y'),
+            'booking.created_at' => $booking->created_at->format('d/m/Y'),
+            'paid_at' => $payment?->paid_at ? $payment->paid_at->translatedFormat('d F Y H:i') : ($booking->paid_at ? $booking->paid_at->translatedFormat('d F Y H:i') : now()->translatedFormat('d F Y H:i')),
+            'confirmed_at' => $booking->confirmed_at ? $booking->confirmed_at->translatedFormat('d F Y H:i') : now()->translatedFormat('d F Y H:i'),
+            'expires_at' => $booking->expires_at ? $booking->expires_at->translatedFormat('d F Y H:i') : now()->addHours(24)->translatedFormat('d F Y H:i'),
+            'institution_name' => $institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
+            'institution.name' => $institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
+            'pic_name' => $institution?->pic_name ?? $booking->user?->name ?? '-',
+            'institution.pic' => $institution?->pic_name ?? $booking->user?->name ?? '-',
+            'pic_phone' => $institution?->pic_phone ?? $booking->user?->phone ?? '-',
+            'institution.phone' => $institution?->pic_phone ?? $booking->user?->phone ?? '-',
+            'pic_email' => $institution?->pic_email ?? $booking->user?->email ?? '-',
+            'destination_name' => $destination?->name ?? 'Destinasi Edukasi',
+            'destination.name' => $destination?->name ?? 'Destinasi Edukasi',
+            'destination_city' => $destination?->city ?? '-',
+            'destination.city' => $destination?->city ?? '-',
+            'destination_province' => $provinceName,
+            'destination.province' => $provinceName,
+            'destination_address' => $destination?->address ?? '',
+            'destination.address' => $destination?->address ?? '',
+            'contact_person_name' => $destination?->contact_person_name ?? $partnerProfile?->pic_name ?? $partner?->name ?? 'Pengelola Tapak',
+            'contact_person_phone' => $destination?->contact_person_phone ?? $partnerProfile?->pic_phone ?? $partner?->phone ?? '-',
+            'organization_name' => $partnerProfile?->organization_name ?? $partner?->name ?? 'Mitra Pengelola',
+            'partner.name' => $partner?->name ?? '-',
+            'partner.organization' => $partnerProfile?->organization_name ?? $partner?->name ?? '-',
+            'planned_date_start' => $booking->planned_date_start ? $booking->planned_date_start->format('d/m/Y') : '-',
+            'planned_date_end' => $booking->planned_date_end ? $booking->planned_date_end->format('d/m/Y') : '-',
+            'visit_date' => ($booking->planned_date_start?->format('d/m/Y') ?? '-').' s.d. '.($booking->planned_date_end?->format('d/m/Y') ?? '-'),
+            'booking.visit_date' => ($booking->planned_date_start?->format('d/m/Y') ?? '-').' s.d. '.($booking->planned_date_end?->format('d/m/Y') ?? '-'),
+            'participant_count' => (string) $booking->participant_count,
+            'booking.pax' => (string) $booking->participant_count,
+            'companion_count' => (string) ($booking->companion_count ?? 0),
+            'package_name' => $package?->name ?? 'Paket Edukasi',
+            'package.name' => $package?->name ?? 'Paket Edukasi',
+            'package_duration' => $package ? "{$package->duration_days} Hari" : '-',
+            'package.duration' => $package ? "{$package->duration_days} Hari" : '-',
+            'inquiry_type_label' => $booking->inquiry_type ? $booking->inquiry_type->label() : 'Study Tour',
+            'payment_method' => $payment?->payment_type ? ucfirst(str_replace('_', ' ', $payment->payment_type)) : ($booking->payment_gateway ?? 'Transfer Manual'),
+            'payment_channel' => $payment?->payment_channel ?? $payment?->gateway ?? 'Bank Transfer',
+            'total_amount' => number_format($booking->total_amount, 0, ',', '.'),
+            'booking.total_amount' => 'Rp '.number_format($booking->total_amount, 0, ',', '.'),
+            'subtotal_amount' => number_format($booking->subtotal_amount, 0, ',', '.'),
+            'discount_amount' => number_format($booking->discount_amount ?? 0, 0, ',', '.'),
+            'insurance_amount' => number_format($booking->insurance_amount ?? 0, 0, ',', '.'),
+            'platform_fee_amount' => number_format($booking->platform_fee_amount ?? 0, 0, ',', '.'),
+            'amount_words' => $this->terbilang((int) $booking->total_amount),
+            'permit_title' => $booking->permit_title ?? ('Pengajuan Izin Kegiatan Edukasi di '.($destination?->name ?? 'Tapak')),
+            'permit_supervisor' => $booking->permit_supervisor ?? ($institution?->pic_name ?? $booking->user?->name ?? 'Dosen / Penanggung Jawab'),
+            'items_table_rows' => $itemsRows,
+            'items_table' => $itemsTable,
+            'checkin_qr_svg_base64' => 'data:image/svg+xml;base64,'.$checkinQrBase64,
+            'qr_checkin' => $checkinBox,
         ];
 
-        return str_replace(array_keys($replacements), array_values($replacements), $content);
+        // Replace using callback so {{key}} is substituted reliably
+        $replaced = preg_replace_callback('/\{\{?\s*([a-zA-Z0-9_\.]+)\s*\}?\}/', function ($matches) use ($replacements) {
+            $key = $matches[1];
+            if (array_key_exists($key, $replacements)) {
+                return (string) $replacements[$key];
+            }
+
+            return '';
+        }, $content);
+
+        // If E-Voucher and checkin QR was not in template body, append it
+        if ($type === DocumentType::E_VOUCHER && ! str_contains($content, '{{checkin_qr_svg_base64}}') && ! str_contains($content, '{{qr_checkin}}')) {
+            $replaced .= $checkinBox;
+        }
+
+        // Strip any remaining unreplaced placeholders
+        return preg_replace('/\{\{?[a-zA-Z0-9_\.]+\}?\}|\{[a-zA-Z0-9_\.]+\}/', '', $replaced);
+    }
+
+    /**
+     * Indonesian number to words (terbilang).
+     */
+    protected function terbilang(int $number): string
+    {
+        if ($number <= 0) {
+            return 'nol';
+        }
+
+        return trim(ucwords($this->numberToWords($number)));
+    }
+
+    private function numberToWords(int $number): string
+    {
+        $words = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+
+        if ($number < 12) {
+            return $words[$number];
+        }
+        if ($number < 20) {
+            return $this->numberToWords($number - 10).' belas';
+        }
+        if ($number < 100) {
+            return $this->numberToWords((int) ($number / 10)).' puluh'.($number % 10 ? ' '.$this->numberToWords($number % 10) : '');
+        }
+        if ($number < 200) {
+            return 'seratus'.($number % 100 ? ' '.$this->numberToWords($number % 100) : '');
+        }
+        if ($number < 1000) {
+            return $this->numberToWords((int) ($number / 100)).' ratus'.($number % 100 ? ' '.$this->numberToWords($number % 100) : '');
+        }
+        if ($number < 2000) {
+            return 'seribu'.($number % 1000 ? ' '.$this->numberToWords($number % 1000) : '');
+        }
+        if ($number < 1000000) {
+            return $this->numberToWords((int) ($number / 1000)).' ribu'.($number % 1000 ? ' '.$this->numberToWords($number % 1000) : '');
+        }
+        if ($number < 1000000000) {
+            return $this->numberToWords((int) ($number / 1000000)).' juta'.($number % 1000000 ? ' '.$this->numberToWords($number % 1000000) : '');
+        }
+        if ($number < 1000000000000) {
+            return $this->numberToWords((int) ($number / 1000000000)).' milyar'.($number % 1000000000 ? ' '.$this->numberToWords($number % 1000000000) : '');
+        }
+
+        return (string) $number;
     }
 
     /**

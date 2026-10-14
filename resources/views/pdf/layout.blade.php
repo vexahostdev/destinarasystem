@@ -77,21 +77,84 @@
             color: #718096;
             text-align: center;
         }
-        table.data-table {
+        table.data-table, table.items-table, table.info-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
+            margin: 12px 0;
         }
-        table.data-table th, table.data-table td {
-            border: 1px solid #E2E8F0;
-            padding: 8px 12px;
+        table.data-table th, table.data-table td,
+        table.items-table th, table.items-table td {
+            border: 1px solid #CBD5E0;
+            padding: 8px 10px;
             font-size: 10pt;
         }
-        table.data-table th {
+        table.data-table th, table.items-table th {
             background-color: #F7FAFC;
             color: #4A5568;
             text-align: left;
             font-weight: bold;
+        }
+        table.items-table tfoot td {
+            border-top: 2px solid #8C5151;
+            padding: 8px 10px;
+        }
+        table.info-table td {
+            border: none;
+            padding: 4px 6px;
+            font-size: 10pt;
+            vertical-align: top;
+        }
+        .doc-header {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 8px;
+        }
+        .doc-header h2 {
+            font-size: 13pt;
+            color: #1A202C;
+            margin: 0 0 4px 0;
+        }
+        .doc-section {
+            margin-bottom: 15px;
+        }
+        .doc-notice {
+            background-color: #F7FAFC;
+            border-left: 4px solid #8C5151;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 9.5pt;
+            margin: 15px 0;
+        }
+        .doc-notice.success {
+            background-color: #DEF7EC;
+            border-left-color: #03543F;
+            color: #03543F;
+        }
+        .voucher-box {
+            border: 2px solid #8C5151;
+            padding: 15px;
+            border-radius: 8px;
+            background: #FFF5F5;
+            margin: 15px 0;
+        }
+        .doc-instructions {
+            margin-top: 15px;
+            font-size: 9pt;
+            color: #4A5568;
+        }
+        .doc-instructions h4 {
+            margin: 0 0 8px 0;
+            color: #1A202C;
+        }
+        .doc-instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .doc-instructions li {
+            margin-bottom: 4px;
+        }
+        .qr-container {
+            text-align: center;
         }
         .badge {
             display: inline-block;
@@ -151,8 +214,12 @@
     </div>
 
     <div class="footer">
-        <div>{{ setting('company_legal_name', 'PT Destinara Wisata Edukasi') }} &bull; {{ setting('company_address', 'DI Yogyakarta, Indonesia') }}</div>
-        <div>Kontak: {{ setting('company_email', 'halo@destinara.my.id') }} &bull; Telepon/WhatsApp: {{ setting('company_phone', setting('support_whatsapp', '-')) }} &bull; Website: {{ config('app.url') }}</div>
+        @if(setting('doc_footer_text'))
+            <div>{{ setting('doc_footer_text') }}</div>
+        @else
+            <div>{{ setting('company_legal_name', 'PT DESTINARA CHAKRAWAL ARTHA') }} &bull; {{ setting('company_address', 'DI Yogyakarta, Indonesia') }}</div>
+            <div>Kontak: {{ setting('company_email', 'halo@destinara.my.id') }} &bull; Telepon/WhatsApp: {{ setting('company_phone', setting('support_whatsapp', '-')) }} &bull; Website: {{ config('app.url') }}</div>
+        @endif
     </div>
 </body>
 </html>

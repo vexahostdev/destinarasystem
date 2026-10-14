@@ -67,6 +67,7 @@ class SendDomainNotificationListener
                 'destination_name' => $b->destination?->name,
                 'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'participant_count' => $b->participant_count,
                 'planned_date_start' => $b->planned_date_start?->format('d/m/Y'),
                 'total_amount' => number_format($b->total_amount, 0, ',', '.'),
@@ -83,8 +84,10 @@ class SendDomainNotificationListener
                 'destination_name' => $b->destination?->name,
                 'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
+                'planned_date_start' => $b->planned_date_start?->format('d/m/Y'),
                 'booking_url' => route('buyer.booking.show', $b->booking_code),
-            ], ['buyer', 'admin']);
+            ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingRejected) {
             $b = $event->booking;
             $this->dispatcher->send('booking.rejected', [
@@ -92,10 +95,13 @@ class SendDomainNotificationListener
                 'user' => $b->user,
                 'booking_code' => $b->booking_code,
                 'destination_name' => $b->destination?->name,
+                'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'cancel_reason' => $event->reason,
+                'reason' => $event->reason,
                 'total_amount' => number_format($b->total_amount, 0, ',', '.'),
-            ], ['buyer', 'admin']);
+            ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingCancelled) {
             $b = $event->booking;
             $this->dispatcher->send('booking.cancelled', [
@@ -103,10 +109,14 @@ class SendDomainNotificationListener
                 'user' => $b->user,
                 'booking_code' => $b->booking_code,
                 'destination_name' => $b->destination?->name,
+                'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'cancel_reason' => $event->reason,
+                'reason' => $event->reason,
                 'refund_amount' => number_format($b->refund?->amount ?? 0, 0, ',', '.'),
                 'refund_percent' => $b->refund?->percent ?? 0,
+                'cancellation_source' => $b->cancellation_source ?? 'buyer',
             ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingRescheduled) {
             $b = $event->booking;
@@ -115,10 +125,14 @@ class SendDomainNotificationListener
                 'user' => $b->user,
                 'booking_code' => $b->booking_code,
                 'destination_name' => $b->destination?->name,
+                'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'planned_date_start' => $b->planned_date_start?->format('d/m/Y'),
                 'planned_date_end' => $b->planned_date_end?->format('d/m/Y'),
-            ], ['buyer', 'partner']);
+                'new_start_date' => $b->planned_date_start?->format('d/m/Y'),
+                'new_end_date' => $b->planned_date_end?->format('d/m/Y'),
+            ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingExpired) {
             $b = $event->booking;
             $this->dispatcher->send('booking.expired', [
@@ -136,8 +150,11 @@ class SendDomainNotificationListener
                 'booking_code' => $b->booking_code,
                 'destination_name' => $b->destination?->name,
                 'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
+                'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'actual_participant_count' => $event->actualPax,
-            ], ['buyer']);
+                'participant_count' => $b->participant_count,
+            ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingCompleted) {
             $b = $event->booking;
             $this->dispatcher->send('booking.completed', [
@@ -145,9 +162,11 @@ class SendDomainNotificationListener
                 'user' => $b->user,
                 'booking_code' => $b->booking_code,
                 'destination_name' => $b->destination?->name,
+                'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
                 'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
                 'review_url' => route('buyer.booking.show', $b->booking_code),
-            ], ['buyer']);
+            ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof RefundCreated) {
             $r = $event->refund;
             $this->dispatcher->send('refund.created', [
@@ -209,6 +228,7 @@ class SendDomainNotificationListener
                 'destination_name' => $d->name,
                 'partner_name' => $d->partner?->name,
                 'moderation_note' => $event->note ?? '-',
+                'moderation_notes' => $event->note ?? '-',
             ], ['partner']);
         } elseif ($event instanceof PartnerVerified) {
             $pp = $event->partnerProfile;
