@@ -8,6 +8,7 @@ use App\Enums\DocumentType;
 use App\Models\Booking;
 use App\Models\Document;
 use App\Models\DocumentTemplate;
+use App\Models\PartnerPayout;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -121,7 +122,7 @@ class DocumentService
      * Generate PDF payout receipt document for a partner payout (SPEC §11).
      */
     public function generateForPayout(
-        \App\Models\PartnerPayout $payout,
+        PartnerPayout $payout,
         ?User $actor = null
     ): Document {
         return DB::transaction(function () use ($payout, $actor) {
@@ -147,9 +148,9 @@ class DocumentService
 
             $replacements = [
                 '{{payout.number}}' => $payout->payout_number,
-                '{{payout.gross_amount}}' => 'Rp ' . number_format($payout->gross_amount, 0, ',', '.'),
-                '{{payout.commission_amount}}' => 'Rp ' . number_format($payout->commission_amount, 0, ',', '.'),
-                '{{payout.net_amount}}' => 'Rp ' . number_format($payout->net_amount, 0, ',', '.'),
+                '{{payout.gross_amount}}' => 'Rp '.number_format($payout->gross_amount, 0, ',', '.'),
+                '{{payout.commission_amount}}' => 'Rp '.number_format($payout->commission_amount, 0, ',', '.'),
+                '{{payout.net_amount}}' => 'Rp '.number_format($payout->net_amount, 0, ',', '.'),
                 '{{payout.bank_name}}' => $payout->bank_name ?? '-',
                 '{{payout.bank_account_number}}' => $payout->bank_account_number ?? '-',
                 '{{payout.bank_account_holder}}' => $payout->bank_account_holder ?? '-',

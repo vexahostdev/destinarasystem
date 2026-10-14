@@ -3,20 +3,19 @@
 namespace App\Domain\Finance\Services;
 
 use App\Domain\Audit\AuditLogger;
+use App\Enums\PaymentStatus;
 use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
+use App\Events\RefundCompleted;
+use App\Events\RefundCreated;
+use App\Models\Booking;
 use App\Models\PartnerPayout;
+use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-
-use App\Enums\PaymentStatus;
-use App\Events\RefundCompleted;
-use App\Events\RefundCreated;
-use App\Models\Booking;
-use App\Models\Payment;
 
 class RefundService
 {
@@ -35,8 +34,7 @@ class RefundService
         ?int $buyerBankId = null
     ): Refund {
         return DB::transaction(function () use (
-            $booking, $amount, $reason, $percent, $paymentId,
-            $bankName, $accountNumber, $accountHolder, $buyerBankId
+            $booking, $amount, $reason, $percent, $paymentId, $accountNumber, $accountHolder, $buyerBankId
         ) {
             $payment = $paymentId
                 ? Payment::find($paymentId)

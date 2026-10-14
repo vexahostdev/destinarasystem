@@ -7,7 +7,10 @@ use App\Domain\Booking\StateMachine\BookingStateMachine;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\BookingStatus;
+use App\Events\BookingExpired;
 use App\Models\Booking;
+use App\Models\Voucher;
+use App\Models\VoucherRedemption;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +34,7 @@ class ExpireUnpaidBookingsCommand extends Command
         $count = 0;
 
         foreach ($expiredBookings as $booking) {
-            DB::transaction(function () use ($booking, $availabilityService, $stateMachine, $paymentService, $notifier, &$count) {
+            DB::transaction(function () use ($booking, $availabilityService, $stateMachine, $paymentService, &$count) {
                 $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
 
                 if ($locked->status !== BookingStatus::MENUNGGU_PEMBAYARAN) {
@@ -56,15 +59,15 @@ class ExpireUnpaidBookingsCommand extends Command
 
                 // 4. Restore voucher quota if used
                 if ($locked->voucher_id) {
-                    $voucher = \App\Models\Voucher::where('id', $locked->voucher_id)->lockForUpdate()->first();
+                    $voucher = Voucher::where('id', $locked->voucher_id)->lockForUpdate()->first();
                     if ($voucher && $voucher->used_count > 0) {
                         $voucher->decrement('used_count');
                     }
-                    \App\Models\VoucherRedemption::where('booking_id', $locked->id)->delete();
+                    VoucherRedemption::where('booking_id', $locked->id)->delete();
                 }
 
                 // 5. Dispatch domain event
-                \App\Events\BookingExpired::dispatch($locked);
+                BookingExpired::dispatch($locked);
 
                 $count++;
             });

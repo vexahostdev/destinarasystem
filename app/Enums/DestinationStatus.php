@@ -34,4 +34,16 @@ enum DestinationStatus: string
             self::ARCHIVED => 'slate',
         };
     }
+
+    public function badgeClass(): string
+    {
+        return match ($this) {
+            self::DRAFT => 'bg-gray-100 text-gray-700 border border-gray-200',
+            self::PENDING_REVIEW => 'bg-amber-50 text-amber-700 border border-amber-200',
+            self::REVISION_REQUIRED => 'bg-rose-50 text-rose-700 border border-rose-200',
+            self::PUBLISHED => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+            self::INACTIVE => 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+            self::ARCHIVED => 'bg-slate-100 text-slate-700 border border-slate-200',
+        };
+    }
 }

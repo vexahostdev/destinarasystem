@@ -9,6 +9,7 @@ use App\Domain\Payment\Data\WebhookResult;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundStatus;
+use App\Events\BookingPaid;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Refund;
@@ -169,6 +170,9 @@ class PaymentService
                 actor: null,
                 note: "Pembayaran terverifikasi melalui {$lockedPayment->gateway} ({$lockedPayment->external_id})."
             );
+
+            // 8. Dispatch BookingPaid domain event (SPEC §10.2 & §11)
+            BookingPaid::dispatch($lockedBooking, $lockedPayment);
         });
     }
 

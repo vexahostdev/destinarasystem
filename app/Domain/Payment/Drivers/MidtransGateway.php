@@ -22,7 +22,7 @@ class MidtransGateway implements PaymentGateway
 
     protected function isProduction(): bool
     {
-        return 'production' === setting('midtrans_mode', 'sandbox');
+        return setting('midtrans_mode', 'sandbox') === 'production';
     }
 
     protected function getServerKey(): string

@@ -8,6 +8,7 @@ use App\Jobs\SendNotificationJob;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class NotificationDispatcher
 {
@@ -48,8 +49,9 @@ class NotificationDispatcher
 
                 if (empty($recipient)) {
                     if ($audience === 'admin') {
-                        \Illuminate\Support\Facades\Log::info("Notifikasi admin untuk event '{$eventKey}' pada channel '{$template->channel->value}' dilewati karena penerima belum dikonfigurasi.");
+                        Log::info("Notifikasi admin untuk event '{$eventKey}' pada channel '{$template->channel->value}' dilewati karena penerima belum dikonfigurasi.");
                     }
+
                     continue;
                 }
 

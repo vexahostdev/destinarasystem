@@ -11,7 +11,6 @@ use App\Events\BookingRescheduled;
 use App\Events\PayoutTransferred;
 use App\Jobs\GenerateDocumentJob;
 use App\Models\Document;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class GenerateBookingDocumentsListener
 {

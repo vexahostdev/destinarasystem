@@ -154,6 +154,11 @@ class Booking extends Model
         return $this->hasMany(Refund::class);
     }
 
+    public function refund(): HasOne
+    {
+        return $this->hasOne(Refund::class)->latestOfMany();
+    }
+
     public function partnerPayout(): HasOne
     {
         return $this->hasOne(PartnerPayout::class);

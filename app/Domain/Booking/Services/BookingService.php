@@ -4,10 +4,19 @@ namespace App\Domain\Booking\Services;
 
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\StateMachine\BookingStateMachine;
+use App\Domain\Document\Services\DocumentNumberGenerator;
+use App\Domain\Finance\Services\RefundService;
 use App\Enums\BookingStatus;
+use App\Enums\DocumentType;
 use App\Enums\PaymentStatus;
 use App\Enums\PayoutStatus;
-use App\Enums\RefundStatus;
+use App\Events\BookingCancelled;
+use App\Events\BookingCompleted;
+use App\Events\BookingConfirmed;
+use App\Events\BookingCreated;
+use App\Events\BookingRejected;
+use App\Events\BookingRescheduled;
+use App\Events\PayoutCreated;
 use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\BookingStatusHistory;
@@ -219,7 +228,7 @@ class BookingService
                 userId: $buyer->id
             );
 
-            \App\Events\BookingCreated::dispatch($booking);
+            BookingCreated::dispatch($booking);
 
             return $booking;
         });
@@ -329,7 +338,7 @@ class BookingService
 
             // Create refund record if refund amount > 0 via RefundService
             if ($refundAmount > 0) {
-                app(\App\Domain\Finance\Services\RefundService::class)->create(
+                app(RefundService::class)->create(
                     booking: $lockedBooking,
                     amount: $refundAmount,
                     reason: $reason ?? 'Pembatalan pesanan',
@@ -341,7 +350,7 @@ class BookingService
                 );
             }
 
-            \App\Events\BookingCancelled::dispatch($lockedBooking, $reason ?? 'Pembatalan pesanan', $source, $actor);
+            BookingCancelled::dispatch($lockedBooking, $reason ?? 'Pembatalan pesanan', $source, $actor);
 
             return $lockedBooking;
         });
@@ -370,7 +379,7 @@ class BookingService
                 note: 'Pemesanan dikonfirmasi oleh pengelola tapak.'
             );
 
-            \App\Events\BookingConfirmed::dispatch($locked, $actor);
+            BookingConfirmed::dispatch($locked, $actor);
 
             return $locked;
         });
@@ -402,7 +411,7 @@ class BookingService
             $this->availabilityService->releaseSlots($locked);
 
             // 100% refund initiated
-            app(\App\Domain\Finance\Services\RefundService::class)->create(
+            app(RefundService::class)->create(
                 booking: $locked,
                 amount: $locked->total_amount,
                 reason: "Penolakan oleh pengelola: {$reason}",
@@ -416,7 +425,7 @@ class BookingService
                 userId: $actor->id
             );
 
-            \App\Events\BookingRejected::dispatch($locked, $reason, $actor);
+            BookingRejected::dispatch($locked, $reason, $actor);
 
             return $locked;
         });
@@ -446,7 +455,7 @@ class BookingService
                 $partner = $locked->destination->partner;
                 $profile = $partner?->partnerProfile;
 
-                $payoutNumber = app(\App\Domain\Document\Services\DocumentNumberGenerator::class)->generate(\App\Enums\DocumentType::PAYOUT_RECEIPT);
+                $payoutNumber = app(DocumentNumberGenerator::class)->generate(DocumentType::PAYOUT_RECEIPT);
 
                 $bankName = $profile?->bank?->name ?? $profile?->bank_name ?? 'Bank Belum Diatur';
                 $hasValidBank = $profile && ! empty($profile->bank_account_number) && ($bankName !== 'Bank Belum Diatur');
@@ -470,10 +479,10 @@ class BookingService
                     'note' => $initialNote,
                 ]);
 
-                \App\Events\PayoutCreated::dispatch($payout);
+                PayoutCreated::dispatch($payout);
             }
 
-            \App\Events\BookingCompleted::dispatch($locked, $actor);
+            BookingCompleted::dispatch($locked, $actor);
 
             return $locked;
         });
@@ -516,7 +525,7 @@ class BookingService
                 description: "Jadwal booking diubah dari {$oldDates} menjadi {$newStartDate->format('d/m/Y')} - {$newEndDate->format('d/m/Y')}. Alasan: {$reason}"
             );
 
-            \App\Events\BookingRescheduled::dispatch($locked, $oldDates, $admin);
+            BookingRescheduled::dispatch($locked, $oldDates, $admin);
 
             return $locked;
         });

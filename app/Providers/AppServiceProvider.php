@@ -2,7 +2,32 @@
 
 namespace App\Providers;
 
+use App\Events\BookingCancelled;
+use App\Events\BookingCheckedIn;
+use App\Events\BookingCompleted;
+use App\Events\BookingConfirmed;
+use App\Events\BookingCreated;
+use App\Events\BookingExpired;
+use App\Events\BookingPaid;
+use App\Events\BookingRejected;
+use App\Events\BookingRescheduled;
+use App\Events\DestinationModerated;
+use App\Events\DestinationSubmitted;
+use App\Events\InstitutionRejected;
+use App\Events\InstitutionVerified;
+use App\Events\LatePaymentReceived;
+use App\Events\PartnerRejected;
+use App\Events\PartnerVerified;
+use App\Events\PaymentAmountMismatch;
+use App\Events\PayoutCreated;
+use App\Events\PayoutTransferred;
+use App\Events\RefundCompleted;
+use App\Events\RefundCreated;
+use App\Events\UserRegistered;
+use App\Listeners\GenerateBookingDocumentsListener;
+use App\Listeners\SendDomainNotificationListener;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -33,37 +58,37 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Register Domain Event Listeners (SPEC §10.2 & §11)
-        \Illuminate\Support\Facades\Event::listen([
-            \App\Events\BookingCreated::class,
-            \App\Events\BookingPaid::class,
-            \App\Events\BookingConfirmed::class,
-            \App\Events\BookingRescheduled::class,
-            \App\Events\PayoutTransferred::class,
-        ], \App\Listeners\GenerateBookingDocumentsListener::class);
+        Event::listen([
+            BookingCreated::class,
+            BookingPaid::class,
+            BookingConfirmed::class,
+            BookingRescheduled::class,
+            PayoutTransferred::class,
+        ], GenerateBookingDocumentsListener::class);
 
-        \Illuminate\Support\Facades\Event::listen([
-            \App\Events\BookingCreated::class,
-            \App\Events\BookingPaid::class,
-            \App\Events\BookingConfirmed::class,
-            \App\Events\BookingRejected::class,
-            \App\Events\BookingCancelled::class,
-            \App\Events\BookingRescheduled::class,
-            \App\Events\BookingExpired::class,
-            \App\Events\BookingCheckedIn::class,
-            \App\Events\BookingCompleted::class,
-            \App\Events\RefundCreated::class,
-            \App\Events\RefundCompleted::class,
-            \App\Events\PayoutCreated::class,
-            \App\Events\PayoutTransferred::class,
-            \App\Events\DestinationSubmitted::class,
-            \App\Events\DestinationModerated::class,
-            \App\Events\PartnerVerified::class,
-            \App\Events\PartnerRejected::class,
-            \App\Events\InstitutionVerified::class,
-            \App\Events\InstitutionRejected::class,
-            \App\Events\LatePaymentReceived::class,
-            \App\Events\PaymentAmountMismatch::class,
-            \App\Events\UserRegistered::class,
-        ], \App\Listeners\SendDomainNotificationListener::class);
+        Event::listen([
+            BookingCreated::class,
+            BookingPaid::class,
+            BookingConfirmed::class,
+            BookingRejected::class,
+            BookingCancelled::class,
+            BookingRescheduled::class,
+            BookingExpired::class,
+            BookingCheckedIn::class,
+            BookingCompleted::class,
+            RefundCreated::class,
+            RefundCompleted::class,
+            PayoutCreated::class,
+            PayoutTransferred::class,
+            DestinationSubmitted::class,
+            DestinationModerated::class,
+            PartnerVerified::class,
+            PartnerRejected::class,
+            InstitutionVerified::class,
+            InstitutionRejected::class,
+            LatePaymentReceived::class,
+            PaymentAmountMismatch::class,
+            UserRegistered::class,
+        ], SendDomainNotificationListener::class);
     }
 }

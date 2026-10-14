@@ -301,7 +301,7 @@ class DestinationService
         $package->is_active = ! $package->is_active;
         $package->save();
 
-        AuditLogger::log('toggle_package_active', $package, "Status aktif paket '{$package->name}' diubah menjadi " . ($package->is_active ? 'aktif' : 'nonaktif'));
+        AuditLogger::log('toggle_package_active', $package, "Status aktif paket '{$package->name}' diubah menjadi ".($package->is_active ? 'aktif' : 'nonaktif'));
 
         return $package;
     }

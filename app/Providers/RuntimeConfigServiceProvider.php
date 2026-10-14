@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Settings\SettingsRepository;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -25,7 +26,7 @@ class RuntimeConfigServiceProvider extends ServiceProvider
         Queue::before(function () use ($settings) {
             $this->applyRuntimeConfig($settings);
             if (! app()->environment('testing')) {
-                \Illuminate\Support\Facades\Mail::purge('smtp');
+                Mail::purge('smtp');
             }
         });
     }

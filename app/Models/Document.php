@@ -53,6 +53,11 @@ class Document extends Model
         return $this->belongsTo(User::class, 'generated_by');
     }
 
+    public function generator(): BelongsTo
+    {
+        return $this->generatedBy();
+    }
+
     public function isFinal(): bool
     {
         return $this->status === DocumentStatus::FINAL;

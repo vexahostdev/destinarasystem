@@ -6,6 +6,7 @@ use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\StateMachine\BookingStateMachine;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\BookingStatus;
+use App\Events\BookingCheckedIn;
 use App\Models\Booking;
 use App\Models\CheckIn;
 use App\Models\User;
@@ -78,14 +79,8 @@ class CheckInService
                 note: "Rombongan tiba di lokasi dan check-in ({$actualPax} peserta aktual)."
             );
 
-            // Dispatch notification
-            $this->notifier->send('booking.checked_in', [
-                'booking' => $locked,
-                'user' => $locked->user,
-                'destination_name' => $locked->destination->name,
-                'booking_code' => $locked->booking_code,
-                'pax' => $actualPax,
-            ], ['buyer']);
+            // Dispatch domain event (SPEC §10.2)
+            BookingCheckedIn::dispatch($locked, $actualPax, $scanner);
 
             AuditLogger::log(
                 action: 'booking_checkin',

@@ -25,7 +25,6 @@ use App\Events\PayoutTransferred;
 use App\Events\RefundCompleted;
 use App\Events\RefundCreated;
 use App\Events\UserRegistered;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendDomainNotificationListener
 {
