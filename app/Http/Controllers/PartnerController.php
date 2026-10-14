@@ -490,4 +490,66 @@ class PartnerController extends Controller
         return redirect()->route('mitra.profile')
             ->with('success', 'Profil lembaga pengelola dan nomor rekening pencairan berhasil diperbarui.');
     }
+
+    /**
+     * Check-in QR scan landing page (Signed URL - SPEC §11).
+     */
+    public function showCheckin(Request $request, string $code)
+    {
+        $user = Auth::user();
+        $booking = Booking::with(['institution', 'destination', 'package', 'checkIn'])
+            ->where('booking_code', $code)
+            ->firstOrFail();
+
+        if ($user && $user->account_type === \App\Enums\AccountType::PARTNER) {
+            if ($booking->destination->partner_id !== $user->id) {
+                abort(403, 'Anda bukan pengelola destinasi dari pesanan ini.');
+            }
+        }
+
+        return view('partner.checkin', compact('booking'));
+    }
+
+    /**
+     * Confirm check-in and transition booking to BERLANGSUNG (SPEC §7.1).
+     */
+    public function confirmCheckin(Request $request, string $code)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)->firstOrFail();
+
+        if ($user && $user->account_type === \App\Enums\AccountType::PARTNER) {
+            if ($booking->destination->partner_id !== $user->id) {
+                abort(403, 'Akses ditolak.');
+            }
+        }
+
+        $request->validate([
+            'actual_participant_count' => 'required|integer|min:1',
+            'note' => 'nullable|string|max:500',
+        ]);
+
+        if ($booking->status !== \App\Enums\BookingStatus::DIKONFIRMASI) {
+            return redirect()->back()->with('error', 'Hanya booking berstatus dikonfirmasi yang dapat di-check-in.');
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($booking, $user, $request) {
+            \App\Models\CheckIn::create([
+                'booking_id' => $booking->id,
+                'scanned_by' => $user->id,
+                'scanned_at' => now(),
+                'actual_participant_count' => (int) $request->actual_participant_count,
+                'note' => $request->note,
+            ]);
+
+            app(\App\Domain\Booking\StateMachine\BookingStateMachine::class)->transition(
+                booking: $booking,
+                to: \App\Enums\BookingStatus::BERLANGSUNG,
+                actor: $user,
+                note: "Check-in berhasil dengan {$request->actual_participant_count} peserta."
+            );
+        });
+
+        return redirect()->back()->with('success', "Check-in rombongan {$booking->booking_code} berhasil dicatat!");
+    }
 }

@@ -134,4 +134,16 @@ class PublicController extends Controller
 
         return view('auth.login');
     }
+
+    /**
+     * 7. Halaman Publik Verifikasi Keabsahan Dokumen (SPEC §11, §13).
+     */
+    public function verifyDocument(string $hash)
+    {
+        $document = \App\Models\Document::with(['booking.destination', 'booking.institution', 'payout'])
+            ->where('verification_hash', $hash)
+            ->first();
+
+        return view('public.verify-document', compact('document', 'hash'));
+    }
 }

@@ -23,6 +23,10 @@ use App\Http\Controllers\AuthController;
 // 3. Alur & Cara Kerja Kemitraan
 Route::get('/cara-kerja', [PublicController::class, 'caraKerja'])->name('cara-kerja');
 
+// 4. Verifikasi Keabsahan Dokumen (SPEC §11, §13)
+Route::get('/verifikasi/{hash}', [PublicController::class, 'verifyDocument'])->name('verification.document');
+Route::get('/dokumen/unduh/{document}', [\App\Http\Controllers\DocumentController::class, 'download'])->middleware('auth')->name('documents.download');
+
 // 5. Pendaftaran Akun
 Route::get('/daftar', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/daftar', [AuthController::class, 'register'])->name('register.post');
@@ -139,7 +143,14 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'role:partner'])->gr
     // 7. Profil Pengelola & Rekening Payout
     Route::get('/profil', [PartnerController::class, 'profile'])->name('profile');
     Route::post('/profil/update', [PartnerController::class, 'updateProfile'])->name('profile.update');
+
+    // 8. Check-in QR (Signed URL - SPEC §11, §8.8)
+    Route::get('/checkin/{code}', [PartnerController::class, 'showCheckin'])->name('checkin.show');
+    Route::post('/checkin/{code}/konfirmasi', [PartnerController::class, 'confirmCheckin'])->name('checkin.confirm');
 });
+
+// Named alias for signed URL generation
+Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->middleware(['signed'])->name('partner.checkin.show');
 
 /*
 |--------------------------------------------------------------------------
