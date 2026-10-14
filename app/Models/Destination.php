@@ -46,6 +46,7 @@ class Destination extends Model
     {
         return [
             'suitable_for' => 'array',
+            'educational_highlights' => 'array',
             'has_permit_document' => 'boolean',
             'is_featured' => 'boolean',
             'status' => DestinationStatus::class,
@@ -158,5 +159,15 @@ class Destination extends Model
     public function isPublished(): bool
     {
         return $this->status === DestinationStatus::PUBLISHED;
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::increment('public_api_version');
+        });
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::increment('public_api_version');
+        });
     }
 }
