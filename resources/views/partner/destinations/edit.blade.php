@@ -29,21 +29,33 @@
             </div>
 
             <div class="flex items-center gap-2">
-                @if(in_array($destination->status->value, ['draft', 'revision_required']))
-                    <form action="{{ route('mitra.destinations.submit', $destination->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="rgs-btn-dark px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-[16px]">send</span>
-                            <span>Ajukan Kurasi ke Admin</span>
+                @if(in_array($destination->status, [\App\Enums\DestinationStatus::DRAFT, \App\Enums\DestinationStatus::REVISION_REQUIRED]))
+                    @php
+                        $hasCover = ! empty($destination->cover_image);
+                        $hasActivePackage = $destination->allPackages->where('is_active', true)->count() >= 1;
+                        $canSubmit = $hasCover && $hasActivePackage;
+                    @endphp
+                    @if($canSubmit)
+                        <form action="{{ route('mitra.destinations.submit', $destination->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="rgs-btn-dark px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-xs flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">send</span>
+                                <span>Ajukan Kurasi ke Admin</span>
+                            </button>
+                        </form>
+                    @else
+                        <button type="button" disabled title="Lengkapi foto sampul dan minimal 1 paket aktif untuk mengajukan kurasi" class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-gray-200 text-gray-500 cursor-not-allowed flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">lock</span>
+                            <span>Ajukan Kurasi (Belum Lengkap)</span>
                         </button>
-                    </form>
+                    @endif
                 @endif
 
-                @if(in_array($destination->status->value, ['published', 'inactive']))
+                @if(in_array($destination->status, [\App\Enums\DestinationStatus::PUBLISHED, \App\Enums\DestinationStatus::INACTIVE]))
                     <form action="{{ route('mitra.destinations.toggleActive', $destination->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="px-4 py-2 text-xs font-bold uppercase tracking-wider border border-[#2B211E]/20 hover:bg-[#2B211E]/5 transition">
-                            {{ $destination->status->value === 'published' ? 'Nonaktifkan Sementara' : 'Aktifkan Kembali' }}
+                            {{ $destination->status === \App\Enums\DestinationStatus::PUBLISHED ? 'Nonaktifkan Sementara' : 'Aktifkan Kembali' }}
                         </button>
                     </form>
                 @endif
@@ -52,7 +64,7 @@
     </div>
 
     <!-- Alert Banner jika Perlu Revisi (revision_required) -->
-    @if($destination->status->value === 'revision_required')
+    @if($destination->status === \App\Enums\DestinationStatus::REVISION_REQUIRED)
         @php
             $latestRevision = $destination->moderations->where('action', 'revision')->last();
         @endphp
@@ -409,7 +421,7 @@
                         <p class="text-xs text-[#2B211E]/70 line-clamp-3">{{ $pkg->description }}</p>
 
                         <div class="pt-3 border-t border-[#2B211E]/10 flex items-center justify-between text-[11px] text-[#2B211E]/60">
-                            <span>Min: {{ $pkg->min_participants }} pax &bull; Durasi: {{ $pkg->duration_days }} hari</span>
+                            <span>Min: {{ $pkg->min_pax }} pax (Maks: {{ $pkg->max_pax }} pax) &bull; Durasi: {{ $pkg->duration_days }} hari &bull; Jenis: {{ is_array($pkg->inquiry_types) ? implode(', ', $pkg->inquiry_types) : 'study_tour' }}</span>
                             <div class="flex items-center gap-2">
                                 <form action="{{ route('mitra.destinations.packages.toggle', ['destination' => $destination->id, 'package' => $pkg->id]) }}" method="POST">
                                     @csrf
@@ -446,23 +458,52 @@
                             <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Nama Paket *</label>
                             <input type="text" name="name" required placeholder="Contoh: Belajar Budidaya Madu Lanceng" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Tarif per Pax (Rp) *</label>
                                 <input type="number" name="price_per_pax" required min="0" placeholder="50000" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Min. Peserta (Pax) *</label>
-                                <input type="number" name="min_participants" required min="1" value="10" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Min. Peserta *</label>
+                                <input type="number" name="min_pax" required min="1" value="10" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Maks. Peserta *</label>
+                                <input type="number" name="max_pax" required min="1" value="100" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Durasi Kunjungan (Hari) *</label>
+                                <input type="number" name="duration_days" required min="1" value="1" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Jenis Kunjungan *</label>
+                                <div class="flex items-center gap-3 pt-2 text-xs">
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" name="inquiry_types[]" value="study_tour" checked class="text-[#703A3A] focus:ring-[#703A3A]">
+                                        <span>Study Tour</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" name="inquiry_types[]" value="penelitian" checked class="text-[#703A3A] focus:ring-[#703A3A]">
+                                        <span>Penelitian</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Durasi Kunjungan (Hari) *</label>
-                            <input type="number" name="duration_days" required min="1" value="1" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                        </div>
-                        <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Rincian Kegiatan & Fasilitas Termasuk *</label>
-                            <textarea name="description" rows="4" required placeholder="Jelaskan alur belajar, output pembelajaran, dan sarana yang diperoleh peserta..." class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                            <textarea name="description" rows="3" required placeholder="Jelaskan alur belajar, output pembelajaran, dan sarana yang diperoleh peserta..." class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Fasilitas Termasuk (1 per baris)</label>
+                                <textarea name="included_items" rows="3" placeholder="Tiket masuk&#10;Pemandu lokal&#10;Makan siang" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Tidak Termasuk (1 per baris)</label>
+                                <textarea name="excluded_items" rows="3" placeholder="Transportasi bus&#10;Pengeluaran pribadi" class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="is_active" value="1" id="m_pkg_active" checked class="text-[#703A3A] focus:ring-[#703A3A]">
@@ -507,7 +548,7 @@
                         @forelse($destination->allAddons as $addon)
                             <tr>
                                 <td class="py-3 px-4 font-bold text-[#2B211E]">{{ $addon->name }}</td>
-                                <td class="py-3 px-4 text-[#2B211E]/70 uppercase font-mono">{{ $addon->pricing_type }}</td>
+                                <td class="py-3 px-4 text-[#2B211E]/70 font-medium text-xs">{{ $addon->pricing_type instanceof \App\Enums\AddonPricingType ? $addon->pricing_type->label() : ($addon->pricing_type ?? '-') }}</td>
                                 <td class="py-3 px-4 font-bold">Rp {{ number_format($addon->price, 0, ',', '.') }}</td>
                                 <td class="py-3 px-4">
                                     <span class="px-2 py-0.5 text-[10px] font-bold uppercase {{ $addon->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600' }}">
@@ -553,9 +594,10 @@
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E] mb-1">Skema Biaya *</label>
                                 <select name="pricing_type" required class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                                    <option value="per_pax">Per Pax</option>
-                                    <option value="per_group">Per Rombongan</option>
-                                    <option value="fixed">Biaya Tetap</option>
+                                    <option value="per_pax">Per Peserta (Pax)</option>
+                                    <option value="per_group">Per Rombongan (Group)</option>
+                                    <option value="per_day">Per Hari</option>
+                                    <option value="per_pax_per_day">Per Peserta Per Hari</option>
                                 </select>
                             </div>
                         </div>

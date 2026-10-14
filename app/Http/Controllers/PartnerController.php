@@ -10,6 +10,7 @@ use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Catalog\Services\ReviewService;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
+use App\Enums\AddonPricingType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\VerificationStatus;
@@ -35,6 +36,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Enum;
 
 class PartnerController extends Controller
 {
@@ -181,8 +183,9 @@ class PartnerController extends Controller
         $categories = DestinationCategory::where('is_active', true)->get();
         $provinces = Province::orderBy('name')->get();
         $policies = CancellationPolicy::all();
+        $facilities = Facility::where('is_active', true)->orderBy('name')->get();
 
-        return view('partner.destinations.create', compact('user', 'profile', 'categories', 'provinces', 'policies'));
+        return view('partner.destinations.create', compact('user', 'profile', 'categories', 'provinces', 'policies', 'facilities'));
     }
 
     /**
@@ -192,7 +195,7 @@ class PartnerController extends Controller
     {
         $user = Auth::user();
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:destination_categories,id',
             'province_id' => 'required|exists:provinces,id',
@@ -200,36 +203,22 @@ class PartnerController extends Controller
             'city' => 'required|string|max:100',
             'address' => 'required|string',
             'description' => 'required|string|min:50',
+            'educational_highlights' => 'nullable|string',
             'default_daily_capacity' => 'required|integer|min:10|max:1000',
+            'cover_image' => 'nullable|image|max:5120',
+            'facilities' => 'nullable|array',
+            'facilities.*' => 'exists:facilities,id',
         ]);
+        $validated['short_description'] = Str::limit(strip_tags($validated['description']), 200);
 
-        $slug = Str::slug($request->name);
-        $originalSlug = $slug;
-        $counter = 1;
-        while (Destination::where('slug', $slug)->exists()) {
-            $slug = "{$originalSlug}-".$counter++;
-        }
-
-        $dest = Destination::create([
-            'partner_id' => $user->id,
-            'category_id' => $request->category_id,
-            'province_id' => $request->province_id,
-            'cancellation_policy_id' => $request->cancellation_policy_id,
-            'name' => $request->name,
-            'slug' => $slug,
-            'city' => $request->city,
-            'address' => $request->address,
-            'description' => $request->description,
-            'default_daily_capacity' => (int) $request->default_daily_capacity,
-            'status' => DestinationStatus::DRAFT,
-        ]);
+        $dest = $this->destinationService->createDestination($validated, $user);
 
         // Auto create primary contact from partner profile
-        if ($user->partnerProfile) {
+        if ($user->partnerProfile && $dest->contacts()->count() === 0) {
             $dest->contacts()->create([
-                'contact_name' => $user->name,
+                'contact_name' => $user->partnerProfile->pic_name ?? $user->name,
                 'role' => 'Penanggung Jawab Tapak',
-                'phone' => $user->phone ?? null,
+                'phone' => $user->partnerProfile->pic_phone ?? $user->phone ?? '-',
                 'is_primary' => true,
             ]);
         }
@@ -399,13 +388,44 @@ class PartnerController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price_per_pax' => 'required|numeric|min:0',
-            'min_participants' => 'required|integer|min:1',
+            'min_pax' => 'nullable|integer|min:1',
+            'min_participants' => 'nullable|integer|min:1',
+            'max_pax' => 'nullable|integer|min:1',
+            'max_participants' => 'nullable|integer|min:1',
             'duration_days' => 'required|integer|min:1',
             'inquiry_types' => 'nullable|array',
+            'inquiry_types.*' => 'in:study_tour,penelitian',
+            'included_items' => 'nullable|string',
+            'excluded_items' => 'nullable|string',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $validated['inquiry_types'] = $validated['inquiry_types'] ?? ['study_tour'];
+        $minPax = (int) ($validated['min_pax'] ?? $validated['min_participants'] ?? 1);
+        $maxPax = (int) ($validated['max_pax'] ?? $validated['max_participants'] ?? 500);
+        if ($maxPax < $minPax) {
+            $maxPax = $minPax;
+        }
+
+        $validated['min_pax'] = $minPax;
+        $validated['max_pax'] = $maxPax;
+        unset($validated['min_participants'], $validated['max_participants']);
+
+        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['inquiry_types'] = ! empty($validated['inquiry_types']) ? array_values($validated['inquiry_types']) : ['study_tour'];
+
+        if (! empty($validated['included_items']) && is_string($validated['included_items'])) {
+            $validated['includes'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['included_items'])))));
+        } else {
+            $validated['includes'] = is_array($request->input('includes')) ? $request->input('includes') : null;
+        }
+        unset($validated['included_items']);
+
+        if (! empty($validated['excluded_items']) && is_string($validated['excluded_items'])) {
+            $validated['excludes'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['excluded_items'])))));
+        } else {
+            $validated['excludes'] = is_array($request->input('excludes')) ? $request->input('excludes') : null;
+        }
+        unset($validated['excluded_items']);
 
         $this->destinationService->savePackage($destination, $validated, $validated['package_id'] ?? null);
 
@@ -444,11 +464,12 @@ class PartnerController extends Controller
             'addon_id' => 'nullable|exists:addons,id',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'pricing_type' => 'required|in:per_pax,per_group,fixed',
+            'pricing_type' => ['required', new Enum(AddonPricingType::class)],
             'description' => 'nullable|string',
             'is_active' => 'nullable|boolean',
         ]);
 
+        $validated['is_active'] = $request->boolean('is_active', true);
         $this->destinationService->saveAddon($destination, $validated, $validated['addon_id'] ?? null);
 
         return back()->with('success', 'Add-on fasilitas/layanan berhasil disimpan.');

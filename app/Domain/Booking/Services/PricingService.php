@@ -56,7 +56,11 @@ class PricingService
 
             foreach ($addons as $addon) {
                 $price = (int) $addon->price;
-                $addonTotal = match ($addon->pricing_type) {
+                $pricingType = $addon->pricing_type instanceof AddonPricingType
+                    ? $addon->pricing_type
+                    : AddonPricingType::tryFrom((string) $addon->pricing_type);
+
+                $addonTotal = match ($pricingType) {
                     AddonPricingType::PER_PAX => $price * $pax,
                     AddonPricingType::PER_GROUP => $price,
                     AddonPricingType::PER_DAY => $price * $durationDays,
@@ -66,7 +70,7 @@ class PricingService
 
                 $addonsTotal += $addonTotal;
 
-                $quantity = match ($addon->pricing_type) {
+                $quantity = match ($pricingType) {
                     AddonPricingType::PER_GROUP => 1,
                     AddonPricingType::PER_DAY => $durationDays,
                     AddonPricingType::PER_PAX_PER_DAY => $pax * $durationDays,

@@ -35,7 +35,7 @@ class PartnerProfile extends Model
     protected function casts(): array
     {
         return [
-            'commission_percent_override' => 'integer',
+            'commission_percent_override' => 'float',
             'verification_status' => VerificationStatus::class,
             'verified_at' => 'datetime',
         ];

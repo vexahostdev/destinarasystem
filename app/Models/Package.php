@@ -22,6 +22,8 @@ class Package extends Model
         'price_per_pax',
         'min_pax',
         'max_pax',
+        'min_participants',
+        'max_participants',
         'description',
         'includes',
         'excludes',
@@ -40,6 +42,26 @@ class Package extends Model
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
+
+    public function getMinParticipantsAttribute(): int
+    {
+        return $this->min_pax ?? 1;
+    }
+
+    public function setMinParticipantsAttribute($value): void
+    {
+        $this->attributes['min_pax'] = (int) $value;
+    }
+
+    public function getMaxParticipantsAttribute(): int
+    {
+        return $this->max_pax ?? 500;
+    }
+
+    public function setMaxParticipantsAttribute($value): void
+    {
+        $this->attributes['max_pax'] = (int) $value;
+    }
 
     public function destination(): BelongsTo
     {

@@ -98,6 +98,21 @@
                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">{{ old('educational_highlights') }}</textarea>
         </div>
 
+        <div>
+            <label class="block text-xs font-bold uppercase text-gray-700 mb-2">Fasilitas Sarana Rombongan Tersedia</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                @foreach($facilities as $fac)
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 cursor-pointer text-xs">
+                        <input type="checkbox" name="facilities[]" value="{{ $fac->id }}"
+                               {{ in_array($fac->id, old('facilities', [])) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-[#703A3A] focus:ring-[#703A3A]">
+                        <span class="text-gray-700 font-medium">{{ $fac->name }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('facilities') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kapasitas Harian Default (Pax) *</label>

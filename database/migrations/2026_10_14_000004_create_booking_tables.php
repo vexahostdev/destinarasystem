@@ -48,7 +48,7 @@ return new class extends Migration
             $table->unsignedBigInteger('platform_fee_amount')->default(0);
             $table->unsignedBigInteger('discount_amount')->default(0);
             $table->unsignedBigInteger('total_amount');
-            $table->unsignedInteger('commission_percent');
+            $table->decimal('commission_percent', 5, 2)->default(10.00);
             $table->unsignedBigInteger('commission_amount');
             $table->unsignedBigInteger('partner_net_amount');
             $table->foreignId('voucher_id')->nullable()->constrained('vouchers')->nullOnDelete();

@@ -8,6 +8,7 @@ use App\Domain\Catalog\Services\AvailabilityCalendarService;
 use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Domain\Notification\Services\TemplateRenderer;
+use App\Enums\AddonPricingType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\NotificationChannel;
@@ -43,6 +44,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Enum;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdminController extends Controller
@@ -205,8 +207,9 @@ class AdminController extends Controller
         $categories = DestinationCategory::where('is_active', true)->get();
         $provinces = Province::orderBy('name')->get();
         $partners = User::where('account_type', 'partner')->orderBy('name')->get();
+        $facilities = Facility::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.destinations.create', compact('categories', 'provinces', 'partners'));
+        return view('admin.destinations.create', compact('categories', 'provinces', 'partners', 'facilities'));
     }
 
     public function storeDestination(Request $request)
@@ -223,6 +226,8 @@ class AdminController extends Controller
             'educational_highlights' => 'nullable|string',
             'default_daily_capacity' => 'required|integer|min:1',
             'cover_image' => 'nullable|image|max:5120',
+            'facilities' => 'nullable|array',
+            'facilities.*' => 'exists:facilities,id',
         ]);
 
         $destination = $this->destinationService->createDestination($validated, Auth::user());
@@ -394,23 +399,43 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price_per_pax' => 'required|integer|min:0',
-            'min_participants' => 'required|integer|min:1',
+            'min_pax' => 'nullable|integer|min:1',
+            'min_participants' => 'nullable|integer|min:1',
+            'max_pax' => 'nullable|integer|min:1',
             'max_participants' => 'nullable|integer|min:1',
             'duration_days' => 'required|integer|min:1',
             'inquiry_types' => 'nullable|array',
+            'inquiry_types.*' => 'in:study_tour,penelitian',
             'included_items' => 'nullable|string',
             'excluded_items' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
-        $validated['inquiry_types'] = $request->input('inquiry_types', ['study_tour']);
+        $minPax = (int) ($validated['min_pax'] ?? $validated['min_participants'] ?? 1);
+        $maxPax = (int) ($validated['max_pax'] ?? $validated['max_participants'] ?? 500);
+        if ($maxPax < $minPax) {
+            $maxPax = $minPax;
+        }
+
+        $validated['min_pax'] = $minPax;
+        $validated['max_pax'] = $maxPax;
+        unset($validated['min_participants'], $validated['max_participants']);
+
+        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['inquiry_types'] = ! empty($validated['inquiry_types']) ? array_values($validated['inquiry_types']) : ['study_tour'];
         if (! empty($validated['included_items']) && is_string($validated['included_items'])) {
-            $validated['included_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['included_items'])))));
+            $validated['includes'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['included_items'])))));
+        } else {
+            $validated['includes'] = is_array($request->input('includes')) ? $request->input('includes') : null;
         }
+        unset($validated['included_items']);
+
         if (! empty($validated['excluded_items']) && is_string($validated['excluded_items'])) {
-            $validated['excluded_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['excluded_items'])))));
+            $validated['excludes'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['excluded_items'])))));
+        } else {
+            $validated['excludes'] = is_array($request->input('excludes')) ? $request->input('excludes') : null;
         }
+        unset($validated['excluded_items']);
 
         $this->destinationService->savePackage($destination, $validated, $request->package_id);
 
@@ -450,11 +475,11 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|integer|min:0',
-            'price_type' => 'required|in:per_pax,per_group,per_day',
-            'is_active' => 'boolean',
+            'pricing_type' => ['required', new Enum(AddonPricingType::class)],
+            'is_active' => 'nullable|boolean',
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active'] = $request->boolean('is_active', true);
         $this->destinationService->saveAddon($destination, $validated, $request->addon_id);
 
         return back()->with('success', 'Add-on layanan berhasil disimpan.');
@@ -541,8 +566,13 @@ class AdminController extends Controller
     public function updateDestinationStatus(Request $request, $id)
     {
         $destination = Destination::findOrFail($id);
-        $action = $request->input('action'); // approve, revision, reject
-        $notes = $request->input('notes', '');
+        $validated = $request->validate([
+            'action' => 'required|in:approve,revision,reject',
+            'notes' => 'required_if:action,revision|nullable|string',
+        ]);
+
+        $action = $validated['action'];
+        $notes = $validated['notes'] ?? '';
 
         try {
             $this->destinationService->moderate($destination, $action, $notes, Auth::user());

@@ -61,7 +61,7 @@ return new class extends Migration
             $table->foreignId('bank_id')->nullable()->constrained('banks')->restrictOnDelete();
             $table->string('bank_account_number')->nullable();
             $table->string('bank_account_holder')->nullable();
-            $table->unsignedInteger('commission_percent_override')->nullable();
+            $table->decimal('commission_percent_override', 5, 2)->nullable();
             $table->string('verification_status')->default('unverified'); // unverified, pending, verified, rejected
             $table->text('verification_note')->nullable();
             $table->timestamp('verified_at')->nullable();

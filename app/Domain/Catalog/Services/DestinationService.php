@@ -4,6 +4,7 @@ namespace App\Domain\Catalog\Services;
 
 use App\Domain\Audit\AuditLogger;
 use App\Enums\DestinationStatus;
+use App\Events\DestinationModerated;
 use App\Models\Addon;
 use App\Models\Destination;
 use App\Models\DestinationContact;
@@ -134,6 +135,10 @@ class DestinationService
             throw new InvalidArgumentException('Destinasi harus memiliki minimal 1 paket aktif sebelum diajukan untuk kurasi.');
         }
 
+        if (empty($destination->cover_image)) {
+            throw new InvalidArgumentException('Destinasi harus memiliki foto sampul (cover image) sebelum diajukan untuk kurasi.');
+        }
+
         $destination->update([
             'status' => DestinationStatus::PENDING_REVIEW,
         ]);
@@ -154,6 +159,10 @@ class DestinationService
                 if ($activePackagesCount < 1) {
                     throw new InvalidArgumentException('Destinasi tidak dapat disetujui tanpa minimal 1 paket aktif.');
                 }
+            }
+
+            if ($action === 'revision' && empty(trim((string) $note))) {
+                throw new InvalidArgumentException('Catatan kurasi wajib diisi saat meminta revisi destinasi.');
             }
 
             $newStatus = match ($action) {
@@ -177,6 +186,8 @@ class DestinationService
             ]);
 
             AuditLogger::log('moderate_destination', $destination, "Kurasi destinasi: {$action}. Catatan: {$note}");
+
+            event(new DestinationModerated($destination, $action, $note, $admin));
 
             return $destination;
         });
@@ -251,6 +262,23 @@ class DestinationService
      */
     public function savePackage(Destination $destination, array $data, ?int $packageId = null): Package
     {
+        if (isset($data['min_participants']) && ! isset($data['min_pax'])) {
+            $data['min_pax'] = $data['min_participants'];
+            unset($data['min_participants']);
+        }
+        if (isset($data['max_participants']) && ! isset($data['max_pax'])) {
+            $data['max_pax'] = $data['max_participants'];
+            unset($data['max_participants']);
+        }
+        if (isset($data['included_items']) && ! isset($data['includes'])) {
+            $data['includes'] = $data['included_items'];
+            unset($data['included_items']);
+        }
+        if (isset($data['excluded_items']) && ! isset($data['excludes'])) {
+            $data['excludes'] = $data['excluded_items'];
+            unset($data['excluded_items']);
+        }
+
         if ($packageId) {
             $pkg = Package::where('destination_id', $destination->id)->findOrFail($packageId);
             $pkg->update($data);

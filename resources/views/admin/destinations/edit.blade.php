@@ -414,7 +414,7 @@
                         <p class="text-xs text-gray-600 line-clamp-2">{{ $pkg->description }}</p>
 
                         <div class="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
-                            <span>Min: {{ $pkg->min_participants }} pax &bull; Durasi: {{ $pkg->duration_days }} hari</span>
+                            <span>Min: {{ $pkg->min_pax }} pax (Maks: {{ $pkg->max_pax }} pax) &bull; Durasi: {{ $pkg->duration_days }} hari &bull; Jenis: {{ is_array($pkg->inquiry_types) ? implode(', ', $pkg->inquiry_types) : 'study_tour' }}</span>
                             <div class="flex items-center gap-2">
                                 <form action="{{ route('admin.destinations.packages.toggle', ['destination' => $destination->id, 'package' => $pkg->id]) }}" method="POST">
                                     @csrf
@@ -451,23 +451,52 @@
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Paket *</label>
                             <input type="text" name="name" required placeholder="Contoh: Paket Belajar Membatik 1 Hari" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Harga per Pax (Rp) *</label>
                                 <input type="number" name="price_per_pax" required min="0" placeholder="50000" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Minimal Peserta *</label>
-                                <input type="number" name="min_participants" required min="1" value="10" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Min Peserta *</label>
+                                <input type="number" name="min_pax" required min="1" value="10" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Maks Peserta *</label>
+                                <input type="number" name="max_pax" required min="1" value="100" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Durasi Kunjungan (Hari) *</label>
+                                <input type="number" name="duration_days" required min="1" value="1" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Jenis Kunjungan *</label>
+                                <div class="flex items-center gap-3 pt-2 text-xs">
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" name="inquiry_types[]" value="study_tour" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                        <span>Study Tour</span>
+                                    </label>
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" name="inquiry_types[]" value="penelitian" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                        <span>Penelitian</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Durasi Kunjungan (Hari) *</label>
-                            <input type="number" name="duration_days" required min="1" value="1" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
-                        </div>
-                        <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Deskripsi & Aktivitas Paket *</label>
-                            <textarea name="description" rows="4" required placeholder="Jelaskan alur kegiatan, benefit, dan fasilitas yang didapatkan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                            <textarea name="description" rows="3" required placeholder="Jelaskan alur kegiatan, benefit, dan fasilitas yang didapatkan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Fasilitas Termasuk (1 per baris)</label>
+                                <textarea name="included_items" rows="3" placeholder="Tiket masuk&#10;Pemandu lokal&#10;Makan siang" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tidak Termasuk (1 per baris)</label>
+                                <textarea name="excluded_items" rows="3" placeholder="Transportasi bus&#10;Pengeluaran pribadi" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="is_active" value="1" id="pkg_is_active" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
@@ -512,7 +541,7 @@
                         @forelse($destination->allAddons as $addon)
                             <tr class="hover:bg-gray-50">
                                 <td class="py-3 px-4 font-bold text-gray-800">{{ $addon->name }}</td>
-                                <td class="py-3 px-4 text-gray-600 uppercase font-mono text-[11px]">{{ $addon->pricing_type }}</td>
+                                <td class="py-3 px-4 text-gray-600 font-medium text-xs">{{ $addon->pricing_type instanceof \App\Enums\AddonPricingType ? $addon->pricing_type->label() : ($addon->pricing_type ?? '-') }}</td>
                                 <td class="py-3 px-4 font-bold text-gray-800">Rp {{ number_format($addon->price, 0, ',', '.') }}</td>
                                 <td class="py-3 px-4">
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $addon->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600' }}">
@@ -558,9 +587,10 @@
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tipe Harga *</label>
                                 <select name="pricing_type" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
-                                    <option value="per_pax">Per Pax</option>
-                                    <option value="per_group">Per Rombongan</option>
-                                    <option value="fixed">Biaya Tetap</option>
+                                    <option value="per_pax">Per Peserta (Pax)</option>
+                                    <option value="per_group">Per Rombongan (Group)</option>
+                                    <option value="per_day">Per Hari</option>
+                                    <option value="per_pax_per_day">Per Peserta Per Hari</option>
                                 </select>
                             </div>
                         </div>

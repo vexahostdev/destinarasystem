@@ -71,7 +71,7 @@ class Booking extends Model
             'platform_fee_amount' => 'integer',
             'discount_amount' => 'integer',
             'total_amount' => 'integer',
-            'commission_percent' => 'integer',
+            'commission_percent' => 'float',
             'commission_amount' => 'integer',
             'partner_net_amount' => 'integer',
             'expires_at' => 'datetime',
