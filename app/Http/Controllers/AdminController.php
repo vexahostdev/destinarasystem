@@ -2,50 +2,81 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Destination;
-use App\Models\Institution;
-use App\Models\PartnerProfile;
-use App\Models\Booking;
-use App\Models\Document;
-use App\Models\NotificationLog;
+use App\Domain\Audit\AuditLogger;
+use App\Domain\Booking\Services\BookingService;
+use App\Domain\Catalog\Services\DestinationService;
+use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Enums\BookingStatus;
+use App\Enums\DestinationStatus;
+use App\Enums\NotificationChannel;
+use App\Enums\NotificationStatus;
+use App\Enums\RefundStatus;
+use App\Jobs\SendNotificationJob;
 use App\Models\AuditLog;
-use App\Models\PartnerPayout;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use App\Models\Booking;
+use App\Models\Destination;
+use App\Models\DestinationCategory;
+use App\Models\Institution;
+use App\Models\NotificationLog;
+use App\Models\NotificationTemplate;
+use App\Models\PartnerProfile;
+use App\Models\Province;
+use App\Models\Refund;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        protected DestinationService $destinationService,
+        protected BookingService $bookingService,
+        protected NotificationDispatcher $notificationDispatcher
+    ) {}
 
     /**
-     * Halaman 1: Dashboard Admin Harian
+     * Dashboard Operasional Admin (SPEC §14.4)
      */
     public function dashboard()
     {
-        $pendingDestinations = Destination::where('status', 'pending_review')->count();
+        $today = today();
+        $startOfMonth = now()->startOfMonth();
+
+        $bookingsToday = Booking::whereDate('created_at', $today)->count();
+        $waitingPartnerSla = Booking::where('status', BookingStatus::DIBAYAR)->count();
+        $pendingDestinations = Destination::where('status', DestinationStatus::PENDING_REVIEW)->count();
         $pendingInstitutions = Institution::where('verification_status', 'pending')->count();
         $pendingPartners = PartnerProfile::where('verification_status', 'pending')->count();
         $pendingVerifications = $pendingInstitutions + $pendingPartners;
-        
-        $activeBookings = Booking::whereNotIn('status', ['cancelled'])->count();
-        $urgentBookings = Booking::where('status', 'pending_confirmation')->count();
-        $failedNotifs = NotificationLog::where('status', 'failed')->count();
+        $failedNotifs = NotificationLog::where('status', NotificationStatus::FAILED)->count();
+        $pendingRefunds = Refund::where('status', RefundStatus::PENDING)->count();
+
+        // GMV real
+        $gmvToday = (int) Booking::whereDate('created_at', $today)
+            ->whereIn('status', [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI, BookingStatus::SELESAI])
+            ->sum('total_amount');
+
+        $gmvMonth = (int) Booking::where('created_at', '>=', $startOfMonth)
+            ->whereIn('status', [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI, BookingStatus::SELESAI])
+            ->sum('total_amount');
+
+        $activeBookings = Booking::whereNotIn('status', [BookingStatus::BATAL, BookingStatus::KEDALUWARSA])->count();
+        $urgentBookings = $waitingPartnerSla;
 
         $recentBookings = Booking::with(['destination', 'user.institution'])
             ->latest()
-            ->take(6)
+            ->take(8)
             ->get();
 
         $urgentItems = [];
-        if ($urgentBookings > 0) {
+        if ($waitingPartnerSla > 0) {
             $urgentItems[] = [
                 'type' => 'booking',
-                'title' => "$urgentBookings Rombongan Menunggu Konfirmasi Mitra",
-                'desc' => 'Perlu pengecekan respon mitra dalam batas SLA 24 jam.',
-                'link' => route('admin.bookings.index', ['status' => 'pending_confirmation']),
-                'action_label' => 'Periksa Booking',
+                'title' => "{$waitingPartnerSla} Reservasi Menunggu Konfirmasi Mitra",
+                'desc' => 'Perlu pemantauan konfirmasi batas SLA 24 jam.',
+                'link' => route('admin.bookings.index', ['status' => 'dibayar']),
+                'action_label' => 'Periksa Reservasi',
                 'badge' => 'SLA Alert',
                 'badge_color' => 'bg-amber-100 text-amber-900 border-amber-300',
             ];
@@ -54,10 +85,10 @@ class AdminController extends Controller
         if ($pendingDestinations > 0) {
             $urgentItems[] = [
                 'type' => 'destination',
-                'title' => "$pendingDestinations Dossier Tapak Baru Menunggu Kurasi",
-                'desc' => 'Pengajuan tapak baru membutuhkan telaah kurikulum P5 dan daya dukung.',
+                'title' => "{$pendingDestinations} Destinasi Menunggu Kurasi",
+                'desc' => 'Pengajuan destinasi baru membutuhkan peninjauan konten dan kelayakan.',
                 'link' => route('admin.destinations.verify'),
-                'action_label' => 'Telaah Dossier',
+                'action_label' => 'Telaah Kurasi',
                 'badge' => 'Kurasi Baru',
                 'badge_color' => 'bg-emerald-100 text-emerald-900 border-emerald-300',
             ];
@@ -66,8 +97,8 @@ class AdminController extends Controller
         if ($pendingVerifications > 0) {
             $urgentItems[] = [
                 'type' => 'user',
-                'title' => "$pendingVerifications Kredensial Pengguna Menunggu Validasi",
-                'desc' => 'Verifikasi nomor NPSN/NIDN sekolah dan legalitas SK lembaga adat mitra.',
+                'title' => "{$pendingVerifications} Berkas Legalitas Menunggu Validasi",
+                'desc' => 'Verifikasi keabsahan institusi pemesan atau mitra pengelola.',
                 'link' => route('admin.users.verify'),
                 'action_label' => 'Validasi Berkas',
                 'badge' => 'Legalitas',
@@ -78,23 +109,40 @@ class AdminController extends Controller
         if ($failedNotifs > 0) {
             $urgentItems[] = [
                 'type' => 'notification',
-                'title' => "$failedNotifs Notifikasi WhatsApp/Email Gagal Terkirim",
-                'desc' => 'Antrian pesan keluar mengalami kendala pengiriman ke penerima.',
+                'title' => "{$failedNotifs} Pesan Notifikasi Gagal Terkirim",
+                'desc' => 'Antrean pesan WhatsApp atau Email mengalami kendala transmisi.',
                 'link' => route('admin.notifications.index', ['status' => 'failed']),
-                'action_label' => 'Buka Queue Log',
+                'action_label' => 'Log Notifikasi',
                 'badge' => 'Queue Error',
                 'badge_color' => 'bg-red-100 text-red-900 border-red-300',
             ];
         }
 
-        $auditTrail = AuditLog::with('user')->latest()->take(5)->get();
+        if ($pendingRefunds > 0) {
+            $urgentItems[] = [
+                'type' => 'refund',
+                'title' => "{$pendingRefunds} Pengajuan Refund Menunggu Eksekusi",
+                'desc' => 'Pengembalian dana pembatalan butuh verifikasi dan bukti transfer.',
+                'link' => route('admin.finance.refunds', ['status' => 'pending']),
+                'action_label' => 'Proses Refund',
+                'badge' => 'Refund Alert',
+                'badge_color' => 'bg-rose-100 text-rose-900 border-rose-300',
+            ];
+        }
+
+        $auditTrail = AuditLog::with('user')->latest('id')->take(6)->get();
 
         return view('admin.dashboard', compact(
+            'bookingsToday',
+            'waitingPartnerSla',
             'pendingDestinations',
             'pendingVerifications',
+            'failedNotifs',
+            'pendingRefunds',
+            'gmvToday',
+            'gmvMonth',
             'activeBookings',
             'urgentBookings',
-            'failedNotifs',
             'recentBookings',
             'urgentItems',
             'auditTrail'
@@ -102,97 +150,114 @@ class AdminController extends Controller
     }
 
     /**
-     * Halaman 2: Verifikasi Listing Destinasi Baru
+     * Manajemen Destinasi Penuh (CRUD)
+     */
+    public function destinations(Request $request)
+    {
+        $query = Destination::with(['partner', 'category', 'province']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->query('category_id'));
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->query('search');
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('city', 'like', "%{$s}%");
+            });
+        }
+
+        $destinations = $query->latest('id')->paginate(15)->withQueryString();
+        $categories = DestinationCategory::where('is_active', true)->get();
+
+        return view('admin.destinations.index', compact('destinations', 'categories'));
+    }
+
+    public function createDestination()
+    {
+        $categories = DestinationCategory::where('is_active', true)->get();
+        $provinces = Province::orderBy('name')->get();
+        $partners = User::where('account_type', 'partner')->orderBy('name')->get();
+
+        return view('admin.destinations.create', compact('categories', 'provinces', 'partners'));
+    }
+
+    public function storeDestination(Request $request)
+    {
+        $validated = $request->validate([
+            'partner_id' => 'required|exists:users,id',
+            'category_id' => 'required|exists:destination_categories,id',
+            'name' => 'required|string|max:255',
+            'province_id' => 'required|exists:provinces,id',
+            'city' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'short_description' => 'required|string|max:300',
+            'description' => 'required|string',
+            'educational_highlights' => 'nullable|string',
+            'default_daily_capacity' => 'required|integer|min:1',
+            'cover_image' => 'nullable|image|max:5120',
+        ]);
+
+        $destination = $this->destinationService->createDestination($validated, Auth::user());
+
+        return redirect()->route('admin.destinations.index')->with('success', "Destinasi '{$destination->name}' berhasil ditambahkan.");
+    }
+
+    public function toggleDestinationActive(Destination $destination)
+    {
+        $this->destinationService->toggleActive($destination);
+        return back()->with('success', "Status aktif destinasi '{$destination->name}' berhasil diperbarui.");
+    }
+
+    /**
+     * Verifikasi & Kurasi Destinasi (SPEC §14.4)
      */
     public function verifyDestinations(Request $request)
     {
         $status = $request->query('status', 'pending_review');
-        
-        $query = Destination::query();
+
+        $query = Destination::with(['partner.partnerProfile', 'category', 'moderations.admin']);
         if ($status !== 'all') {
             $query->where('status', $status);
         }
-        $destinations = $query->latest()->get();
-        $pendingCount = Destination::where('status', 'pending_review')->count();
+
+        $destinations = $query->latest('id')->paginate(15)->withQueryString();
+        $pendingCount = Destination::where('status', DestinationStatus::PENDING_REVIEW)->count();
 
         return view('admin.destinations.verify', compact('destinations', 'status', 'pendingCount'));
     }
 
-    /**
-     * Aksi Persetujuan / Penolakan Listing Tapak
-     */
     public function updateDestinationStatus(Request $request, $id)
     {
         $destination = Destination::findOrFail($id);
         $action = $request->input('action'); // approve, revision, reject
         $notes = $request->input('notes', '');
 
-        if ($action === 'approve') {
-            $destination->status = 'published';
-            $destination->save();
+        $this->destinationService->moderate($destination, $action, $notes, Auth::user());
 
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'publish_destination',
-                'entity_type' => 'Destination',
-                'entity_id' => $destination->id,
-                'description' => "Menyetujui dan mempublikasikan tapak '{$destination->name}' ke direktori publik.",
-                'ip_address' => $request->ip(),
-            ]);
+        $msg = match ($action) {
+            'approve' => "Destinasi '{$destination->name}' berhasil disetujui dan diterbitkan!",
+            'revision' => "Catatan revisi untuk '{$destination->name}' berhasil dikirim ke mitra.",
+            default => "Pengajuan destinasi '{$destination->name}' telah ditolak/diarsipkan.",
+        };
 
-            NotificationLog::create([
-                'recipient_type' => 'partner',
-                'recipient_name' => 'Pengelola Tapak',
-                'channel' => 'whatsapp',
-                'target' => '0819-8765-4321',
-                'event_type' => 'curation_approved',
-                'title' => "Dossier '{$destination->name}' Telah Disetujui & Diterbitkan",
-                'preview_text' => "Selamat! Tapak Anda telah lolos telaah kurasi Destinara dan kini aktif menerima reservasi rombongan.",
-                'status' => 'sent',
-                'sent_at' => Carbon::now(),
-            ]);
-
-            return back()->with('success', "Tapak '{$destination->name}' berhasil diverifikasi dan diterbitkan ke katalog publik!");
-        } elseif ($action === 'revision') {
-            $destination->status = 'draft';
-            $destination->save();
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'request_revision_destination',
-                'entity_type' => 'Destination',
-                'entity_id' => $destination->id,
-                'description' => "Meminta revisi dossier tapak '{$destination->name}': $notes",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('info', "Catatan revisi telah dikirimkan ke pengelola tapak.");
-        } else {
-            $destination->status = 'archived';
-            $destination->save();
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'reject_destination',
-                'entity_type' => 'Destination',
-                'entity_id' => $destination->id,
-                'description' => "Menolak pengajuan tapak '{$destination->name}': $notes",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('warning', "Pengajuan tapak '{$destination->name}' ditolak.");
-        }
+        return back()->with('success', $msg);
     }
 
     /**
-     * Halaman 3: Verifikasi Akun Mitra & Institusi
+     * Verifikasi Akun Pengguna (Institusi & Mitra)
      */
     public function verifyUsers(Request $request)
     {
         $tab = $request->query('tab', 'institutions');
 
-        $institutions = Institution::with('user')->latest()->get();
-        $partners = PartnerProfile::with('user')->latest()->get();
+        $institutions = Institution::with(['user', 'documents'])->latest('id')->paginate(15, ['*'], 'inst_page');
+        $partners = PartnerProfile::with(['user', 'documents', 'bank'])->latest('id')->paginate(15, ['*'], 'partner_page');
 
         $pendingInstitutionsCount = Institution::where('verification_status', 'pending')->count();
         $pendingPartnersCount = PartnerProfile::where('verification_status', 'pending')->count();
@@ -206,332 +271,188 @@ class AdminController extends Controller
         ));
     }
 
-    /**
-     * Aksi Verifikasi Pengguna (Institusi / Mitra)
-     */
     public function updateUserVerification(Request $request, $type, $id)
     {
         $action = $request->input('action', 'verify'); // verify or reject
+        $status = ($action === 'verify') ? 'verified' : 'rejected';
 
         if ($type === 'institution') {
             $inst = Institution::findOrFail($id);
-            $inst->verification_status = ($action === 'verify') ? 'verified' : 'unverified';
+            $inst->verification_status = $status;
+            $inst->verified_at = ($action === 'verify') ? now() : null;
             $inst->save();
 
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => ($action === 'verify') ? 'verify_institution' : 'reject_institution',
-                'entity_type' => 'Institution',
-                'entity_id' => $inst->id,
-                'description' => ($action === 'verify')
-                    ? "Memverifikasi legalitas institusi '{$inst->institution_name}' (NPSN: {$inst->npsn})."
-                    : "Menolak verifikasi institusi '{$inst->institution_name}'.",
-                'ip_address' => $request->ip(),
-            ]);
+            AuditLogger::log(
+                action: ($action === 'verify') ? 'verify_institution' : 'reject_institution',
+                target: $inst,
+                description: "Verifikasi institusi '{$inst->institution_name}' diset menjadi {$status}."
+            );
 
-            $msg = ($action === 'verify') ? "Institusi {$inst->institution_name} berhasil diverifikasi!" : "Verifikasi institusi ditolak.";
-            return back()->with('success', $msg);
+            return back()->with('success', "Status verifikasi institusi {$inst->institution_name} diperbarui.");
         } else {
             $partner = PartnerProfile::findOrFail($id);
-            $partner->verification_status = ($action === 'verify') ? 'verified' : 'unverified';
+            $partner->verification_status = $status;
+            $partner->verified_at = ($action === 'verify') ? now() : null;
             $partner->save();
 
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => ($action === 'verify') ? 'verify_partner' : 'reject_partner',
-                'entity_type' => 'PartnerProfile',
-                'entity_id' => $partner->id,
-                'description' => ($action === 'verify')
-                    ? "Memverifikasi legalitas lembaga mitra '{$partner->organization_name}'."
-                    : "Menolak verifikasi lembaga mitra '{$partner->organization_name}'.",
-                'ip_address' => $request->ip(),
-            ]);
+            AuditLogger::log(
+                action: ($action === 'verify') ? 'verify_partner' : 'reject_partner',
+                target: $partner,
+                description: "Verifikasi lembaga mitra '{$partner->organization_name}' diset menjadi {$status}."
+            );
 
-            $msg = ($action === 'verify') ? "Lembaga pengelola {$partner->organization_name} berhasil diverifikasi!" : "Verifikasi mitra ditolak.";
-            return back()->with('success', $msg);
+            return back()->with('success', "Status verifikasi lembaga mitra {$partner->organization_name} diperbarui.");
         }
     }
 
     /**
-     * Halaman 4: Manajemen Booking Lintas Destinasi
+     * Manajemen Reservasi / Booking
      */
     public function manageBookings(Request $request)
     {
         $status = $request->query('status', 'all');
         $search = $request->query('search', '');
 
-        $query = Booking::with(['destination', 'user.institution', 'payment']);
-
-        if ($status !== 'all') {
-            if ($status === 'confirmed') {
-                $query->whereIn('status', ['confirmed', 'dikonfirmasi']);
-            } elseif ($status === 'pending_confirmation') {
-                $query->whereIn('status', ['pending_confirmation', 'review_mitra', 'dibayar']);
-            } elseif ($status === 'awaiting_payment') {
-                $query->whereIn('status', ['awaiting_payment', 'menunggu_pembayaran']);
-            } elseif ($status === 'completed') {
-                $query->whereIn('status', ['completed', 'selesai']);
-            } elseif ($status === 'cancelled') {
-                $query->whereIn('status', ['cancelled', 'batal']);
-            } else {
-                $query->where('status', $status);
-            }
-        }
-
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('booking_code', 'like', "%{$search}%")
-                  ->orWhereHas('destination', function ($dq) use ($search) {
-                      $dq->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('user.institution', function ($iq) use ($search) {
-                      $iq->where('institution_name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $bookings = $query->latest()->get();
-
-        $statusCounts = [
-            'all' => Booking::count(),
-            'pending_confirmation' => Booking::whereIn('status', ['pending_confirmation', 'review_mitra', 'dibayar'])->count(),
-            'awaiting_payment' => Booking::whereIn('status', ['awaiting_payment', 'menunggu_pembayaran'])->count(),
-            'confirmed' => Booking::whereIn('status', ['confirmed', 'dikonfirmasi'])->count(),
-            'completed' => Booking::whereIn('status', ['completed', 'selesai'])->count(),
-            'cancelled' => Booking::whereIn('status', ['cancelled', 'batal'])->count(),
-        ];
-
-        return view('admin.bookings.index', compact('bookings', 'status', 'search', 'statusCounts'));
-    }
-
-    /**
-     * Intervensi Operasional Booking
-     */
-    public function updateBookingStatus(Request $request, $id)
-    {
-        $booking = Booking::with(['destination.partner', 'payment'])->findOrFail($id);
-        $action = $request->input('action'); // force_confirm, reschedule, complete, cancel
-
-        if ($action === 'force_confirm') {
-            $booking->status = 'dikonfirmasi';
-            $booking->save();
-
-            // Buat dokumen resmi jika belum ada
-            if (!$booking->documents()->where('type', 'surat_konfirmasi')->exists()) {
-                Document::create([
-                    'booking_id' => $booking->id,
-                    'type' => 'surat_konfirmasi',
-                    'title' => 'Surat Konfirmasi Kunjungan & e-Pass #' . $booking->booking_code,
-                    'file_path' => 'assets/docs/epass-' . strtolower($booking->booking_code) . '.pdf',
-                    'generated_at' => Carbon::now(),
-                ]);
-            }
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'force_confirm_booking',
-                'entity_type' => 'Booking',
-                'entity_id' => $booking->id,
-                'description' => "Admin melakukan konfirmasi darurat langsung untuk booking {$booking->booking_code}.",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('success', "Booking {$booking->booking_code} berhasil dikonfirmasi secara resmi!");
-        } elseif ($action === 'complete') {
-            $booking->status = 'selesai';
-            $booking->save();
-
-            // Buat record PartnerPayout otomatis (90% hak mitra, 10% komisi platform)
-            $partnerId = $booking->destination->partner_id ?? null;
-            if ($partnerId) {
-                $gross = $booking->subtotal_amount > 0 ? $booking->subtotal_amount : $booking->total_amount;
-                $commission = round($gross * 0.10, 2);
-                $net = $gross - $commission;
-
-                PartnerPayout::firstOrCreate(
-                    ['booking_id' => $booking->id],
-                    [
-                        'partner_id' => $partnerId,
-                        'payout_reference' => 'PO-' . date('Ymd') . '-' . strtoupper(Str::random(6)),
-                        'gross_amount' => $gross,
-                        'commission' => $commission,
-                        'net_amount' => $net,
-                        'status' => 'pending',
-                    ]
-                );
-            }
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'complete_booking',
-                'entity_type' => 'Booking',
-                'entity_id' => $booking->id,
-                'description' => "Kunjungan booking {$booking->booking_code} ditandai selesai. Saldo payout mitra telah dibuat.",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('success', "Booking {$booking->booking_code} telah ditandai SELESAI. Dana payout siap ditarik oleh Mitra di panel pendapatan.");
-        } elseif ($action === 'reschedule') {
-            $newDate = $request->input('visit_date');
-            $oldDate = $booking->visit_date;
-            $booking->visit_date = $newDate;
-            $booking->save();
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'reschedule_booking',
-                'entity_type' => 'Booking',
-                'entity_id' => $booking->id,
-                'description' => "Menjadwalkan ulang booking {$booking->booking_code} dari {$oldDate} ke {$newDate}.",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('success', "Tanggal kunjungan untuk {$booking->booking_code} berhasil diubah ke {$newDate}.");
-        } elseif ($action === 'cancel') {
-            $booking->status = 'batal';
-            $booking->save();
-
-            AuditLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'cancel_booking',
-                'entity_type' => 'Booking',
-                'entity_id' => $booking->id,
-                'description' => "Membatalkan booking {$booking->booking_code} atas permohonan rombongan/force majeure.",
-                'ip_address' => $request->ip(),
-            ]);
-
-            return back()->with('warning', "Booking {$booking->booking_code} telah dibatalkan.");
-        }
-
-        return back();
-    }
-
-    /**
-     * Halaman 5: Generator Dokumen Resmi
-     */
-    public function documentGenerator(Request $request)
-    {
-        $allBookings = Booking::with(['destination', 'user.institution'])->latest()->get();
-        $selectedCode = $request->query('code', $allBookings->first()?->booking_code);
-        $selectedType = $request->query('type', 'invoice'); // invoice, confirmation, permit, epass
-
-        $selectedBooking = Booking::with(['destination', 'user.institution', 'payment'])
-            ->where('booking_code', $selectedCode)
-            ->first() ?? $allBookings->first();
-
-        $documentsArchive = Document::with('booking.destination')->latest()->take(10)->get();
-
-        return view('admin.documents.index', compact(
-            'allBookings',
-            'selectedBooking',
-            'selectedType',
-            'documentsArchive'
-        ));
-    }
-
-    /**
-     * Halaman 6: Form Kurasi & Manajemen Data Lengkap
-     */
-    public function curationEditor(Request $request, $id = null)
-    {
-        $allDestinations = Destination::orderBy('name')->get();
-        
-        if ($id) {
-            $destination = Destination::findOrFail($id);
-        } else {
-            $destination = Destination::where('status', 'pending_review')->first() 
-                ?? Destination::first();
-        }
-
-        return view('admin.destinations.curation', compact('allDestinations', 'destination'));
-    }
-
-    /**
-     * Update Data Kurasi Tapak
-     */
-    public function updateCuration(Request $request, $id)
-    {
-        $destination = Destination::findOrFail($id);
-
-        $destination->name = $request->input('name', $destination->name);
-        $destination->category = $request->input('category', $destination->category);
-        $destination->province = $request->input('province', $destination->province);
-        $destination->city = $request->input('city', $destination->city);
-        $destination->price_per_pax = $request->input('price_per_pax', $destination->price_per_pax);
-        $destination->description = $request->input('description', $destination->description);
-        $destination->educational_highlights = $request->input('educational_highlights', $destination->educational_highlights);
-        $destination->status = $request->input('status', $destination->status);
-        
-        if ($request->has('suitable_for')) {
-            $destination->suitable_for = (array) $request->input('suitable_for');
-        }
-
-        $destination->save();
-
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'update_destination_curation',
-            'entity_type' => 'Destination',
-            'entity_id' => $destination->id,
-            'description' => "Memperbarui dossier kurasi dan parameter pembelajaran untuk '{$destination->name}'.",
-            'ip_address' => $request->ip(),
-        ]);
-
-        return back()->with('success', "Dossier kurasi '{$destination->name}' berhasil diperbarui!");
-    }
-
-    /**
-     * Halaman 7: Pusat Notifikasi & Log Queue
-     */
-    public function notificationLogs(Request $request)
-    {
-        $channel = $request->query('channel', 'all');
-        $status = $request->query('status', 'all');
-
-        $query = NotificationLog::latest();
-
-        if ($channel !== 'all') {
-            $query->where('channel', $channel);
-        }
+        $query = Booking::with(['destination', 'user.institution', 'package', 'payments']);
 
         if ($status !== 'all') {
             $query->where('status', $status);
         }
 
-        $logs = $query->get();
+        if (! empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_code', 'like', "%{$search}%")
+                  ->orWhereHas('destination', fn ($dq) => $dq->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('user.institution', fn ($iq) => $iq->where('institution_name', 'like', "%{$search}%"));
+            });
+        }
 
-        $stats = [
-            'total' => NotificationLog::count(),
-            'sent' => NotificationLog::where('status', 'sent')->count(),
-            'queued' => NotificationLog::where('status', 'queued')->count(),
-            'failed' => NotificationLog::where('status', 'failed')->count(),
+        $bookings = $query->latest('id')->paginate(15)->withQueryString();
+
+        $statusCounts = [
+            'all' => Booking::count(),
+            'menunggu_pembayaran' => Booking::where('status', BookingStatus::MENUNGGU_PEMBAYARAN)->count(),
+            'dibayar' => Booking::where('status', BookingStatus::DIBAYAR)->count(),
+            'dikonfirmasi' => Booking::where('status', BookingStatus::DIKONFIRMASI)->count(),
+            'selesai' => Booking::where('status', BookingStatus::SELESAI)->count(),
+            'batal' => Booking::where('status', BookingStatus::BATAL)->count(),
+            'kedaluwarsa' => Booking::where('status', BookingStatus::KEDALUWARSA)->count(),
         ];
 
-        $auditLogs = AuditLog::with('user')->latest()->take(15)->get();
+        return view('admin.bookings.index', compact('bookings', 'status', 'search', 'statusCounts'));
+    }
 
-        return view('admin.notifications.index', compact('logs', 'stats', 'channel', 'status', 'auditLogs'));
+    public function showBooking($code)
+    {
+        $booking = Booking::with([
+            'destination.partner.partnerProfile',
+            'user.institution',
+            'package',
+            'items',
+            'payments',
+            'statusHistories.actor',
+            'documents',
+            'refund',
+        ])->where('booking_code', $code)->firstOrFail();
+
+        return view('admin.bookings.show', compact('booking'));
+    }
+
+    public function updateBookingStatus(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+        $action = $request->input('action'); // force_confirm, complete, cancel, reschedule
+
+        if ($action === 'force_confirm') {
+            $this->bookingService->confirm($booking, Auth::user());
+            return back()->with('success', "Reservasi {$booking->booking_code} berhasil dikonfirmasi secara resmi.");
+        } elseif ($action === 'complete') {
+            $this->bookingService->complete($booking, Auth::user(), 'Selesai melalui intervensi admin.');
+            return back()->with('success', "Reservasi {$booking->booking_code} telah ditandai selesai.");
+        } elseif ($action === 'cancel') {
+            $reason = $request->input('reason', 'Dibatalkan oleh admin operasional');
+            $overridePercent = $request->filled('refund_percent') ? (int) $request->input('refund_percent') : null;
+            $this->bookingService->cancel($booking, Auth::user(), $reason, 'admin', $overridePercent);
+            return back()->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
+        } elseif ($action === 'reschedule') {
+            $newDate = Carbon::parse($request->input('new_date'));
+            $reason = $request->input('reschedule_reason', 'Perubahan jadwal oleh admin');
+            $this->bookingService->reschedule($booking, $newDate, Auth::user(), $reason);
+            return back()->with('success', "Jadwal kunjungan reservasi {$booking->booking_code} berhasil diperbarui.");
+        }
+
+        return back()->with('error', 'Aksi tidak dikenali.');
     }
 
     /**
-     * Kirim Ulang Notifikasi Gagal
+     * Pusat Notifikasi & Log Queue
      */
+    public function notificationLogs(Request $request)
+    {
+        $query = NotificationLog::query();
+
+        if ($request->filled('channel')) {
+            $query->where('channel', $request->query('channel'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->filled('event_key')) {
+            $query->where('event_key', $request->query('event_key'));
+        }
+
+        $logs = $query->latest('id')->paginate(20)->withQueryString();
+        $events = NotificationLog::select('event_key')->distinct()->pluck('event_key');
+        $channels = NotificationChannel::cases();
+        $statuses = NotificationStatus::cases();
+
+        $stats = [
+            'total' => NotificationLog::count(),
+            'sent' => NotificationLog::where('status', NotificationStatus::SENT)->count(),
+            'queued' => NotificationLog::where('status', NotificationStatus::QUEUED)->count(),
+            'failed' => NotificationLog::where('status', NotificationStatus::FAILED)->count(),
+        ];
+
+        return view('admin.notifications.index', compact('logs', 'events', 'channels', 'statuses', 'stats'));
+    }
+
     public function retryNotification($id)
     {
         $log = NotificationLog::findOrFail($id);
-        $log->status = 'sent';
-        $log->retry_count += 1;
-        $log->sent_at = Carbon::now();
+        $log->status = NotificationStatus::QUEUED;
+        $log->error = null;
         $log->save();
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action' => 'retry_notification',
-            'entity_type' => 'NotificationLog',
-            'entity_id' => $log->id,
-            'description' => "Memicu kirim ulang pesan keluar #{$log->id} ke {$log->target}.",
-            'ip_address' => request()->ip(),
+        SendNotificationJob::dispatch($log->id);
+
+        return back()->with('success', "Notifikasi #{$log->id} dijadwalkan ulang untuk pengiriman.");
+    }
+
+    public function notificationTemplates()
+    {
+        $templates = NotificationTemplate::all();
+        return view('admin.notifications.templates', compact('templates'));
+    }
+
+    public function updateNotificationTemplate(Request $request, NotificationTemplate $template)
+    {
+        $validated = $request->validate([
+            'subject' => 'nullable|string|max:255',
+            'body' => 'required|string',
+            'is_active' => 'boolean',
         ]);
 
-        return back()->with('success', "Pesan notifikasi berhasil dikirim ulang ke gateway {$log->channel}!");
+        $validated['is_active'] = $request->boolean('is_active');
+        $template->update($validated);
+
+        AuditLogger::log(
+            action: 'update_notification_template',
+            target: $template,
+            description: "Template notifikasi {$template->event_key} ({$template->channel->value}) diperbarui."
+        );
+
+        return back()->with('success', "Template notifikasi berhasil diperbarui.");
     }
 }

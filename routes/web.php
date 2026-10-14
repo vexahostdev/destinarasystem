@@ -175,67 +175,135 @@ Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->
 
 /*
 |--------------------------------------------------------------------------
-| Destinara Platform — Layer 4: Admin Operasional
+| Destinara Platform — Layer 4: Admin Panel Terpadu (SPEC §14.4)
 |--------------------------------------------------------------------------
-| 7 Halaman Konsol Admin Operasional sesuai PRD v1.0 & Figma
+| Seluruh modul operasional & dewan eksekutif disatukan dalam prefix /admin
+| dengan pengamanan akun internal dan sistem izin granular Spatie (SPEC §4)
 */
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\MasterDataController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\HealthController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\Admin\SiteContentController;
+use App\Http\Controllers\Admin\DocumentAdminController;
+use App\Http\Controllers\Admin\UserController;
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin|super_admin'])->group(function () {
-    // 1. Dashboard Admin Harian
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+// Pengalihan permanen URL lama superadmin ke admin (SPEC §13, §14.4)
+Route::redirect('/superadmin/{any?}', '/admin/{any?}', 301)->where('any', '.*');
 
-    // 2. Verifikasi Listing Destinasi Baru
-    Route::get('/destinasi/verifikasi', [AdminController::class, 'verifyDestinations'])->name('destinations.verify');
-    Route::post('/destinasi/{id}/status', [AdminController::class, 'updateDestinationStatus'])->name('destinations.updateStatus');
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:internal'])->group(function () {
+    // 1. Dashboard Operasional & Eksekutif (SPEC §14.4)
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->middleware('can:dashboard.view')->name('dashboard');
 
-    // 3. Verifikasi Akun Mitra & Institusi
-    Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->name('users.verify');
-    Route::post('/verifikasi-pengguna/{type}/{id}', [AdminController::class, 'updateUserVerification'])->name('users.updateVerification');
+    // 2. Destinasi (CRUD Penuh untuk Admin)
+    Route::get('/destinasi', [AdminController::class, 'destinations'])->middleware('can:destinations.view')->name('destinations.index');
+    Route::get('/destinasi/tambah', [AdminController::class, 'createDestination'])->middleware('can:destinations.create')->name('destinations.create');
+    Route::post('/destinasi', [AdminController::class, 'storeDestination'])->middleware('can:destinations.create')->name('destinations.store');
+    Route::post('/destinasi/{destination}/toggle-active', [AdminController::class, 'toggleDestinationActive'])->middleware('can:destinations.update')->name('destinations.toggleActive');
 
-    // 4. Manajemen Booking Lintas Destinasi
-    Route::get('/booking', [AdminController::class, 'manageBookings'])->name('bookings.index');
-    Route::post('/booking/{id}/status', [AdminController::class, 'updateBookingStatus'])->name('bookings.updateStatus');
+    // 3. Verifikasi & Kurasi Destinasi
+    Route::get('/destinasi/verifikasi', [AdminController::class, 'verifyDestinations'])->middleware('can:destinations.verify')->name('destinations.verify');
+    Route::post('/destinasi/{id}/status', [AdminController::class, 'updateDestinationStatus'])->middleware('can:destinations.verify')->name('destinations.updateStatus');
 
-    // 5. Generator Dokumen Resmi
-    Route::get('/dokumen', [AdminController::class, 'documentGenerator'])->name('documents.index');
+    // 4. Pengguna & Validasi Legalitas
+    Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->middleware('can:institutions.verify')->name('users.verify');
+    Route::post('/verifikasi-pengguna/{type}/{id}', [AdminController::class, 'updateUserVerification'])->middleware('can:institutions.verify')->name('users.updateVerification');
+    Route::get('/pengguna', [UserController::class, 'index'])->middleware('can:users.view')->name('users.index');
+    Route::post('/pengguna/{user}/status', [UserController::class, 'toggleStatus'])->middleware('can:users.manage')->name('users.toggleStatus');
+    Route::post('/pengguna/{user}/reset-password', [UserController::class, 'sendPasswordReset'])->middleware('can:users.manage')->name('users.sendPasswordReset');
+    Route::post('/pengguna/{user}/verify-email', [UserController::class, 'verifyEmail'])->middleware('can:users.manage')->name('users.verifyEmail');
+    Route::post('/pengguna/{user}/komisi', [UserController::class, 'updatePartnerCommission'])->middleware('can:partners.update')->name('users.updateCommission');
 
-    // 6. Form Kurasi & Manajemen Data Lengkap
-    Route::get('/kurasi/{id?}', [AdminController::class, 'curationEditor'])->name('destinations.curation');
-    Route::post('/kurasi/{id}', [AdminController::class, 'updateCuration'])->name('destinations.updateCuration');
+    // 5. Reservasi / Booking Lintas Destinasi
+    Route::get('/booking', [AdminController::class, 'manageBookings'])->middleware('can:bookings.view')->name('bookings.index');
+    Route::get('/booking/{code}', [AdminController::class, 'showBooking'])->middleware('can:bookings.view')->name('bookings.show');
+    Route::post('/booking/{id}/status', [AdminController::class, 'updateBookingStatus'])->middleware('can:bookings.update')->name('bookings.updateStatus');
 
-    // 7. Pusat Notifikasi & Log Queue
-    Route::get('/log-notifikasi', [AdminController::class, 'notificationLogs'])->name('notifications.index');
-    Route::post('/log-notifikasi/{id}/retry', [AdminController::class, 'retryNotification'])->name('notifications.retry');
+    // 6. Keuangan: Pembayaran, Refund, Payout, Rekonsiliasi
+    Route::prefix('keuangan')->name('finance.')->group(function () {
+        Route::get('/pembayaran', [FinanceController::class, 'payments'])->middleware('can:payments.view')->name('payments');
+        Route::post('/pembayaran/{payment}/verifikasi', [FinanceController::class, 'verifyManualPayment'])->middleware('can:payments.verify_manual')->name('verifyManual');
+        Route::post('/pembayaran/{payment}/cek-status', [FinanceController::class, 'checkGatewayStatus'])->middleware('can:payments.view')->name('checkGatewayStatus');
+
+        Route::get('/refund', [FinanceController::class, 'refunds'])->middleware('can:refunds.view')->name('refunds');
+        Route::post('/refund/{refund}/proses', [FinanceController::class, 'processRefund'])->middleware('can:refunds.process')->name('processRefund');
+        Route::post('/refund/{refund}/tolak', [FinanceController::class, 'rejectRefund'])->middleware('can:refunds.process')->name('rejectRefund');
+
+        Route::get('/payout', [FinanceController::class, 'payouts'])->middleware('can:payouts.view')->name('payouts');
+        Route::post('/payout/proses', [FinanceController::class, 'processPayout'])->middleware('can:payouts.process')->name('processPayout');
+        Route::post('/payout/{payout}/hold', [FinanceController::class, 'holdPayout'])->middleware('can:payouts.process')->name('holdPayout');
+
+        Route::get('/rekonsiliasi', [FinanceController::class, 'reconciliation'])->middleware('can:reconciliation.view')->name('reconciliation');
+        Route::post('/rekonsiliasi/tutup-buku', [FinanceController::class, 'closePeriod'])->middleware('can:reconciliation.close')->name('closePeriod');
+        Route::get('/rekonsiliasi/export-csv', [FinanceController::class, 'exportCsv'])->middleware('can:reconciliation.view')->name('exportCsv');
+    });
+
+    // 7. Dokumen Arsip & Template Dokumen
+    Route::get('/dokumen', [DocumentAdminController::class, 'index'])->middleware('can:documents.view')->name('documents.index');
+    Route::get('/dokumen/{document}/preview', [DocumentAdminController::class, 'preview'])->middleware('can:documents.view')->name('documents.preview');
+    Route::post('/dokumen/{document}/regenerate', [DocumentAdminController::class, 'regenerate'])->middleware('can:documents.regenerate')->name('documents.regenerate');
+    Route::post('/dokumen/{document}/void', [DocumentAdminController::class, 'void'])->middleware('can:documents.regenerate')->name('documents.void');
+    Route::get('/dokumen-templates', [DocumentAdminController::class, 'templates'])->middleware('can:documents.templates')->name('documents.templates');
+    Route::post('/dokumen-templates/{template}', [DocumentAdminController::class, 'updateTemplate'])->middleware('can:documents.templates')->name('documents.templates.update');
+    Route::get('/dokumen-templates/{template}/preview', [DocumentAdminController::class, 'previewTemplate'])->middleware('can:documents.templates')->name('documents.templates.preview');
+
+    // 8. Moderasi Ulasan
+    Route::get('/ulasan', [ReviewController::class, 'index'])->middleware('can:reviews.moderate')->name('reviews.index');
+    Route::post('/ulasan/{review}/moderasi', [ReviewController::class, 'moderate'])->middleware('can:reviews.moderate')->name('reviews.moderate');
+
+    // 9. Kelola Voucher Diskon
+    Route::get('/voucher', [VoucherController::class, 'index'])->middleware('can:vouchers.manage')->name('vouchers.index');
+    Route::post('/voucher', [VoucherController::class, 'store'])->middleware('can:vouchers.manage')->name('vouchers.store');
+    Route::post('/voucher/{voucher}/update', [VoucherController::class, 'update'])->middleware('can:vouchers.manage')->name('vouchers.update');
+    Route::post('/voucher/{voucher}/delete', [VoucherController::class, 'destroy'])->middleware('can:vouchers.manage')->name('vouchers.delete');
+
+    // 10. Notifikasi & Log Queue
+    Route::get('/notifikasi', [AdminController::class, 'notificationLogs'])->middleware('can:notifications.view')->name('notifications.index');
+    Route::post('/notifikasi/{id}/retry', [AdminController::class, 'retryNotification'])->middleware('can:notifications.retry')->name('notifications.retry');
+    Route::get('/notifikasi/template', [AdminController::class, 'notificationTemplates'])->middleware('can:notifications.templates')->name('notifications.templates');
+    Route::post('/notifikasi/template/{template}', [AdminController::class, 'updateNotificationTemplate'])->middleware('can:notifications.templates')->name('notifications.templates.update');
+
+    // 11. Master Data Platform
+    Route::get('/master-data', [MasterDataController::class, 'index'])->middleware('can:master_data.manage')->name('master.index');
+    Route::post('/master-data/{type}', [MasterDataController::class, 'store'])->middleware('can:master_data.manage')->name('master.store');
+    Route::post('/master-data/{type}/{id}/update', [MasterDataController::class, 'update'])->middleware('can:master_data.manage')->name('master.update');
+    Route::post('/master-data/{type}/{id}/delete', [MasterDataController::class, 'destroy'])->middleware('can:master_data.manage')->name('master.destroy');
+
+    // 12. Konten Halaman (CMS)
+    Route::get('/konten-halaman', [SiteContentController::class, 'index'])->middleware('can:site_content.manage')->name('siteContents.index');
+    Route::post('/konten-halaman/{siteContent}', [SiteContentController::class, 'update'])->middleware('can:site_content.manage')->name('siteContents.update');
+
+    // 13. Tim Internal & Manajemen Peran/Role
+    Route::get('/tim-internal', [TeamController::class, 'index'])->middleware('can:internal_users.manage')->name('team.index');
+    Route::post('/tim-internal/user', [TeamController::class, 'storeUser'])->middleware('can:internal_users.manage')->name('team.user.store');
+    Route::post('/tim-internal/user/{user}/update', [TeamController::class, 'updateUser'])->middleware('can:internal_users.manage')->name('team.user.update');
+    Route::post('/tim-internal/user/{user}/delete', [TeamController::class, 'deleteUser'])->middleware('can:internal_users.manage')->name('team.user.delete');
+    Route::post('/tim-internal/role', [TeamController::class, 'storeRole'])->middleware('can:roles.manage')->name('team.role.store');
+    Route::post('/tim-internal/role/{role}/update', [TeamController::class, 'updateRole'])->middleware('can:roles.manage')->name('team.role.update');
+
+    // 14. Pengaturan Sistem
+    Route::get('/pengaturan', [SettingsController::class, 'index'])->middleware('can:settings.general')->name('settings.index');
+    Route::post('/pengaturan', [SettingsController::class, 'update'])->middleware('can:settings.general')->name('settings.update');
+    Route::post('/pengaturan/test/{target}', [SettingsController::class, 'testConnection'])->middleware('can:settings.general')->name('settings.test');
+
+    // 15. Audit Log Ekosistem
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('can:audit_logs.view')->name('auditLogs.index');
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->middleware('can:audit_logs.view')->name('auditLogs.show');
+
+    // 16. Analitik Bisnis & Laporan Makro
+    Route::get('/analitik', [AnalyticsController::class, 'index'])->middleware('can:analytics.view')->name('analytics.index');
+    Route::get('/analitik/export-csv', [AnalyticsController::class, 'exportCsv'])->middleware('can:analytics.view')->name('analytics.exportCsv');
+
+    // 17. System Health Diagnostics
+    Route::get('/system-health', [HealthController::class, 'index'])->middleware('can:system_health.view')->name('health.index');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Destinara Platform — Layer 5: Super Admin (Dewan Direksi & Kontrol Ekosistem)
-|--------------------------------------------------------------------------
-| 5 Halaman Eksekutif Super Admin sesuai PRD v1.0 & Figma
-*/
-use App\Http\Controllers\SuperAdminController;
-
-Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:super_admin'])->group(function () {
-    // 1. Dashboard Kontrol Ekosistem
-    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
-
-    // 2. Pengaturan Master
-    Route::get('/pengaturan', [SuperAdminController::class, 'settings'])->name('settings');
-    Route::post('/pengaturan', [SuperAdminController::class, 'updateSettings'])->name('settings.update');
-
-    // 3. Modal Dialog Tindakan Kritis & Manajemen Akses Pengguna
-    Route::get('/pengguna', [SuperAdminController::class, 'users'])->name('users');
-    Route::post('/pengguna/kritis', [SuperAdminController::class, 'executeCriticalAction'])->name('users.critical');
-
-    // 4. Analitik Bisnis & Reporting Ekosistem
-    Route::get('/analitik', [SuperAdminController::class, 'analytics'])->name('analytics');
-
-    // 5. Rekonsiliasi Keuangan & Audit Log Master
-    Route::get('/rekonsiliasi', [SuperAdminController::class, 'reconciliation'])->name('reconciliation');
-    Route::post('/rekonsiliasi/tutup-buku', [SuperAdminController::class, 'triggerReconciliation'])->name('reconciliation.trigger');
-});
 
 
 

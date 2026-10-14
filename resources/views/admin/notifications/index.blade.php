@@ -24,7 +24,7 @@
         <div class="flex items-center gap-2">
             <span class="px-3 py-1.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-semibold flex items-center gap-1.5 font-mono">
                 <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                <span>Fonnte WhatsApp API: CONNECTED</span>
+                <span>VexaHost WhatsApp API: AKTIF</span>
             </span>
         </div>
     </div>

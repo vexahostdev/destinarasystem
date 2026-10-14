@@ -175,79 +175,60 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            @foreach($recentBookings as $b)
+                            @forelse($recentBookings as $b)
                             <tr class="hover:bg-gray-50/70 transition-colors">
                                 <td class="py-3.5 pr-2">
                                     <span class="font-mono font-bold text-[#703A3A] block">{{ $b->booking_code }}</span>
-                                    <span class="text-[#1E1B1B] font-medium">{{ $b->user->institution->institution_name ?? $b->user->name }}</span>
+                                    <span class="text-[#1E1B1B] font-medium">{{ $b->user?->institution?->institution_name ?? $b->user?->name }}</span>
                                 </td>
                                 <td class="py-3.5 pr-2">
-                                    <span class="font-semibold text-[#1E1B1B] block">{{ $b->destination->name ?? '-' }}</span>
-                                    <span class="text-[11px] text-gray-400">{{ $b->destination->city ?? '' }}</span>
+                                    <span class="font-semibold text-[#1E1B1B] block">{{ $b->destination?->name ?? '-' }}</span>
+                                    <span class="text-[11px] text-gray-400">{{ $b->destination?->city ?? '' }}</span>
                                 </td>
                                 <td class="py-3.5 pr-2 font-mono text-gray-600">
-                                    {{ \Carbon\Carbon::parse($b->visit_date)->format('d M Y') }}
+                                    {{ $b->planned_date_start?->format('d M Y') ?? '-' }}
                                 </td>
                                 <td class="py-3.5 pr-2 text-right font-mono font-bold text-[#1E1B1B]">
-                                    {{ $b->total_pax }} Pax
+                                    {{ $b->participant_count }} Pax
                                 </td>
                                 <td class="py-3.5 text-center">
-                                    @if($b->status === 'confirmed')
-                                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold uppercase">Lunas</span>
-                                    @elseif($b->status === 'awaiting_payment')
-                                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-bold uppercase">Menunggu Bayar</span>
-                                    @elseif($b->status === 'pending_confirmation')
-                                        <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 text-[10px] font-bold uppercase">Review Mitra</span>
-                                    @elseif($b->status === 'completed')
-                                        <span class="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold uppercase">Selesai</span>
-                                    @else
-                                        <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-800 text-[10px] font-bold uppercase">{{ $b->status }}</span>
-                                    @endif
+                                    <x-status-badge :enum="$b->status" />
                                 </td>
                                 <td class="py-3.5 text-right">
-                                    <a href="{{ route('admin.bookings.index', ['search' => $b->booking_code]) }}" class="text-[#703A3A] font-bold hover:underline">
+                                    <a href="{{ route('admin.bookings.show', $b->booking_code) }}" class="text-[#703A3A] font-bold hover:underline">
                                         Detail
                                     </a>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="6" class="py-6 text-center text-gray-400">Belum ada reservasi masuk.</td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Distribusi Tematik Pembelajaran P5 -->
+            <!-- Ringkasan Finansial Makro Riil -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
-                <h3 class="text-base font-bold text-[#1E1B1B] mb-1">Cakupan Kurikulum & Relevansi</h3>
-                <p class="text-xs text-gray-400 mb-4">Pemetaan modul pembelajaran tapak nusantara yang terdaftar dalam platform</p>
+                <h3 class="text-base font-bold text-[#1E1B1B] mb-1">Performa Transaksi Riil</h3>
+                <p class="text-xs text-gray-400 mb-4">Total nilai transaksi bruto (GMV) terverifikasi dalam sistem</p>
                 
-                <div class="space-y-3.5 text-xs">
-                    <div>
-                        <div class="flex justify-between font-semibold mb-1.5">
-                            <span>Kearifan Lokal & Tata Ruang Adat</span>
-                            <span class="font-mono text-gray-500">45% (9 Tapak)</span>
-                        </div>
-                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-[#703A3A] h-2 rounded-full" style="width: 45%"></div>
-                        </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60">
+                        <span class="text-xs text-stone-500 font-semibold block">GMV Hari Ini</span>
+                        <span class="text-xl font-extrabold text-[#703A3A] font-mono mt-1 block">
+                            Rp {{ number_format($gmvToday, 0, ',', '.') }}
+                        </span>
+                        <span class="text-[11px] text-stone-400 mt-1 block">{{ $bookingsToday }} reservasi dibuat hari ini</span>
                     </div>
-                    <div>
-                        <div class="flex justify-between font-semibold mb-1.5">
-                            <span>Biosfer Maritim & Konservasi Alam</span>
-                            <span class="font-mono text-gray-500">30% (6 Tapak)</span>
-                        </div>
-                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-[#51634b] h-2 rounded-full" style="width: 30%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between font-semibold mb-1.5">
-                            <span>Teknologi Pertanian Tradisional & Pangan</span>
-                            <span class="font-mono text-gray-500">25% (5 Tapak)</span>
-                        </div>
-                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-[#b87a38] h-2 rounded-full" style="width: 25%"></div>
-                        </div>
+                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60">
+                        <span class="text-xs text-stone-500 font-semibold block">GMV Bulan Ini</span>
+                        <span class="text-xl font-extrabold text-[#2B3A4A] font-mono mt-1 block">
+                            Rp {{ number_format($gmvMonth, 0, ',', '.') }}
+                        </span>
+                        <span class="text-[11px] text-stone-400 mt-1 block">{{ now()->translatedFormat('F Y') }}</span>
                     </div>
                 </div>
             </div>
@@ -256,24 +237,24 @@
         <!-- Right 1 Col: Audit Trail & Indikator Sistem -->
         <div class="space-y-6">
             
-            <!-- SLA & Kinerja Layanan -->
-            <div class="rounded-3xl bg-emerald-50/60 p-6 border border-emerald-200/50 space-y-3">
-                <h3 class="text-base font-bold text-emerald-900 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#51634b]">verified_user</span>
-                    <span>Standar Layanan Operasional (SLA)</span>
+            <!-- Indikator Kebutuhan Perhatian -->
+            <div class="rounded-3xl bg-amber-50/60 p-6 border border-amber-200/50 space-y-3">
+                <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-700">notification_important</span>
+                    <span>Monitoring Antrean Sistem</span>
                 </h3>
                 <div class="space-y-3 text-xs">
-                    <div class="flex items-center justify-between pb-2 border-b border-emerald-200/40">
-                        <span class="text-emerald-800">Respon Verifikasi Tapak</span>
-                        <span class="font-mono font-bold text-emerald-900">18.4 Jam (Target: &lt;24h)</span>
+                    <div class="flex items-center justify-between pb-2 border-b border-amber-200/40">
+                        <span class="text-amber-800">Menunggu SLA Mitra</span>
+                        <span class="font-mono font-bold text-amber-900">{{ $waitingPartnerSla }} Booking</span>
                     </div>
-                    <div class="flex items-center justify-between pb-2 border-b border-emerald-200/40">
-                        <span class="text-emerald-800">Penerbitan Dokumen BOS</span>
-                        <span class="font-mono font-bold text-emerald-900">Instan (&lt;5 detik)</span>
+                    <div class="flex items-center justify-between pb-2 border-b border-amber-200/40">
+                        <span class="text-amber-800">Pending Refund</span>
+                        <span class="font-mono font-bold text-amber-900">{{ $pendingRefunds }} Pengajuan</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-emerald-800">Sukses Notifikasi WA</span>
-                        <span class="font-mono font-bold text-emerald-900">98.2% Lolos Gateway</span>
+                        <span class="text-amber-800">Notifikasi Gagal</span>
+                        <span class="font-mono font-bold text-amber-900">{{ $failedNotifs }} Transmisi</span>
                     </div>
                 </div>
             </div>

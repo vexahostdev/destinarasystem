@@ -89,7 +89,7 @@
                             </div>
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">Domisili / Wilayah:</span>
-                                <span class="font-medium text-[#2B211E]">{{ $inst->city }}, {{ $inst->province }}</span>
+                                <span class="font-medium text-[#2B211E]">{{ $inst->city }}, {{ $inst->province?->name ?? '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">PIC Penanggung Jawab:</span>
@@ -189,7 +189,7 @@
                             </div>
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">Bank Rekening Penampung:</span>
-                                <span class="font-bold text-[#51634b]">{{ $p->bank_name }}</span>
+                                <span class="font-bold text-[#51634b]">{{ $p->bank?->name ?? ($p->bank_name ?? '-') }}</span>
                             </div>
                             <div>
                                 <span class="text-[#2B211E]/60 block text-[10px] font-mono uppercase">Nomor Rekening Resmi:</span>
