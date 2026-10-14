@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -133,5 +134,6 @@
 
     </div>
 
+    @livewireScriptConfig
 </body>
 </html>

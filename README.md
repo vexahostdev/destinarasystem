@@ -108,6 +108,10 @@ app/
    php artisan serve --port=8020
    ```
 
+> [!IMPORTANT]
+> **Catatan Asset Frontend & Vite (`public/hot`)**:
+> Saat deployment atau jika dev server Vite (`npm run dev`) tidak berjalan, pastikan file `public/hot` tidak tertinggal (hapus berkas `public/hot` bila ada). Selalu jalankan `npm run build` sebelum menjalankan aplikasi di production atau staging agar aset terkompilasi di `public/build` tersedia secara mandiri tanpa dev server.
+
 ---
 
 ## 5. Pengujian & Quality Assurance
