@@ -30,10 +30,16 @@
           <span class="material-symbols-outlined text-[16px]">verified</span>
           <span>Protokol FPIC Sah</span>
         </span>
+        @if(!empty($destination['rating']))
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200/50">
           <span class="material-symbols-outlined text-[15px] fill-current text-amber-500">star</span>
           <span>{{ $destination['rating'] }} ({{ $destination['reviews_count'] }} ulasan)</span>
         </span>
+        @else
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
+          <span>Tapak Baru Terverifikasi</span>
+        </span>
+        @endif
       </div>
     </div>
 
@@ -203,16 +209,66 @@
           </div>
         </div>
 
-        <!-- Protokol Etika FPIC Adat -->
-        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+        <!-- Kontak Pengelola & PIC Lapangan (Aturan Reveal SPEC §8.5) -->
+        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-4">
           <div class="flex items-center gap-2 font-bold text-base text-[#1E1B1B]">
-            <span class="material-symbols-outlined text-[#703A3A] text-[20px]">policy</span>
-            <h4>Protokol Etika Tapak & Kepatuhan Adat (FPIC)</h4>
+            <span class="material-symbols-outlined text-[#703A3A] text-[20px]">contact_phone</span>
+            <h4>Kontak Pengelola & Narahubung Tapak</h4>
           </div>
-          <p>1. <strong>Pakaian Adat:</strong> Rombongan wajib mengenakan kain/selendang adat yang disediakan di pos gerbang masuk sebelum memasuki area sakral.</p>
-          <p>2. <strong>Dokumentasi Tertib:</strong> Mengambil foto/video diperkenankan pada zona publik. Untuk upacara ritual internal keluarga adat, wajib memohon izin tetua.</p>
-          <p>3. <strong>Bebas Sampah Plastik:</strong> Dilarang keras membawa kemasan plastik sekali pakai ke dalam kawasan hutan dan mata air.</p>
+
+          @if(count($destination['contacts']) > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @foreach($destination['contacts'] as $contact)
+                <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
+                  <div>
+                    <span class="font-bold text-slate-800 block">{{ $contact['name'] }}</span>
+                    <span class="text-slate-500 text-[11px]">{{ $contact['role'] }}</span>
+                  </div>
+                  <div>
+                    @if($contact['is_revealed'])
+                      <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', $contact['phone']) }}" target="_blank" class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full hover:bg-emerald-100 transition">
+                        <span class="material-symbols-outlined text-[14px]">chat</span>
+                        {{ $contact['phone'] }}
+                      </a>
+                    @else
+                      <span class="inline-flex items-center gap-1 text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {{ $contact['phone'] }}
+                      </span>
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            </div>
+            @if(!($destination['contacts'][0]['is_revealed'] ?? false))
+              <p class="text-[11px] text-slate-500 bg-amber-50 p-3 rounded-xl border border-amber-200/50">
+                <span class="font-bold text-amber-800">Privasi Kontak:</span> Nomor kontak lengkap pengelola akan terbuka otomatis bagi akun institusi pemesan setelah reservasi berstatus dikonfirmasi atau berlangsung.
+              </p>
+            @endif
+          @else
+            <p class="text-xs text-slate-500">Narahubung terdaftar langsung di bawah koordinasi pengelola tapak resmi.</p>
+          @endif
         </div>
+
+        <!-- Kebijakan Pembatalan & Pengembalian Dana (SPEC §8.6) -->
+        @if(!empty($destination['cancellationPolicy']))
+          <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 text-xs sm:text-sm text-gray-600">
+            <div class="flex items-center gap-2 font-bold text-base text-[#1E1B1B]">
+              <span class="material-symbols-outlined text-[#703A3A] text-[20px]">verified_user</span>
+              <h4>Kebijakan Pembatalan: {{ $destination['cancellationPolicy']->name }}</h4>
+            </div>
+            <p class="text-xs text-slate-500">{{ $destination['cancellationPolicy']->description }}</p>
+            @if($destination['cancellationPolicy']->tiers && $destination['cancellationPolicy']->tiers->isNotEmpty())
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                @foreach($destination['cancellationPolicy']->tiers as $tier)
+                  <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-center">
+                    <span class="font-bold text-slate-700 block">H-{{ $tier->days_before }} atau lebih</span>
+                    <span class="text-emerald-700 font-extrabold text-sm">{{ $tier->refund_percent }}% Refund</span>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+          </div>
+        @endif
 
       </div>
 
@@ -321,7 +377,7 @@
               </a>
             @endauth
 
-            <a href="https://wa.me/6281288776655?text=Halo%20Destinara%2C%20mohon%20informasi%20dossier%20kurikulum%20dan%20silabus%20resmi%20untuk%20{{ urlencode($destination['name'] ?? $destination->name) }}" 
+            <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', (string) setting('company_phone', '6281200000000')) }}?text=Halo%20Destinara%2C%20mohon%20informasi%20dossier%20kurikulum%20dan%20silabus%20resmi%20untuk%20{{ urlencode($destination['name'] ?? $destination->name) }}" 
                target="_blank"
                class="border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-full font-semibold text-xs text-center flex items-center justify-center gap-1.5 transition-all bg-white hover:bg-gray-50">
               <span class="material-symbols-outlined text-[16px]">description</span>

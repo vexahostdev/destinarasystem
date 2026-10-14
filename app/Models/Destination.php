@@ -120,6 +120,11 @@ class Destination extends Model
         return $this->hasMany(AvailabilitySlot::class);
     }
 
+    public function slots(): HasMany
+    {
+        return $this->availabilitySlots();
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);

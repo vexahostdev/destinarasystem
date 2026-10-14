@@ -22,6 +22,8 @@ use App\Http\Controllers\AuthController;
 
 // 3. Alur & Cara Kerja Kemitraan
 Route::get('/cara-kerja', [PublicController::class, 'caraKerja'])->name('cara-kerja');
+Route::get('/faq', [PublicController::class, 'faq'])->name('faq');
+Route::get('/syarat-ketentuan', [PublicController::class, 'terms'])->name('terms');
 
 // 4. Verifikasi Keabsahan Dokumen (SPEC §11, §13)
 Route::get('/verifikasi/{hash}', [PublicController::class, 'verifyDocument'])->name('verification.document');
