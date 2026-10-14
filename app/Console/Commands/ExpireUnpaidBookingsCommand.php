@@ -57,13 +57,13 @@ class ExpireUnpaidBookingsCommand extends Command
                     $paymentService->processPaymentExpiry($payment);
                 }
 
-                // 4. Restore voucher quota if used
+                // 4. Restore voucher quota if used (idempotent)
                 if ($locked->voucher_id) {
                     $voucher = Voucher::where('id', $locked->voucher_id)->lockForUpdate()->first();
-                    if ($voucher && $voucher->used_count > 0) {
+                    $deleted = VoucherRedemption::where('booking_id', $locked->id)->delete();
+                    if ($voucher && $deleted > 0 && $voucher->used_count > 0) {
                         $voucher->decrement('used_count');
                     }
-                    VoucherRedemption::where('booking_id', $locked->id)->delete();
                 }
 
                 // 5. Dispatch domain event

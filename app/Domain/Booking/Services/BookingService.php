@@ -103,15 +103,19 @@ class BookingService
         // 6. Voucher (if provided)
         $voucher = null;
         if (! empty($data['voucher_code'])) {
-            $voucher = Voucher::where('code', strtoupper($data['voucher_code']))
-                ->where('is_active', true)
-                ->where('valid_from', '<=', now())
-                ->where('valid_until', '>=', now())
-                ->first();
+            $code = strtoupper(trim($data['voucher_code']));
+            $voucher = Voucher::where('code', $code)->first();
 
             if (! $voucher) {
-                throw new InvalidArgumentException('Kode voucher tidak valid atau telah kedaluwarsa.');
+                throw new InvalidArgumentException('Kode voucher tidak ditemukan.');
             }
+
+            // Pre-validate general criteria
+            $voucher->validateFor(
+                amount: null,
+                destinationId: $destination->id,
+                userId: $buyer->id
+            );
         }
 
         // 7. Atomic DB Transaction with slot lock
@@ -121,17 +125,15 @@ class BookingService
         ) {
             if ($voucher) {
                 $lockedVoucher = Voucher::where('id', $voucher->id)->lockForUpdate()->first();
-                if ($lockedVoucher->total_quota !== null && $lockedVoucher->used_count >= $lockedVoucher->total_quota) {
-                    throw new InvalidArgumentException('Kuota pemakaian voucher telah habis.');
+                if (! $lockedVoucher) {
+                    throw new InvalidArgumentException('Kode voucher tidak valid.');
                 }
 
-                $userUsage = VoucherRedemption::where('voucher_id', $lockedVoucher->id)
-                    ->where('user_id', $buyer->id)
-                    ->count();
-
-                if ($lockedVoucher->per_user_limit !== null && $userUsage >= $lockedVoucher->per_user_limit) {
-                    throw new InvalidArgumentException('Anda telah mencapai batas penggunaan voucher ini.');
-                }
+                $lockedVoucher->validateFor(
+                    amount: null,
+                    destinationId: $destination->id,
+                    userId: $buyer->id
+                );
                 $voucher = $lockedVoucher;
             }
 
@@ -142,6 +144,14 @@ class BookingService
                 voucher: $voucher,
                 userId: $buyer->id
             );
+
+            if ($voucher) {
+                $voucher->validateFor(
+                    amount: $pricing->subtotal,
+                    destinationId: $destination->id,
+                    userId: $buyer->id
+                );
+            }
 
             $bookingCode = $this->codeGenerator->generate();
             $expiryHours = (int) setting('payment_expiry_hours', 24);
@@ -313,6 +323,8 @@ class BookingService
             $lockedBooking->cancellation_source = $source;
             $lockedBooking->cancel_reason = $reason;
 
+            $wasUnpaid = in_array($lockedBooking->status, [BookingStatus::MENUNGGU_PEMBAYARAN, BookingStatus::KEDALUWARSA]) || (int) $lockedBooking->paid_amount === 0;
+
             // Execute transition to BATAL
             $this->stateMachine->transition(
                 booking: $lockedBooking,
@@ -324,11 +336,13 @@ class BookingService
             // Release slots
             $this->availabilityService->releaseSlots($lockedBooking);
 
-            // Restore voucher if unpaid
-            $redemption = VoucherRedemption::where('booking_id', $lockedBooking->id)->first();
-            if ($redemption) {
-                $redemption->voucher?->decrement('used_count');
-                $redemption->delete();
+            // Restore voucher if unpaid (idempotent)
+            if ($wasUnpaid && $lockedBooking->voucher_id) {
+                $voucher = Voucher::where('id', $lockedBooking->voucher_id)->lockForUpdate()->first();
+                $deletedCount = VoucherRedemption::where('booking_id', $lockedBooking->id)->delete();
+                if ($voucher && $deletedCount > 0 && $voucher->used_count > 0) {
+                    $voucher->decrement('used_count');
+                }
             }
 
             // Expire pending payments

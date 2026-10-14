@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use InvalidArgumentException;
 use RuntimeException;
 use Tests\TestCase;
@@ -293,5 +294,257 @@ class BookingTest extends TestCase
             'planned_date_start' => $this->slot->date,
             'participant_count' => 15,
         ], $this->buyer);
+    }
+
+    public function test_booking_with_voucher_success_and_discount_applied(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'PROMO100',
+            'name' => 'Diskon Rp 100rb',
+            'type' => 'fixed',
+            'value' => 100000,
+            'min_transaction' => 500000,
+            'quota' => 10,
+            'used_count' => 0,
+            'per_user_limit' => 2,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'PROMO100',
+        ], $this->buyer);
+
+        $this->assertEquals(100000, $booking->discount_amount);
+        $this->assertEquals($voucher->id, $booking->voucher_id);
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+        $this->assertDatabaseHas('voucher_redemptions', [
+            'voucher_id' => $voucher->id,
+            'booking_id' => $booking->id,
+            'user_id' => $this->buyer->id,
+            'amount' => 100000,
+        ]);
+    }
+
+    public function test_booking_with_expired_voucher_is_rejected(): void
+    {
+        Voucher::create([
+            'code' => 'EXPIRED100',
+            'name' => 'Diskon Expired',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 10,
+            'starts_at' => now()->subDays(10),
+            'ends_at' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Masa berlaku voucher telah habis');
+
+        $bookingService = app(BookingService::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'EXPIRED100',
+        ], $this->buyer);
+    }
+
+    public function test_booking_with_exhausted_quota_is_rejected(): void
+    {
+        Voucher::create([
+            'code' => 'HABIS100',
+            'name' => 'Diskon Kuota Habis',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 2,
+            'used_count' => 2,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kuota pemakaian voucher telah habis');
+
+        $bookingService = app(BookingService::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'HABIS100',
+        ], $this->buyer);
+    }
+
+    public function test_booking_with_per_user_limit_exceeded_is_rejected(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'LIMIT1',
+            'name' => 'Diskon Max 1x',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 10,
+            'used_count' => 0,
+            'per_user_limit' => 1,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        // First booking succeeds
+        $booking1 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LIMIT1',
+        ], $this->buyer);
+        $this->assertNotNull($booking1);
+
+        // Second booking by the same buyer with the same voucher must fail
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('batas penggunaan voucher');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LIMIT1',
+        ], $this->buyer);
+    }
+
+    public function test_two_bookings_competing_for_last_voucher_quota_only_one_succeeds(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'LASTQUOTA',
+            'name' => 'Diskon Kuota Terakhir',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 1,
+            'used_count' => 0,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $buyer2 = User::factory()->create([
+            'account_type' => AccountType::BUYER,
+            'status' => 'active',
+        ]);
+        Institution::create([
+            'user_id' => $buyer2->id,
+            'institution_name' => 'SMP Negeri 2 Yogyakarta',
+            'pic_name' => 'Siti Rahma',
+            'pic_phone' => '6281234567891',
+            'pic_email' => 'siti@test.com',
+            'pic_position' => 'Kepala Lab',
+            'address' => 'Jl. Kaliurang Km 5',
+            'city' => 'Yogyakarta',
+            'province' => 'DI Yogyakarta',
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        // Buyer 1 successfully takes the last quota
+        $booking1 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LASTQUOTA',
+        ], $this->buyer);
+
+        $this->assertNotNull($booking1);
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+
+        // Buyer 2 attempts to use the same voucher with quota 1 -> must fail
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kuota pemakaian voucher telah habis');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LASTQUOTA',
+        ], $buyer2);
+    }
+
+    public function test_booking_cancellation_and_expiry_restores_voucher_quota(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'RESTORE100',
+            'name' => 'Diskon Restore',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 5,
+            'used_count' => 0,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'RESTORE100',
+        ], $this->buyer);
+
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+        $this->assertDatabaseHas('voucher_redemptions', ['booking_id' => $booking->id]);
+
+        // Cancel unpaid booking -> should restore voucher
+        $bookingService->cancel($booking, $this->buyer, 'Batal rencana', 'buyer');
+
+        $voucher->refresh();
+        $this->assertEquals(0, $voucher->used_count);
+        $this->assertDatabaseMissing('voucher_redemptions', ['booking_id' => $booking->id]);
+
+        // Re-book to test expire command restoration
+        $booking2 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'RESTORE100',
+        ], $this->buyer);
+
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+
+        // Move expiry to the past
+        $booking2->update(['expires_at' => now()->subMinute()]);
+        Artisan::call('bookings:expire-unpaid');
+
+        $voucher->refresh();
+        $this->assertEquals(0, $voucher->used_count);
+        $this->assertDatabaseMissing('voucher_redemptions', ['booking_id' => $booking2->id]);
     }
 }

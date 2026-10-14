@@ -124,8 +124,9 @@ class BookingForm extends Component
         $this->voucherError = null;
         if (! empty($this->voucherCode)) {
             $voucher = Voucher::where('code', strtoupper(trim($this->voucherCode)))->first();
-            if (! $voucher || ! $voucher->isValid()) {
-                $this->voucherError = 'Kode voucher tidak valid atau masa berlaku telah habis.';
+            $reason = null;
+            if (! $voucher || ! $voucher->isValid(destinationId: $this->destination->id, userId: Auth::id(), reason: $reason)) {
+                $this->voucherError = $reason ?? 'Kode voucher tidak valid atau masa berlaku telah habis.';
                 $voucher = null;
             }
         }

@@ -51,43 +51,61 @@ class Voucher extends Model
         return $this->hasMany(Booking::class);
     }
 
-    public function isValidFor(int $amount, ?int $destinationId = null, ?int $userId = null): bool
+    public function validateFor(?int $amount = null, ?int $destinationId = null, ?int $userId = null): void
     {
         if (! $this->is_active) {
-            return false;
+            throw new \InvalidArgumentException('Voucher tidak aktif.');
         }
 
         $now = now();
         if ($this->starts_at && $now->lt($this->starts_at)) {
-            return false;
+            throw new \InvalidArgumentException('Voucher belum dapat digunakan.');
         }
 
         if ($this->ends_at && $now->gt($this->ends_at)) {
-            return false;
+            throw new \InvalidArgumentException('Masa berlaku voucher telah habis.');
         }
 
-        if ($this->quota > 0 && $this->used_count >= $this->quota) {
-            return false;
+        if ($this->quota !== null && $this->quota > 0 && $this->used_count >= $this->quota) {
+            throw new \InvalidArgumentException('Kuota pemakaian voucher telah habis.');
         }
 
-        if ($amount < $this->min_transaction) {
-            return false;
+        if ($amount !== null && $this->min_transaction > 0 && $amount < $this->min_transaction) {
+            $minFormatted = number_format($this->min_transaction, 0, ',', '.');
+            throw new \InvalidArgumentException("Total transaksi belum mencapai batas minimal voucher (Rp {$minFormatted}).");
         }
 
-        if (! empty($this->destination_ids) && $destinationId) {
-            if (! in_array($destinationId, $this->destination_ids)) {
-                return false;
+        if (! empty($this->destination_ids) && $destinationId !== null) {
+            $destIds = is_array($this->destination_ids) ? $this->destination_ids : (json_decode($this->destination_ids, true) ?? []);
+            if (! in_array($destinationId, $destIds)) {
+                throw new \InvalidArgumentException('Voucher tidak berlaku untuk destinasi ini.');
             }
         }
 
-        if ($userId && $this->per_user_limit > 0) {
-            $userRedemptions = $this->redemptions()->where('user_id', $userId)->count();
-            if ($userRedemptions >= $this->per_user_limit) {
-                return false;
+        if ($userId && $this->per_user_limit !== null && $this->per_user_limit > 0) {
+            $userUsage = $this->redemptions()->where('user_id', $userId)->count();
+            if ($userUsage >= $this->per_user_limit) {
+                throw new \InvalidArgumentException('Anda telah mencapai batas penggunaan voucher ini.');
             }
         }
+    }
 
-        return true;
+    public function isValid(?int $amount = null, ?int $destinationId = null, ?int $userId = null, ?string &$reason = null): bool
+    {
+        try {
+            $this->validateFor($amount, $destinationId, $userId);
+
+            return true;
+        } catch (\InvalidArgumentException $e) {
+            $reason = $e->getMessage();
+
+            return false;
+        }
+    }
+
+    public function isValidFor(int $amount, ?int $destinationId = null, ?int $userId = null, ?string &$reason = null): bool
+    {
+        return $this->isValid($amount, $destinationId, $userId, $reason);
     }
 
     public function calculateDiscount(int $amount): int

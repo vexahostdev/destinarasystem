@@ -81,7 +81,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('quantity');
             $table->unsignedBigInteger('unit_price');
-            $table->unsignedBigInteger('total');
+            $table->bigInteger('total');
             $table->timestamps();
         });
 
