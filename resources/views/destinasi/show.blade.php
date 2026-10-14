@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
-@section('title', $destination['name'] . ' — ' . $destination['city'] . ', ' . $destination['province'] . ' | Destinara')
-@section('meta_description', $destination['highlights'])
+@section('title', (string) ($destination['name'] . ' — ' . $destination['city'] . ', ' . $destination['province'] . ' | Destinara'))
+@section('meta_description', (string) ($destination['highlights'] ?? 'Destinasi Edukasi Lapangan Terverifikasi'))
 
 @section('content')
 <main class="w-full bg-[#FAF7F5] pt-20 sm:pt-24 pb-20" x-data="{
@@ -356,17 +356,23 @@
           <!-- Action Buttons -->
           <div class="flex flex-col gap-2.5 pt-1">
             @auth
-              @if(Auth::user()->role === 'buyer')
+              @if(Auth::user()->isBuyer())
                 <a href="{{ route('buyer.booking.create', ['tapak' => $destination['slug']]) }}" 
                    class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
                   <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                  <span>Lanjut Reservasi Rombongan</span>
+                  <span>Ajukan Booking</span>
+                </a>
+              @elseif(Auth::user()->isPartner())
+                <a href="{{ route('partner.dashboard') }}" 
+                   class="bg-[#51634b] hover:bg-[#3b4937] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                  <span>Dashboard Mitra</span>
                 </a>
               @else
-                <a href="{{ route(Auth::user()->role . '.dashboard') }}" 
-                   class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
-                  <span class="material-symbols-outlined text-[18px]">dashboard</span>
-                  <span>Buka Konsol {{ ucfirst(Auth::user()->role) }}</span>
+                <a href="{{ route('admin.dashboard') }}" 
+                   class="bg-[#2B3A4A] hover:bg-[#1f2a36] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                  <span>Dashboard Admin</span>
                 </a>
               @endif
             @else

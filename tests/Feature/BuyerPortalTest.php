@@ -127,6 +127,7 @@ class BuyerPortalTest extends TestCase
             ->set('participantCount', 20)
             ->set('plannedDateStart', $futureDate)
             ->call('recalculate')
+            ->assertSet('grandTotal', 1265000)
             ->assertSet('isSlotAvailable', true)
             ->call('submit')
             ->assertHasNoErrors()
@@ -138,6 +139,34 @@ class BuyerPortalTest extends TestCase
             'participant_count' => 20,
             'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
         ]);
+    }
+
+    public function test_destination_detail_accessible_by_buyer(): void
+    {
+        $this->actingAs($this->buyer)
+            ->get(route('destinasi.show', $this->destination->slug))
+            ->assertStatus(200)
+            ->assertSee('Ajukan Booking');
+    }
+
+    public function test_destination_detail_accessible_by_partner(): void
+    {
+        $this->actingAs($this->partner)
+            ->get(route('destinasi.show', $this->destination->slug))
+            ->assertStatus(200)
+            ->assertSee('Dashboard Mitra');
+    }
+
+    public function test_destination_detail_accessible_by_admin(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $this->actingAs($admin)
+            ->get(route('destinasi.show', $this->destination->slug))
+            ->assertStatus(200)
+            ->assertSee('Dashboard Admin');
     }
 
     public function test_buyer_can_toggle_wishlist(): void

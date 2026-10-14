@@ -38,17 +38,35 @@ class BookingForm extends Component
     public ?string $permitDetails = '';
 
     // Calculation results
+    public int $packagePricePerPax = 0;
+
+    public int $packageTotal = 0;
+
     public int $subtotal = 0;
 
     public int $addonsTotal = 0;
 
+    public int $insuranceAmount = 0;
+
     public int $insuranceTotal = 0;
 
+    public int $platformFeeAmount = 0;
+
     public int $platformFee = 0;
+
+    public int $discountAmount = 0;
 
     public int $discount = 0;
 
     public int $grandTotal = 0;
+
+    public array $pricingItems = [];
+
+    public array $availableInquiryTypes = [];
+
+    public string $minDate = '';
+
+    public string $maxDate = '';
 
     public bool $isSlotAvailable = true;
 
@@ -61,6 +79,12 @@ class BookingForm extends Component
         $this->destination = $destination;
         $activePackages = $this->destination->packages;
 
+        $minLeadDays = (int) setting('min_lead_days', 7);
+        $maxAdvanceDays = (int) setting('max_advance_days', 180);
+        $this->minDate = now()->addDays($minLeadDays)->format('Y-m-d');
+        $this->maxDate = now()->addDays($maxAdvanceDays)->format('Y-m-d');
+        $this->plannedDateStart = now()->addDays($minLeadDays + 1)->format('Y-m-d');
+
         if ($activePackages->isNotEmpty()) {
             $defaultPackage = $preselectedPackage
                 ? $activePackages->firstWhere('slug', $preselectedPackage) ?? $activePackages->first()
@@ -68,13 +92,34 @@ class BookingForm extends Component
 
             $this->packageId = $defaultPackage->id;
             $this->participantCount = $defaultPackage->min_pax;
-            $this->inquiryType = $defaultPackage->inquiry_types[0] ?? 'study_tour';
+            $this->updateAvailableInquiryTypes($defaultPackage);
+        } else {
+            $this->updateAvailableInquiryTypes(null);
         }
 
-        $minLeadDays = (int) setting('min_lead_days', 7);
-        $this->plannedDateStart = now()->addDays($minLeadDays + 1)->format('Y-m-d');
-
         $this->recalculate();
+    }
+
+    protected function updateAvailableInquiryTypes(?Package $package): void
+    {
+        if (! $package) {
+            $this->availableInquiryTypes = ['study_tour'];
+            return;
+        }
+
+        $packageInquiryTypes = $package->inquiry_types ?? [];
+        $suitableFor = $this->destination->suitable_for ?? [];
+
+        $intersection = array_values(array_intersect($packageInquiryTypes, $suitableFor));
+        if (empty($intersection)) {
+            $intersection = ! empty($packageInquiryTypes) ? $packageInquiryTypes : ['study_tour'];
+        }
+
+        $this->availableInquiryTypes = $intersection;
+
+        if (! in_array($this->inquiryType, $this->availableInquiryTypes)) {
+            $this->inquiryType = $this->availableInquiryTypes[0] ?? 'study_tour';
+        }
     }
 
     public function updatedPackageId(): void
@@ -86,9 +131,7 @@ class BookingForm extends Component
             } elseif ($this->participantCount > $package->max_pax) {
                 $this->participantCount = $package->max_pax;
             }
-            if (! in_array($this->inquiryType, $package->inquiry_types ?? [])) {
-                $this->inquiryType = $package->inquiry_types[0] ?? 'study_tour';
-            }
+            $this->updateAvailableInquiryTypes($package);
         }
         $this->recalculate();
     }
@@ -131,25 +174,27 @@ class BookingForm extends Component
             }
         }
 
-        try {
-            $pricingService = app(PricingService::class);
-            $pricing = $pricingService->calculate(
-                package: $package,
-                pax: (int) $this->participantCount,
-                selectedAddonIds: $this->selectedAddonIds,
-                voucher: $voucher,
-                userId: Auth::id()
-            );
+        $pricingService = app(PricingService::class);
+        $pricing = $pricingService->calculate(
+            package: $package,
+            pax: (int) $this->participantCount,
+            selectedAddonIds: $this->selectedAddonIds,
+            voucher: $voucher,
+            userId: Auth::id()
+        );
 
-            $this->subtotal = $pricing->subtotal;
-            $this->addonsTotal = $pricing->addonsTotal;
-            $this->insuranceTotal = $pricing->insuranceTotal;
-            $this->platformFee = $pricing->platformFee;
-            $this->discount = $pricing->discountAmount;
-            $this->grandTotal = $pricing->grandTotal;
-        } catch (\Throwable $e) {
-            // Keep current values on calculation error
-        }
+        $this->packagePricePerPax = $pricing->packagePricePerPax;
+        $this->packageTotal = $pricing->packageTotal;
+        $this->subtotal = $pricing->subtotal;
+        $this->addonsTotal = $pricing->addonsTotal;
+        $this->insuranceAmount = $pricing->insuranceAmount;
+        $this->insuranceTotal = $pricing->insuranceAmount;
+        $this->platformFeeAmount = $pricing->platformFeeAmount;
+        $this->platformFee = $pricing->platformFeeAmount;
+        $this->discountAmount = $pricing->discountAmount;
+        $this->discount = $pricing->discountAmount;
+        $this->grandTotal = $pricing->totalAmount;
+        $this->pricingItems = $pricing->items;
 
         // Check availability
         if ($this->plannedDateStart) {
@@ -179,8 +224,8 @@ class BookingForm extends Component
 
         $this->validate([
             'packageId' => 'required|exists:packages,id',
-            'inquiryType' => 'required|string',
-            'plannedDateStart' => 'required|date',
+            'inquiryType' => ['required', 'string', \Illuminate\Validation\Rule::in($this->availableInquiryTypes)],
+            'plannedDateStart' => "required|date|after_or_equal:{$this->minDate}|before_or_equal:{$this->maxDate}",
             'participantCount' => "required|integer|min:{$package->min_pax}|max:{$package->max_pax}",
             'companionCount' => 'nullable|integer|min:0|max:50',
             'purposeNotes' => 'nullable|string|max:1000',

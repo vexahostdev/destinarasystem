@@ -55,7 +55,6 @@ class PricingService
                 ->get();
 
             foreach ($addons as $addon) {
-                $qty = 1;
                 $price = (int) $addon->price;
                 $addonTotal = match ($addon->pricing_type) {
                     AddonPricingType::PER_PAX => $price * $pax,
@@ -67,11 +66,18 @@ class PricingService
 
                 $addonsTotal += $addonTotal;
 
+                $quantity = match ($addon->pricing_type) {
+                    AddonPricingType::PER_GROUP => 1,
+                    AddonPricingType::PER_DAY => $durationDays,
+                    AddonPricingType::PER_PAX_PER_DAY => $pax * $durationDays,
+                    default => $pax,
+                };
+
                 $items[] = [
                     'type' => 'addon',
                     'reference_id' => $addon->id,
                     'name' => "Add-on: {$addon->name}",
-                    'quantity' => $addon->pricing_type === AddonPricingType::PER_GROUP ? 1 : $pax,
+                    'quantity' => $quantity,
                     'unit_price' => $price,
                     'total' => $addonTotal,
                 ];
@@ -119,7 +125,11 @@ class PricingService
         $discountAmount = 0;
         $voucherId = null;
         if ($voucher && $voucher->isValidFor($subtotal, $package->destination_id, $userId)) {
-            $discountAmount = $voucher->calculateDiscount($subtotal + $platformFeeAmount);
+            $calculatedDiscount = $voucher->calculateDiscount($subtotal + $platformFeeAmount);
+            $minPaymentAmount = (int) setting('min_payment_amount', 10000);
+            $grossTotal = $subtotal + $insuranceAmount + $platformFeeAmount;
+            $maxDiscount = max(0, $grossTotal - $minPaymentAmount);
+            $discountAmount = min($calculatedDiscount, $maxDiscount);
             $voucherId = $voucher->id;
 
             if ($discountAmount > 0) {
@@ -135,13 +145,15 @@ class PricingService
         }
 
         // 7. Total Amount
-        $totalAmount = max(0, $subtotal + $insuranceAmount + $platformFeeAmount - $discountAmount);
+        $grossTotal = $subtotal + $insuranceAmount + $platformFeeAmount;
+        $minPaymentAmount = (int) setting('min_payment_amount', 10000);
+        $totalAmount = max(min($minPaymentAmount, $grossTotal), $grossTotal - $discountAmount);
 
         // 8. Partner Commission & Net Amount
         $partner = $package->destination->partner;
         $commissionPercentOverride = $partner?->partnerProfile?->commission_percent_override;
-        $defaultCommissionPercent = (int) setting('default_commission_percent', 10);
-        $commissionPercent = $commissionPercentOverride !== null ? (int) $commissionPercentOverride : $defaultCommissionPercent;
+        $defaultCommissionPercent = (float) setting('default_commission_percent', 10);
+        $commissionPercent = $commissionPercentOverride !== null ? (float) $commissionPercentOverride : $defaultCommissionPercent;
 
         $commissionAmount = (int) round($subtotal * ($commissionPercent / 100));
         $partnerNetAmount = max(0, $subtotal - $commissionAmount);

@@ -1,4 +1,4 @@
-@if ($errors->any())
+@if (isset($errors) && $errors->any())
     <div x-data="{ show: true }" x-show="show" class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 shadow-sm transition-all" role="alert">
         <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3">

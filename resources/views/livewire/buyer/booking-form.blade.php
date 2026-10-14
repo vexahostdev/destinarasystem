@@ -48,16 +48,21 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tipe Kunjungan</label>
                     <select wire:model.live="inquiryType" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
-                        <option value="study_tour">Ekskursi / Study Tour Sekolah (P5)</option>
-                        <option value="penelitian">Riset Akademik / Pengabdian Masyarakat</option>
+                        @foreach($availableInquiryTypes as $type)
+                            <option value="{{ $type }}">
+                                {{ $type === 'study_tour' ? 'Ekskursi / Study Tour Sekolah (P5)' : ($type === 'penelitian' ? 'Riset Akademik / Pengabdian Masyarakat' : ucfirst($type)) }}
+                            </option>
+                        @endforeach
                     </select>
+                    @error('inquiryType') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal Mulai Kunjungan</label>
                     <input type="date" 
                            wire:model.live="plannedDateStart" 
-                           min="{{ now()->addDays((int) setting('min_lead_days', 7))->format('Y-m-d') }}"
+                           min="{{ $minDate }}"
+                           max="{{ $maxDate }}"
                            class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
                     <p class="text-[11px] text-slate-400 mt-1">Minimal H-{{ (int) setting('min_lead_days', 7) }} sebelum pelaksanaan untuk kliring adat.</p>
                     @error('plannedDateStart') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
@@ -79,10 +84,20 @@
                 <span>3. Kuota Peserta & Pendamping</span>
             </h3>
 
+            @php
+                $currentPkg = $packages->firstWhere('id', $packageId);
+            @endphp
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jumlah Siswa / Peserta (Pax)</label>
-                    <input type="number" wire:model.live.debounce.300ms="participantCount" min="1" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                    <input type="number" 
+                           wire:model.live.debounce.300ms="participantCount" 
+                           min="{{ $currentPkg?->min_pax ?? 1 }}" 
+                           max="{{ $currentPkg?->max_pax ?? 500 }}" 
+                           class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                    @if($currentPkg)
+                        <p class="text-[11px] text-slate-400 mt-1">Batas kuota rombongan paket: {{ $currentPkg->min_pax }} - {{ $currentPkg->max_pax }} peserta.</p>
+                    @endif
                     @error('participantCount') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -175,29 +190,44 @@
 
             <!-- Price Breakdown -->
             <div class="space-y-2 text-xs border-t border-slate-100 pt-3">
-                <div class="flex justify-between text-slate-600">
-                    <span>Paket ({{ $participantCount }} pax):</span>
-                    <span class="font-semibold text-slate-900">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
-                </div>
-                @if($addonsTotal > 0)
+                @if(!empty($pricingItems))
+                    @foreach($pricingItems as $item)
+                        <div class="flex justify-between {{ ($item['total'] ?? 0) < 0 ? 'text-emerald-600 font-semibold' : 'text-slate-600' }}">
+                            <span>{{ $item['name'] }} (x{{ $item['quantity'] }}):</span>
+                            <span class="{{ ($item['total'] ?? 0) < 0 ? 'text-emerald-600' : 'font-semibold text-slate-900' }}">
+                                {{ ($item['total'] ?? 0) < 0 ? '-Rp ' . number_format(abs($item['total']), 0, ',', '.') : 'Rp ' . number_format($item['total'], 0, ',', '.') }}
+                            </span>
+                        </div>
+                    @endforeach
+                @else
                     <div class="flex justify-between text-slate-600">
-                        <span>Layanan Tambahan:</span>
-                        <span class="font-semibold text-slate-900">Rp {{ number_format($addonsTotal, 0, ',', '.') }}</span>
+                        <span>Paket ({{ $participantCount }} pax):</span>
+                        <span class="font-semibold text-slate-900">Rp {{ number_format($packageTotal, 0, ',', '.') }}</span>
                     </div>
-                @endif
-                <div class="flex justify-between text-slate-600">
-                    <span>Asuransi Lapangan:</span>
-                    <span class="font-semibold text-slate-900">Rp {{ number_format($insuranceTotal, 0, ',', '.') }}</span>
-                </div>
-                <div class="flex justify-between text-slate-600">
-                    <span>Biaya Layanan & Administrasi:</span>
-                    <span class="font-semibold text-slate-900">Rp {{ number_format($platformFee, 0, ',', '.') }}</span>
-                </div>
-                @if($discount > 0)
-                    <div class="flex justify-between text-emerald-600 font-semibold">
-                        <span>Diskon Voucher:</span>
-                        <span>-Rp {{ number_format($discount, 0, ',', '.') }}</span>
-                    </div>
+                    @if($addonsTotal > 0)
+                        <div class="flex justify-between text-slate-600">
+                            <span>Layanan Tambahan:</span>
+                            <span class="font-semibold text-slate-900">Rp {{ number_format($addonsTotal, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+                    @if($insuranceAmount > 0)
+                        <div class="flex justify-between text-slate-600">
+                            <span>Asuransi Lapangan:</span>
+                            <span class="font-semibold text-slate-900">Rp {{ number_format($insuranceAmount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+                    @if($platformFeeAmount > 0)
+                        <div class="flex justify-between text-slate-600">
+                            <span>Biaya Layanan Platform:</span>
+                            <span class="font-semibold text-slate-900">Rp {{ number_format($platformFeeAmount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+                    @if($discountAmount > 0)
+                        <div class="flex justify-between text-emerald-600 font-semibold">
+                            <span>Diskon Voucher:</span>
+                            <span>-Rp {{ number_format($discountAmount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
                 @endif
             </div>
 
@@ -207,7 +237,7 @@
                     <span class="text-xs text-slate-500 block font-medium">Total Tagihan:</span>
                     <span class="text-2xl font-black text-[#8C5151]">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
                 </div>
-                <span class="text-[11px] text-slate-400">Termasuk BOS</span>
+                <span class="text-[11px] text-slate-400">Total Resmi</span>
             </div>
 
             <!-- Submit Button -->

@@ -14,7 +14,7 @@ class PricingResult
         public int $platformFeeAmount,
         public int $discountAmount,
         public int $totalAmount,
-        public int $commissionPercent,
+        public int|float $commissionPercent,
         public int $commissionAmount,
         public int $partnerNetAmount,
         public ?int $voucherId = null,

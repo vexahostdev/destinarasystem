@@ -73,7 +73,7 @@ class PublicController extends Controller
             'address' => $destination->address,
             'province' => $destination->province?->name ?? $destination->city,
             'category' => $destination->category?->name ?? 'Wisata Edukasi',
-            'highlights' => Str::limit($destination->description, 200),
+            'highlights' => Str::limit($destination->short_description ?? $destination->description ?? 'Destinasi Edukasi Lapangan Terverifikasi', 200) ?: 'Destinasi Edukasi Lapangan Terverifikasi',
             'description' => $destination->description,
             'price' => $minPrice,
             'price_formatted' => 'Rp '.number_format($minPrice, 0, ',', '.'),
