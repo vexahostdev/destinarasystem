@@ -62,7 +62,7 @@
           </div>
           <div class="pt-3 border-t border-gray-100 text-xs font-semibold text-[#51634b] flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[16px]">timer</span>
-            <span>Maks. 1x24 Jam Kerja</span>
+            <span>Maks. {{ (int) setting('partner_confirm_sla_hours', 48) }} Jam Kerja</span>
           </div>
         </div>
 

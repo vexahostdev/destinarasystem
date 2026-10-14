@@ -21,7 +21,7 @@
 
         <div class="flex items-center gap-2">
             <span class="px-3 py-1.5 bg-[#51634b]/10 text-[#51634b] text-xs font-bold uppercase tracking-wider border border-[#51634b]/20">
-                Respon Cepat Disarankan &lt; 24 Jam
+                Respon Cepat Disarankan &lt; {{ (int) setting('partner_confirm_sla_hours', 48) }} Jam
             </span>
         </div>
     </div>
@@ -65,7 +65,7 @@
                     <span class="text-[#2B211E]/40">•</span>
                     <span class="font-bold text-[#2B211E] text-sm">{{ $booking->institution->institution_name }}</span>
                     <span class="px-2 py-0.5 bg-[#703A3A]/10 text-[#703A3A] text-[10px] font-bold uppercase">
-                        {{ $booking->inquiry_type === 'study_tour' ? 'Study Tour P5' : 'Riset Ilmiah' }}
+                        {{ $booking->inquiry_type === \App\Enums\InquiryType::STUDY_TOUR ? 'Study Tour P5' : 'Riset Ilmiah' }}
                     </span>
                 </div>
 
@@ -81,8 +81,8 @@
                         <span class="font-bold text-[#2B211E]">{{ $booking->participant_count }} Siswa + {{ $booking->companion_count }} Pendamping</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 text-[11px] block">Estimasi Payout Pengelola (90%):</span>
-                        <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($booking->subtotal_amount * 0.9, 0, ',', '.') }}</span>
+                        <span class="text-[#2B211E]/60 text-[11px] block">Estimasi Payout Pengelola:</span>
+                        <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($booking->partner_net_amount ?: ($booking->subtotal_amount - $booking->commission_amount), 0, ',', '.') }}</span>
                     </div>
                 </div>
 

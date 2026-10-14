@@ -15,7 +15,7 @@
             </div>
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900">Pemberitahuan Sistem Mitra</h1>
             <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
-                Riwayat pesan transaksi masuk, pengingat SLA konfirmasi (24 Jam), dan pembaruan operasional tapak.
+                Riwayat pesan transaksi masuk, pengingat SLA konfirmasi ({{ (int) setting('partner_confirm_sla_hours', 48) }} Jam), dan pembaruan operasional tapak.
             </p>
         </div>
 

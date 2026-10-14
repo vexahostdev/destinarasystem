@@ -91,12 +91,12 @@
                             @endif
                         </td>
                         <td class="py-3.5 text-center">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $rev->status === 'published' ? 'bg-emerald-50 text-emerald-800' : ($rev->status === 'hidden' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800') }}">
-                                {{ $rev->status }}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $rev->status === \App\Enums\ReviewStatus::PUBLISHED ? 'bg-emerald-50 text-emerald-800' : ($rev->status === \App\Enums\ReviewStatus::HIDDEN ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800') }}">
+                                {{ $rev->status instanceof \App\Enums\ReviewStatus ? $rev->status->label() : ucfirst((string)$rev->status) }}
                             </span>
                         </td>
                         <td class="py-3.5 text-right space-x-1">
-                            @if($rev->status !== 'published')
+                            @if($rev->status !== \App\Enums\ReviewStatus::PUBLISHED)
                             <form action="{{ route('admin.reviews.moderate', $rev->id) }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="status" value="published">
@@ -105,7 +105,7 @@
                                 </button>
                             </form>
                             @endif
-                            @if($rev->status !== 'hidden')
+                            @if($rev->status !== \App\Enums\ReviewStatus::HIDDEN)
                             <form action="{{ route('admin.reviews.moderate', $rev->id) }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="status" value="hidden">

@@ -45,4 +45,29 @@ class NotificationLog extends Model
     {
         return $this->morphTo();
     }
+
+    public function getRecipientNameAttribute(): ?string
+    {
+        return $this->notifiable?->name ?? $this->recipient;
+    }
+
+    public function getTargetAttribute(): ?string
+    {
+        return $this->recipient;
+    }
+
+    public function getTitleAttribute(): ?string
+    {
+        return $this->subject;
+    }
+
+    public function getPreviewTextAttribute(): ?string
+    {
+        return \Illuminate\Support\Str::limit(strip_tags((string) $this->body), 100);
+    }
+
+    public function getRetryCountAttribute(): int
+    {
+        return $this->attempts ?? 0;
+    }
 }

@@ -52,10 +52,10 @@
         <div class="rgs-card p-5 border-t-4 border-t-[#2B211E]/30 space-y-1">
             <div class="text-[#2B211E]/60 text-xs font-medium">Rekening Penampungan Payout</div>
             <div class="font-bold text-sm text-[#2B211E]">
-                {{ $profile->bank_name ?? 'Belum Diatur' }}
+                {{ $profile->bank_name ?? 'Belum dilengkapi' }}
             </div>
             <div class="font-mono text-xs text-[#703A3A] font-bold">
-                {{ $profile->bank_account_number ?? '-' }}
+                {{ $profile->bank_account_number ?? '' }}
             </div>
             <div class="text-[10px] text-[#2B211E]/60 uppercase">
                 a.n. {{ $profile->bank_account_holder ?? ($user->name ?? 'Pengelola') }}
@@ -90,9 +90,13 @@
             @endforeach
         </div>
 
+        @php
+            $commPct = $profile->commission_percent_override ?? setting('default_commission_percent', 10);
+            $partnerPct = 100 - $commPct;
+        @endphp
         <div class="flex items-center justify-between text-[11px] text-[#2B211E]/70 pt-1">
-            <span>Komisi Standar Destinara: 10% (Digunakan untuk biaya operasional platform & kurasi)</span>
-            <span>Hak Pengelola: <strong>90% Bersih</strong></span>
+            <span>Komisi Destinara: {{ $commPct }}% (Digunakan untuk biaya operasional platform & kurasi)</span>
+            <span>Hak Pengelola: <strong>{{ $partnerPct }}% Bersih</strong></span>
         </div>
     </div>
 
@@ -113,7 +117,7 @@
                         <th class="p-3">ID Payout</th>
                         <th class="p-3">Tanggal Transfer</th>
                         <th class="p-3 text-right">Nilai Tiket (Kotor)</th>
-                        <th class="p-3 text-right">Komisi (10%)</th>
+                        <th class="p-3 text-right">Komisi ({{ $commPct }}%)</th>
                         <th class="p-3 text-right">Diterima Bersih</th>
                         <th class="p-3 text-center">Status</th>
                         <th class="p-3 text-right">Bukti Transfer</th>
@@ -130,7 +134,7 @@
                         <td class="p-3 text-right text-[#2B211E]/60">- Rp {{ number_format($payout->commission_amount, 0, ',', '.') }}</td>
                         <td class="p-3 text-right font-bold text-[#51634b]">Rp {{ number_format($payout->net_amount, 0, ',', '.') }}</td>
                         <td class="p-3 text-center">
-                            @if($payout->status === 'transferred')
+                            @if($payout->status === \App\Enums\PayoutStatus::TRANSFERRED)
                                 <span class="px-2.5 py-0.5 bg-[#51634b]/15 text-[#51634b] text-[10px] font-bold uppercase tracking-wider">
                                     Ditransfer
                                 </span>
@@ -141,7 +145,7 @@
                             @endif
                         </td>
                         <td class="p-3 text-right">
-                            @if($payout->status === 'transferred')
+                            @if($payout->status === \App\Enums\PayoutStatus::TRANSFERRED)
                                 <span class="text-[#51634b] font-bold text-[11px] flex items-center justify-end gap-1">
                                     <span class="material-symbols-outlined text-[14px]">receipt_long</span>
                                     <span>Bank Valid</span>

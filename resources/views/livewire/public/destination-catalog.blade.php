@@ -5,7 +5,7 @@
         <div>
           <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#51634b]/10 text-[#51634b] text-xs font-bold uppercase tracking-wider rounded-full mb-3">
             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span>
-            <span>Etalase Resmi Terakreditasi {{ date('Y') }}</span>
+            <span>Etalase Tapak Edukasi Nusantara</span>
           </div>
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1E1B1B] tracking-tight">
             Etalase Tapak & Laboratorium Alam
@@ -18,7 +18,7 @@
         <div class="flex items-center gap-3 text-xs font-semibold text-gray-500 shrink-0">
           <span class="flex items-center gap-1 text-[#51634b]"><span class="material-symbols-outlined text-[16px]">verified</span> FPIC Sah</span>
           <span>•</span>
-          <span class="flex items-center gap-1 text-[#703A3A]"><span class="material-symbols-outlined text-[16px]">receipt_long</span> Standar Dana BOS</span>
+          <span class="flex items-center gap-1 text-[#703A3A]"><span class="material-symbols-outlined text-[16px]">receipt_long</span> Akuntabilitas SPK</span>
         </div>
       </div>
 

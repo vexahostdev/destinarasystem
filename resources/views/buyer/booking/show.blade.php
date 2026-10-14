@@ -239,20 +239,29 @@
                     </div>
                 </div>
 
-                <!-- Kontak PIC Pengelola (Sesuai PRD: Terbuka Penuh Setelah Booking Terverifikasi) -->
+                <!-- Kontak PIC Pengelola (Sesuai PRD: Terbuka Sesuai Aturan contact_reveal_status) -->
                 <div class="p-4 bg-[#faf6f0] border border-[#2B211E]/15 space-y-2 text-xs">
+                    @php
+                        $canReveal = Auth::user() && Auth::user()->can('revealContact', $booking);
+                        $revealSetting = setting('contact_reveal_status', 'dikonfirmasi');
+                        $revealSettingLabel = match($revealSetting) {
+                            'dibayar' => 'Pembayaran',
+                            'berlangsung' => 'Hari Pelaksanaan',
+                            default => 'Konfirmasi Mitra',
+                        };
+                    @endphp
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-[#703A3A] uppercase tracking-wider text-[10px] flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">contacts</span>
                             <span>Kontak Resmi Penanggung Jawab Tapak Adat</span>
                         </span>
-                        @if($isPaid)
+                        @if($canReveal)
                             <span class="text-[10px] text-[#51634b] font-bold uppercase flex items-center gap-0.5">
                                 <span class="material-symbols-outlined text-[12px]">lock_open</span> Terverifikasi Terbuka
                             </span>
                         @else
                             <span class="text-[10px] text-[#b87a38] font-bold uppercase flex items-center gap-0.5">
-                                <span class="material-symbols-outlined text-[12px]">lock</span> Terbuka Pasca Pembayaran
+                                <span class="material-symbols-outlined text-[12px]">lock</span> Terbuka Pasca {{ $revealSettingLabel }}
                             </span>
                         @endif
                     </div>
@@ -269,13 +278,13 @@
                         </div>
                         <div>
                             <span class="text-[#2B211E]/60 text-[11px] block">WhatsApp / Telepon Resmi:</span>
-                            @if($isPaid)
+                            @if($canReveal)
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contact->phone) }}" target="_blank" class="font-bold text-[#51634b] hover:underline flex items-center gap-1">
                                     <span>{{ $contact->phone }}</span>
                                     <span class="material-symbols-outlined text-[14px]">open_in_new</span>
                                 </a>
                             @else
-                                <span class="font-mono text-[#2B211E]/50">0878-xxxx-{{ substr($contact->phone, -4) }} (Disamarkan)</span>
+                                <span class="font-mono text-[#2B211E]/50">{{ substr($contact->phone, 0, 4) }}-xxxx-{{ substr($contact->phone, -4) }} (Disamarkan)</span>
                             @endif
                         </div>
                     </div>
@@ -315,7 +324,7 @@
                     </div>
                     <div>
                         <span class="text-[#2B211E]/60 block text-[11px]">Guru / Dosen Pendamping</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->guide_count }} Orang</span>
+                        <span class="font-bold text-[#2B211E]">{{ $booking->companion_count }} Orang</span>
                     </div>
                 </div>
 
@@ -440,6 +449,13 @@
                         <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->subtotal_amount, 0, ',', '.') }}</span>
                     </div>
 
+                    @if($booking->addons_amount > 0)
+                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                        <span class="text-[#2B211E]/70">Layanan Tambahan (Add-ons)</span>
+                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
+
                     <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
                         <span class="text-[#2B211E]/70">Premi Asuransi Siswa (Rp {{ number_format(setting('insurance_per_pax', 2000), 0, ',', '.') }}/pax)</span>
                         <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
@@ -447,8 +463,15 @@
 
                     <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
                         <span class="text-[#2B211E]/70">Administrasi & Verifikasi Dokumen</span>
-                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->platform_fee, 0, ',', '.') }}</span>
+                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
                     </div>
+
+                    @if($booking->discount_amount > 0)
+                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10 text-emerald-800">
+                        <span>Diskon Voucher</span>
+                        <span class="font-bold">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
 
                     <!-- Status Pembayaran Plinth -->
                     <div class="p-3.5 {{ $isPaid ? 'bg-[#51634b]/10 border-[#51634b]/30' : 'bg-[#b87a38]/10 border-[#b87a38]/30' }} border flex items-center justify-between">
@@ -473,11 +496,12 @@
                         </a>
                     @else
                         @php
-                            $rawMethod = $booking->payment->payment_method ?? 'VA';
+                            $rawMethod = $booking->payment?->payment_method ?? 'VA';
                             $methodStr = $rawMethod instanceof \UnitEnum ? $rawMethod->value : (string)$rawMethod;
+                            $paidAtTime = $booking->payment?->paid_at ?? $booking->paid_at;
                         @endphp
                         <div class="p-3 bg-[#51634b]/8 border border-[#51634b]/20 text-[11px] text-[#51634b] font-medium leading-relaxed">
-                            ✓ Pembayaran telah diterima via <strong>{{ strtoupper(str_replace('_', ' ', $methodStr)) }}</strong> pada {{ $booking->payment->paid_at ? $booking->payment->paid_at->translatedFormat('d M Y, H:i') : '-' }} WIB.
+                            ✓ Pembayaran telah diterima via <strong>{{ strtoupper(str_replace('_', ' ', $methodStr)) }}</strong> pada {{ $paidAtTime ? $paidAtTime->translatedFormat('d M Y, H:i') : '-' }} WIB.
                         </div>
                     @endif
                 </div>

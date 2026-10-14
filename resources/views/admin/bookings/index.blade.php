@@ -112,21 +112,21 @@
                         </td>
                         <td class="py-4 px-4">
                             <span class="font-medium text-[#2B211E] block">{{ $b->destination->name ?? '-' }}</span>
-                            <span class="text-[11px] text-[#2B211E]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province ?? '' }}</span>
+                            <span class="text-[11px] text-[#2B211E]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province?->name ?? (is_string($b->destination->province) ? $b->destination->province : '') }}</span>
                         </td>
                         <td class="py-4 px-4 font-mono font-semibold text-[#2B211E]">
-                            {{ \Carbon\Carbon::parse($b->visit_date)->translatedFormat('d M Y') }}
+                            {{ \Carbon\Carbon::parse($b->planned_date_start ?? $b->visit_date)->translatedFormat('d M Y') }}
                         </td>
                         <td class="py-4 px-4 text-center">
-                            <span class="font-mono font-bold text-sm block">{{ $b->total_pax }} Pax</span>
-                            <span class="text-[10px] uppercase font-mono text-[#2B211E]/60">{{ $b->destination->category ?? 'studi' }}</span>
+                            <span class="font-mono font-bold text-sm block">{{ $b->participant_count ?? $b->total_pax }} Pax</span>
+                            <span class="text-[10px] uppercase font-mono text-[#2B211E]/60">{{ $b->destination->category?->name ?? $b->destination->category ?? 'studi' }}</span>
                         </td>
                         <td class="py-4 px-4 text-right">
                             <span class="font-mono font-bold text-sm text-[#2B211E] block">
-                                Rp {{ number_format($b->total_price ?? 0, 0, ',', '.') }}
+                                Rp {{ number_format($b->total_amount ?? $b->total_price ?? 0, 0, ',', '.') }}
                             </span>
-                            @if($b->payment && $b->payment->status === 'paid')
-                                <span class="text-[10px] text-emerald-800 font-semibold font-mono">Lunas ({{ strtoupper($b->payment->payment_method ?? 'VA') }})</span>
+                            @if($b->payment && ($b->payment->status === \App\Enums\PaymentStatus::PAID || $b->payment->isPaid()))
+                                <span class="text-[10px] text-emerald-800 font-semibold font-mono">Lunas ({{ strtoupper(is_object($b->payment->payment_method) ? $b->payment->payment_method->value : (string)($b->payment->payment_method ?? 'VA')) }})</span>
                             @else
                                 <span class="text-[10px] text-amber-800 font-semibold font-mono">Belum Lunas</span>
                             @endif

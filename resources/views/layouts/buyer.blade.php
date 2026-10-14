@@ -196,11 +196,11 @@
                 </div>
             </div>
 
-            <!-- Right: Quick CTA & Live BOS Status Indicator -->
+            <!-- Right: Quick CTA & Status Indicator -->
             <div class="flex items-center gap-3">
                 <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#51634b]/10 border border-[#51634b]/20 text-[11px] font-semibold text-[#51634b]">
                     <span class="material-symbols-outlined text-[14px]">verified</span>
-                    <span>Dana BOS Siap Digunakan</span>
+                    <span>Akun Pembeli Aktif</span>
                 </div>
 
                 <a href="{{ route('buyer.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#703A3A] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">

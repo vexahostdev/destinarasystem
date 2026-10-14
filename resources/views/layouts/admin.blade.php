@@ -364,7 +364,7 @@
                     <span>— Pusat Kurasi & Koordinasi Lapangan Nusantara</span>
                 </div>
                 <div class="flex items-center gap-4 text-[11px]">
-                    <span>SLA Verifikasi Dokumen: &lt; 24 Jam</span>
+                    <span>SLA Konfirmasi Mitra: &lt; {{ (int) setting('partner_confirm_sla_hours', 48) }} Jam</span>
                     <span>•</span>
                     <span>Audit Trail Logging Aktif</span>
                 </div>

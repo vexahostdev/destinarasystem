@@ -95,7 +95,7 @@
                             @if($isVerified)
                                 <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono font-bold flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[12px]">verified</span>
-                                    <span>TERVERIFIKASI BOS</span>
+                                    <span>TERVERIFIKASI</span>
                                 </span>
                             @elseif($isPending)
                                 <span class="px-2 py-0.5 bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-mono font-bold">

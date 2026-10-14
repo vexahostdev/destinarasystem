@@ -146,7 +146,7 @@
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[11px]">Kapasitas</span>
-                        <span class="font-bold text-[#1E1B1B]">{{ $nextBooking->participant_count }} Siswa + {{ $nextBooking->guide_count }} Guru</span>
+                        <span class="font-bold text-[#1E1B1B]">{{ $nextBooking->participant_count }} Siswa + {{ $nextBooking->companion_count }} Guru</span>
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[11px]">Total Transaksi</span>
@@ -154,7 +154,7 @@
                     </div>
                     <div>
                         <span class="text-gray-400 block text-[11px]">Lokasi Tapak</span>
-                        <span class="font-bold text-[#1E1B1B]">{{ $nextBooking->destination->city }}, {{ $nextBooking->destination->province }}</span>
+                        <span class="font-bold text-[#1E1B1B]">{{ $nextBooking->destination->city }}, {{ $nextBooking->destination->province?->name ?? (is_string($nextBooking->destination->province) ? $nextBooking->destination->province : '') }}</span>
                     </div>
                 </div>
 
@@ -288,7 +288,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-[#703A3A] block">
-                            {{ $dest->city }}, {{ $dest->province }}
+                            {{ $dest->city }}, {{ $dest->province?->name ?? (is_string($dest->province) ? $dest->province : '') }}
                         </span>
                         <h4 class="text-sm font-bold text-[#1E1B1B] truncate">
                             {{ $dest->name }}

@@ -50,7 +50,7 @@
           <span class="material-symbols-outlined transition-transform duration-200" :class="active === 3 ? 'rotate-180 text-[#8C5151]' : 'text-slate-400'">expand_more</span>
         </button>
         <div x-show="active === 3" x-collapse class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-50 pt-3">
-          Setelah mengajukan reservasi, institusi memiliki batas waktu pembayaran (sesuai invoice) melalui Virtual Account, Transfer Bank, atau QRIS. Setelah pembayaran diverifikasi oleh gateway, slot ketersediaan otomatis dikunci (booked) dan mitra tapak diwajibkan mengonfirmasi kesiapan teknis dalam kurun waktu 24 jam (SLA).
+          Setelah mengajukan reservasi, institusi memiliki batas waktu pembayaran (sesuai invoice) melalui Virtual Account, Transfer Bank, atau QRIS. Setelah pembayaran diverifikasi oleh gateway, slot ketersediaan otomatis dikunci (booked) dan mitra tapak diwajibkan mengonfirmasi kesiapan teknis dalam kurun waktu {{ (int) setting('partner_confirm_sla_hours', 48) }} jam (SLA).
         </div>
       </div>
 

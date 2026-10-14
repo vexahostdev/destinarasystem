@@ -91,7 +91,7 @@
                 <div class="w-24 h-24 sm:w-28 sm:h-28 bg-[#eee5df] border border-[#2B211E]/15 shrink-0 overflow-hidden relative">
                     <img src="{{ asset($booking->destination->cover_image) }}" alt="{{ $booking->destination->name }}" class="w-full h-full object-cover">
                     <div class="absolute bottom-0 inset-x-0 bg-[#2B211E]/80 text-white text-[9px] text-center uppercase tracking-wider py-0.5">
-                        {{ $booking->inquiry_type === 'study_tour' ? 'P5 / STUDY TOUR' : 'RISET ILMIAH' }}
+                        {{ $booking->inquiry_type === \App\Enums\InquiryType::STUDY_TOUR ? 'P5 / STUDY TOUR' : 'RISET ILMIAH' }}
                     </div>
                 </div>
 
@@ -111,12 +111,12 @@
                     <div class="text-xs text-[#2B211E]/70 flex flex-wrap items-center gap-3">
                         <span class="flex items-center gap-1">
                             <span class="material-symbols-outlined text-[16px] text-[#2B211E]/60">groups</span>
-                            <span>{{ $booking->participant_count }} Siswa ({{ $booking->guide_count }} Pendamping)</span>
+                            <span>{{ $booking->participant_count }} Siswa ({{ $booking->companion_count }} Pendamping)</span>
                         </span>
                         <span>•</span>
                         <span class="flex items-center gap-1">
                             <span class="material-symbols-outlined text-[16px] text-[#2B211E]/60">location_on</span>
-                            <span>{{ $booking->destination->city }}, {{ $booking->destination->province }}</span>
+                            <span>{{ $booking->destination->city }}, {{ $booking->destination->province?->name ?? (is_string($booking->destination->province) ? $booking->destination->province : '') }}</span>
                         </span>
                     </div>
 
@@ -132,6 +132,7 @@
             <!-- Kolom Kanan: Status & Aksi Tindakan Cepat -->
             <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
                 <!-- Status Badge -->
+                <div>
                     @php
                         $st = $booking->status instanceof \App\Enums\BookingStatus ? $booking->status->value : (string)$booking->status;
                     @endphp
@@ -160,7 +161,7 @@
                         Buka Dossier
                     </a>
 
-                    @if($booking->status === 'menunggu_pembayaran')
+                    @if($booking->status === \App\Enums\BookingStatus::MENUNGGU_PEMBAYARAN)
                         <a href="{{ route('buyer.booking.payment', $booking->booking_code) }}" class="rgs-btn-primary px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                             <span class="material-symbols-outlined text-[15px]">credit_card</span>
                             <span>Bayar</span>

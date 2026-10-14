@@ -110,7 +110,7 @@
                             <span class="text-[11px] font-mono text-[#2B211E]/60">{{ $log->target }}</span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
-                            @if($log->channel === 'whatsapp')
+                            @if($log->channel === \App\Enums\NotificationChannel::WHATSAPP)
                                 <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono font-bold uppercase inline-flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[12px]">chat</span>
                                     <span>WA</span>
@@ -127,11 +127,11 @@
                             <p class="text-[11px] text-[#2B211E]/75 line-clamp-1 mt-0.5">{{ $log->preview_text }}</p>
                         </td>
                         <td class="py-3.5 px-4 text-center">
-                            @if($log->status === 'sent')
+                            @if($log->status === \App\Enums\NotificationStatus::SENT)
                                 <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono font-bold uppercase">
                                     TERKIRIM
                                 </span>
-                            @elseif($log->status === 'queued')
+                            @elseif($log->status === \App\Enums\NotificationStatus::QUEUED)
                                 <span class="px-2 py-0.5 bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-mono font-bold uppercase">
                                     ANTRIAN
                                 </span>
@@ -147,13 +147,13 @@
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 <button type="button" 
-                                        @click="modalMsg = { title: '{{ addslashes($log->title) }}', recipient: '{{ addslashes($log->recipient_name) }}', target: '{{ $log->target }}', text: '{{ addslashes($log->preview_text) }}', channel: '{{ $log->channel }}' }; previewModal = true"
+                                        @click="modalMsg = { title: '{{ addslashes($log->title) }}', recipient: '{{ addslashes($log->recipient_name) }}', target: '{{ $log->target }}', text: '{{ addslashes($log->preview_text) }}', channel: '{{ $log->channel?->value ?? (string)$log->channel }}' }; previewModal = true"
                                         title="Pratinjau Pesan Lengkap" 
                                         class="p-1 text-[#2B211E]/60 hover:text-[#703A3A]">
                                     <span class="material-symbols-outlined text-[16px]">visibility</span>
                                 </button>
 
-                                @if($log->status === 'failed')
+                                @if($log->status === \App\Enums\NotificationStatus::FAILED)
                                 <form action="{{ route('admin.notifications.retry', $log->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" title="Kirim Ulang Pesan Ini" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 text-[10px] font-mono font-bold uppercase flex items-center gap-1">

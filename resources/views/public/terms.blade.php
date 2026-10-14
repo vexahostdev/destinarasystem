@@ -37,7 +37,7 @@
         <h2 class="text-base sm:text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">3. Pemesanan, Pembayaran, dan SLA Konfirmasi</h2>
         <p>3.1. Pemesanan rombongan wajib memenuhi kuota minimal rombongan (min pax) dan batas waktu pemesanan (lead time) yang ditentukan oleh masing-masing tapak.</p>
         <p>3.2. Pembayaran wajib diselesaikan dalam jangka waktu yang tertera pada lembar tagihan resmi (Invoice). Keterlambatan pembayaran berakibat pada pembatalan otomatis alokasi kuota kunjungan.</p>
-        <p>3.3. Mitra tapak memiliki batas waktu konfirmasi layanan maksimal 24 jam (SLA) sejak pembayaran diverifikasi. Apabila mitra tidak memberikan konfirmasi dalam batas waktu tersebut, sistem secara otomatis membatalkan pesanan dan mengembalikan dana 100% kepada pembeli.</p>
+        <p>3.3. Mitra tapak memiliki batas waktu konfirmasi layanan maksimal {{ (int) setting('partner_confirm_sla_hours', 48) }} jam (SLA) sejak pembayaran diverifikasi. Apabila mitra tidak memberikan konfirmasi dalam batas waktu tersebut, sistem secara otomatis membatalkan pesanan dan mengembalikan dana 100% kepada pembeli.</p>
       </section>
 
       <section class="space-y-3">
