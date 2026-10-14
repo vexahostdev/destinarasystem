@@ -3,7 +3,7 @@
 @section('title', 'Manajemen Pembayaran')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ rejectPaymentId: null, rejectReason: '' }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Log Pembayaran</h1>
@@ -105,13 +105,21 @@
                             @endif
                             @if($isManual && $p->status === \App\Enums\PaymentStatus::PENDING)
                                 @can('payments.verify_manual')
-                                <form action="{{ route('admin.finance.verifyManual', $p->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" onclick="return confirm('Verifikasi pembayaran manual ini dan setujui status booking?')"
-                                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
-                                        Verifikasi
-                                    </button>
-                                </form>
+                                    @if($p->proof_path)
+                                        <form action="{{ route('admin.finance.verifyManual', $p->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" onclick="return confirm('Verifikasi pembayaran manual ini dan setujui status booking?')"
+                                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase transition">
+                                                Verifikasi
+                                            </button>
+                                        </form>
+                                        <button type="button" @click="rejectPaymentId = {{ $p->id }}; rejectReason = ''"
+                                                class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase transition">
+                                            Tolak
+                                        </button>
+                                    @else
+                                        <span class="text-[10px] text-gray-400 italic">Menunggu bukti diunggah</span>
+                                    @endif
                                 @endcan
                             @endif
 
@@ -136,6 +144,34 @@
 
         <div class="mt-4 pt-4 border-t border-gray-100">
             {{ $payments->links() }}
+        </div>
+    </div>
+
+    <!-- Modal Tolak Pembayaran Manual -->
+    <div x-show="rejectPaymentId !== null" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h3 class="text-base font-bold text-gray-900">Tolak Bukti Transfer Manual</h3>
+            <p class="text-xs text-gray-500">Berikan catatan alasan penolakan agar pembeli dapat mengunggah ulang bukti transfer yang benar.</p>
+            <form :action="'{{ url('/admin/keuangan/pembayaran') }}/' + rejectPaymentId + '/tolak'" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Alasan Penolakan <span class="text-rose-500">*</span></label>
+                    <textarea name="reason" rows="3" required minlength="5" x-model="rejectReason"
+                              placeholder="Contoh: Bukti transfer buram, mutasi belum masuk, atau nominal tidak sesuai."
+                              class="w-full text-xs rounded-xl border-gray-300 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="rejectPaymentId = null; rejectReason = ''"
+                            class="px-4 py-2 border border-gray-200 rounded-full text-xs font-bold text-gray-700 hover:bg-gray-50">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                        Tolak Bukti
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

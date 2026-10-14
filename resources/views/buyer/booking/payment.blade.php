@@ -90,7 +90,7 @@
                 <span class="font-bold text-slate-800">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
             </div>
             <div class="p-3 bg-slate-50 rounded-xl">
-                <span class="text-slate-500 block text-[11px]">Biaya Layanan BOS:</span>
+                <span class="text-slate-500 block text-[11px]">Biaya Layanan Platform:</span>
                 <span class="font-bold text-slate-800">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
             </div>
             <div class="p-3 bg-slate-50 rounded-xl">
@@ -108,6 +108,13 @@
             <h3 class="text-base font-bold text-slate-900 mb-1">Pilih Metode Pembayaran</h3>
             <p class="text-xs text-slate-500">Pilih gateway online otomatis atau transfer manual ke rekening resmi instansi Destinara.</p>
         </div>
+
+        @if($booking->total_amount < $minPaymentAmount && $booking->total_amount > 0)
+            <div class="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] shrink-0">info</span>
+                <span>Total tagihan (Rp {{ number_format($booking->total_amount, 0, ',', '.') }}) berada di bawah batas minimum transaksi gateway otomatis (Rp {{ number_format($minPaymentAmount, 0, ',', '.') }}). Disarankan memilih metode <strong>Transfer Manual</strong>.</span>
+            </div>
+        @endif
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             
@@ -154,7 +161,7 @@
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="font-bold text-sm text-slate-900 block">Transfer Manual</span>
-                        <span class="text-xs text-slate-500">Rekening Resmi PT Destinara</span>
+                        <span class="text-xs text-slate-500">Rekening Resmi Destinara</span>
                     </div>
                     <input type="radio" name="gateway" value="manual_transfer" x-model="gateway" class="text-[#8C5151] focus:ring-[#8C5151]">
                 </div>
@@ -172,13 +179,17 @@
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Rekening Resmi Destinara</h4>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                @foreach($banks as $bank)
-                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs">
-                        <span class="font-bold text-slate-900 block">{{ $bank->name }} ({{ $bank->code }})</span>
-                        <span class="font-mono text-sm font-black text-[#8C5151] block my-1">{{ $bank->account_number }}</span>
-                        <span class="text-slate-500 text-[11px]">a.n. {{ $bank->account_holder }}</span>
+                @forelse($manualAccounts as $acc)
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs shadow-xs">
+                        <span class="font-bold text-slate-900 block">{{ $acc['bank'] ?? 'Bank Transfer' }}</span>
+                        <span class="font-mono text-sm font-black text-[#8C5151] block my-1 tracking-wider">{{ $acc['number'] ?? '-' }}</span>
+                        <span class="text-slate-500 text-[11px]">a.n. {{ $acc['holder'] ?? config('app.name') }}</span>
                     </div>
-                @endforeach
+                @empty
+                    <div class="sm:col-span-2 p-3 bg-amber-50 text-amber-800 rounded-xl text-xs">
+                        Rekening transfer resmi belum dikonfigurasi di sistem. Silakan hubungi admin atau gunakan opsi pembayaran lain.
+                    </div>
+                @endforelse
             </div>
 
             <div class="pt-2">

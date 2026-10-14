@@ -282,6 +282,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
         Route::get('/pembayaran', [FinanceController::class, 'payments'])->middleware('can:payments.view')->name('payments');
         Route::get('/pembayaran/{payment}/bukti', [FinanceController::class, 'downloadProof'])->middleware('can:payments.view')->name('downloadProof');
         Route::post('/pembayaran/{payment}/verifikasi', [FinanceController::class, 'verifyManualPayment'])->middleware('can:payments.verify_manual')->name('verifyManual');
+        Route::post('/pembayaran/{payment}/tolak', [FinanceController::class, 'rejectManualPayment'])->middleware('can:payments.verify_manual')->name('rejectManual');
         Route::post('/pembayaran/{payment}/cek-status', [FinanceController::class, 'checkGatewayStatus'])->middleware('can:payments.view')->name('checkGatewayStatus');
 
         Route::get('/refund', [FinanceController::class, 'refunds'])->middleware('can:refunds.view')->name('refunds');

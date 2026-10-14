@@ -205,13 +205,31 @@ class BuyerController extends Controller
 
         // If no pending payment exists but booking is unpaid, create a new attempt
         if (! $payment) {
-            $payment = $paymentService->retryPayment($booking);
+            try {
+                $payment = $paymentService->retryPayment($booking);
+            } catch (\Throwable $e) {
+                try {
+                    $payment = $paymentService->retryPayment($booking, 'manual_transfer');
+                } catch (\Throwable) {
+                    $payment = null;
+                }
+            }
         }
 
         $banks = Bank::where('is_active', true)->get();
         $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
+        if (! is_array($enabledGateways)) {
+            $enabledGateways = json_decode((string) $enabledGateways, true) ?? [];
+        }
 
-        return view('buyer.booking.payment', compact('user', 'booking', 'payment', 'banks', 'enabledGateways'));
+        $manualAccounts = setting('manual_transfer_accounts', []);
+        if (! is_array($manualAccounts)) {
+            $manualAccounts = json_decode((string) $manualAccounts, true) ?? [];
+        }
+
+        $minPaymentAmount = (int) setting('min_payment_amount', 10000);
+
+        return view('buyer.booking.payment', compact('user', 'booking', 'payment', 'banks', 'enabledGateways', 'manualAccounts', 'minPaymentAmount'));
     }
 
     /**
@@ -231,34 +249,53 @@ class BuyerController extends Controller
         ]);
 
         $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
+        if (! is_array($enabledGateways)) {
+            $enabledGateways = json_decode((string) $enabledGateways, true) ?? [];
+        }
+
         if (! in_array($request->gateway, $enabledGateways, true)) {
             return back()->with('error', 'Metode pembayaran yang dipilih sedang tidak tersedia atau dinonaktifkan.');
         }
 
         $gateway = $request->gateway;
-        $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
 
-        if (! $payment || $payment->gateway !== $gateway) {
-            $payment = $paymentService->retryPayment($booking, $gateway);
+        // Online Gateway: check min payment amount before initiating
+        if ($gateway !== 'manual_transfer') {
+            $minAmount = (int) setting('min_payment_amount', 10000);
+            if ($booking->total_amount < $minAmount && $booking->total_amount > 0) {
+                return back()->with('error', 'Nominal pembayaran (Rp '.number_format($booking->total_amount, 0, ',', '.').') berada di bawah batas minimum transaksi gateway online (Rp '.number_format($minAmount, 0, ',', '.').'). Silakan gunakan metode transfer manual.');
+            }
         }
 
-        // If manual transfer, store the uploaded proof
-        if ($gateway === 'manual_transfer') {
-            $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
+        try {
+            $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
 
-            return redirect()->route('buyer.booking.show', $booking->booking_code)
-                ->with('success', 'Bukti transfer manual berhasil diunggah! Tim Destinara akan memverifikasi dalam waktu 1x24 jam.');
+            if (! $payment || $payment->gateway !== $gateway) {
+                $payment = $paymentService->retryPayment($booking, $gateway);
+            }
+
+            // If manual transfer, store the uploaded proof
+            if ($gateway === 'manual_transfer') {
+                $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
+
+                return redirect()->route('buyer.booking.show', $booking->booking_code)
+                    ->with('success', 'Bukti transfer manual berhasil diunggah! Tim Destinara akan memverifikasi dalam waktu 1x24 jam.');
+            }
+
+            if ($payment->checkout_url) {
+                return redirect()->away($payment->checkout_url);
+            }
+
+            return redirect()->route('buyer.booking.payment', $booking->booking_code)
+                ->with('info', 'Tagihan pembayaran telah disiapkan. Silakan selesaikan transaksi sesuai instruksi gateway.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gateway payment initiation failed: '.$e->getMessage(), [
+                'booking_code' => $booking->booking_code,
+                'gateway' => $gateway,
+            ]);
+
+            return back()->with('error', 'Jalur pembayaran online sementara tidak dapat dihubungi. Silakan pilih metode transfer manual atau hubungi admin.');
         }
-
-        // Online Gateway: initiate payment and redirect to checkout_url
-        $initiated = $paymentService->initiatePayment($payment);
-
-        if ($initiated->checkout_url) {
-            return redirect()->away($initiated->checkout_url);
-        }
-
-        return redirect()->route('buyer.booking.payment', $booking->booking_code)
-            ->with('info', 'Tagihan pembayaran telah disiapkan. Silakan selesaikan transaksi sesuai instruksi gateway.');
     }
 
     /**

@@ -124,9 +124,10 @@
         </h3>
 
         @php
-            $isPaid = in_array($booking->status, ['dibayar', 'dikonfirmasi', 'selesai']);
-            $isConfirmed = in_array($booking->status, ['dikonfirmasi', 'selesai']);
-            $isCompleted = ($booking->status === 'selesai');
+            $isPaid = in_array($booking->status, [\App\Enums\BookingStatus::DIBAYAR, \App\Enums\BookingStatus::DIKONFIRMASI, \App\Enums\BookingStatus::SELESAI]);
+            $isConfirmed = in_array($booking->status, [\App\Enums\BookingStatus::DIKONFIRMASI, \App\Enums\BookingStatus::SELESAI]);
+            $isCompleted = ($booking->status === \App\Enums\BookingStatus::SELESAI);
+            $hasPendingProof = isset($manualPayment) && $manualPayment->proof_path && !isset($manualPayment->raw_response['rejection_reason']);
         @endphp
 
         <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 relative">
@@ -140,27 +141,43 @@
                 <div class="text-[10px] text-[#2B211E]/70">Diterima sistem</div>
             </div>
 
-            <!-- Step 2: Verifikasi Mitra -->
-            <div class="p-3 border border-[#51634b]/30 bg-[#51634b]/10 text-xs space-y-1">
+            <!-- Step 2: Pembayaran -->
+            <div class="p-3 border {{ $isPaid ? 'border-[#51634b]/30 bg-[#51634b]/10' : ($hasPendingProof ? 'border-sky-300 bg-sky-50 ring-1 ring-sky-400' : 'border-[#b87a38]/40 bg-[#b87a38]/10 ring-1 ring-[#b87a38]') }} text-xs space-y-1">
                 <div class="flex items-center justify-between">
-                    <span class="font-bold text-[#51634b] text-[10px] uppercase">Langkah 2</span>
-                    <span class="material-symbols-outlined text-[#51634b] text-[16px]">check_circle</span>
-                </div>
-                <div class="font-bold text-[#2B211E]">Kuota Disetujui</div>
-                <div class="text-[10px] text-[#2B211E]/70">Slot tanggal terkonfirmasi</div>
-            </div>
-
-            <!-- Step 3: Pembayaran -->
-            <div class="p-3 border {{ $isPaid ? 'border-[#51634b]/30 bg-[#51634b]/10' : 'border-[#b87a38]/40 bg-[#b87a38]/10 ring-1 ring-[#b87a38]' }} text-xs space-y-1">
-                <div class="flex items-center justify-between">
-                    <span class="font-bold {{ $isPaid ? 'text-[#51634b]' : 'text-[#b87a38]' }} text-[10px] uppercase">Langkah 3</span>
-                    <span class="material-symbols-outlined {{ $isPaid ? 'text-[#51634b]' : 'text-[#b87a38]' }} text-[16px]">
-                        {{ $isPaid ? 'check_circle' : 'pending' }}
+                    <span class="font-bold {{ $isPaid ? 'text-[#51634b]' : ($hasPendingProof ? 'text-sky-700' : 'text-[#b87a38]') }} text-[10px] uppercase">Langkah 2</span>
+                    <span class="material-symbols-outlined {{ $isPaid ? 'text-[#51634b]' : ($hasPendingProof ? 'text-sky-600' : 'text-[#b87a38]') }} text-[16px]">
+                        {{ $isPaid ? 'check_circle' : ($hasPendingProof ? 'hourglass_top' : 'pending') }}
                     </span>
                 </div>
                 <div class="font-bold text-[#2B211E]">Pembayaran Tagihan</div>
                 <div class="text-[10px] text-[#2B211E]/70">
-                    {{ $isPaid ? 'Lunas terverifikasi' : 'Menunggu pembayaran' }}
+                    @if($isPaid)
+                        Lunas terverifikasi
+                    @elseif($hasPendingProof)
+                        Bukti sedang diverifikasi admin
+                    @else
+                        Menunggu pembayaran
+                    @endif
+                </div>
+            </div>
+
+            <!-- Step 3: Konfirmasi Mitra -->
+            <div class="p-3 border {{ $isConfirmed ? 'border-[#51634b]/30 bg-[#51634b]/10' : ($isPaid ? 'border-[#b87a38]/40 bg-[#b87a38]/10 ring-1 ring-[#b87a38]' : 'border-[#2B211E]/15 bg-[#faf6f0]') }} text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#2B211E]/50') }} text-[10px] uppercase">Langkah 3</span>
+                    <span class="material-symbols-outlined {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#2B211E]/40') }} text-[16px]">
+                        {{ $isConfirmed ? 'check_circle' : ($isPaid ? 'pending' : 'hourglass_empty') }}
+                    </span>
+                </div>
+                <div class="font-bold text-[#2B211E]">Konfirmasi Mitra</div>
+                <div class="text-[10px] text-[#2B211E]/70">
+                    @if($isConfirmed)
+                        Kuota resmi disetujui
+                    @elseif($isPaid)
+                        Menunggu konfirmasi mitra
+                    @else
+                        Menunggu pelunasan
+                    @endif
                 </div>
             </div>
 
@@ -172,9 +189,9 @@
                         {{ $isConfirmed ? 'check_circle' : 'hourglass_empty' }}
                     </span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Penerbitan Izin & e-Pass</div>
+                <div class="font-bold text-[#2B211E]">Dokumen & e-Pass</div>
                 <div class="text-[10px] text-[#2B211E]/70">
-                    {{ $isConfirmed ? 'Siap diunduh' : 'Menunggu pelunasan' }}
+                    {{ $isConfirmed ? 'Siap diunduh' : 'Menunggu konfirmasi' }}
                 </div>
             </div>
 
@@ -207,7 +224,7 @@
                         <span class="material-symbols-outlined text-[#703A3A] text-[20px]">nature_people</span>
                         <h2 class="font-serif text-lg font-bold text-[#2B211E]">Informasi Destinasi & Pengelola</h2>
                     </div>
-                    <span class="text-xs font-semibold text-[#703A3A] uppercase">{{ $booking->destination->city }}, {{ $booking->destination->province }}</span>
+                    <span class="text-xs font-semibold text-[#703A3A] uppercase">{{ $booking->destination->city }}, {{ $booking->destination->province?->name ?? $booking->destination->province }}</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -351,7 +368,7 @@
             </div>
 
             <!-- Card Ulasan Kunjungan Selesai -->
-            @if($booking->status === \App\Enums\BookingStatus::SELESAI || $booking->status === 'selesai')
+            @if($booking->status === \App\Enums\BookingStatus::SELESAI)
                 <div class="rgs-card p-6 border-t-4 border-t-amber-500 space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
                         <div class="flex items-center gap-2">
