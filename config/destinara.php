@@ -719,4 +719,10 @@ return [
         'payment.amount_mismatch' => ['admin'],
         'system.wa_disconnected' => ['admin'],
     ],
+
+    'superadmin' => [
+        'name' => env('SUPERADMIN_NAME', 'Super Admin'),
+        'email' => env('SUPERADMIN_EMAIL'),
+        'password' => env('SUPERADMIN_PASSWORD'),
+    ],
 ];

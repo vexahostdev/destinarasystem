@@ -12,9 +12,9 @@ class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        $name = env('SUPERADMIN_NAME', 'Super Admin');
-        $email = env('SUPERADMIN_EMAIL');
-        $password = env('SUPERADMIN_PASSWORD');
+        $name = config('destinara.superadmin.name', 'Super Admin');
+        $email = config('destinara.superadmin.email');
+        $password = config('destinara.superadmin.password');
 
         if (empty($email) || empty($password)) {
             throw new RuntimeException(
