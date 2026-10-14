@@ -313,7 +313,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     Route::get('/notifikasi', [AdminController::class, 'notificationLogs'])->middleware('can:notifications.view')->name('notifications.index');
     Route::post('/notifikasi/{id}/retry', [AdminController::class, 'retryNotification'])->middleware('can:notifications.retry')->name('notifications.retry');
     Route::get('/notifikasi/template', [AdminController::class, 'notificationTemplates'])->middleware('can:notifications.templates')->name('notifications.templates');
+    Route::post('/notifikasi/template', [AdminController::class, 'storeNotificationTemplate'])->middleware('can:notifications.templates')->name('notifications.templates.store');
     Route::post('/notifikasi/template/{template}', [AdminController::class, 'updateNotificationTemplate'])->middleware('can:notifications.templates')->name('notifications.templates.update');
+    Route::post('/notifikasi/template/{template}/toggle', [AdminController::class, 'toggleNotificationTemplate'])->middleware('can:notifications.templates')->name('notifications.templates.toggle');
+    Route::get('/notifikasi/template/{template}/preview', [AdminController::class, 'previewNotificationTemplate'])->middleware('can:notifications.templates')->name('notifications.templates.preview');
 
     // 11. Master Data Platform
     Route::get('/master-data', [MasterDataController::class, 'index'])->middleware('can:master_data.manage')->name('master.index');

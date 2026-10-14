@@ -49,7 +49,7 @@ return new class extends Migration
             $table->string('event_key');
             $table->string('channel'); // mail, whatsapp, database
             $table->string('audience'); // buyer, partner, admin, user
-            $table->string('subject');
+            $table->string('subject')->nullable();
             $table->text('body');
             $table->boolean('is_active')->default(true);
             $table->timestamps();

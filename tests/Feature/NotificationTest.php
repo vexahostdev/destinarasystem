@@ -4,12 +4,15 @@ namespace Tests\Feature;
 
 use App\Domain\Notification\Clients\VexaHostClient;
 use App\Domain\Notification\Exceptions\NonRetryableNotificationException;
+use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Domain\Notification\Services\TemplateRenderer;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Jobs\SendNotificationJob;
 use App\Mail\TemplatedMail;
 use App\Models\NotificationLog;
+use App\Models\NotificationTemplate;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -167,5 +170,165 @@ class NotificationTest extends TestCase
         $log->refresh();
         $this->assertEquals(NotificationStatus::DELIVERED, $log->status);
         $this->assertNotNull($log->delivered_at);
+    }
+
+    public function test_payment_paid_dispatches_to_all_three_audiences_and_channels(): void
+    {
+        Http::fake([
+            'https://wa.vexahostcloud.my.id/*' => Http::response([
+                'success' => true,
+                'data' => ['id' => 'msg_wa_fake', 'status' => 'queued'],
+            ], 200),
+        ]);
+        Mail::fake();
+
+        setting([
+            'admin_alert_emails' => ['admin@destinara.test'],
+            'admin_alert_whatsapp' => ['081234567899'],
+        ]);
+
+        $buyer = User::factory()->create([
+            'account_type' => 'buyer',
+            'email' => 'buyer@destinara.test',
+            'phone' => '081234567891',
+        ]);
+
+        $partner = User::factory()->create([
+            'account_type' => 'partner',
+            'email' => 'partner@destinara.test',
+            'phone' => '081234567892',
+        ]);
+
+        $context = [
+            'user' => $buyer,
+            'partner_user' => $partner,
+            'booking_code' => 'DST-PAY-001',
+            'total_amount' => '1.500.000',
+            'payment_method' => 'BCA Virtual Account',
+        ];
+
+        $dispatcher = app(NotificationDispatcher::class);
+        $logs = $dispatcher->send('payment.paid', $context, ['buyer', 'partner', 'admin']);
+
+        // 3 audiences x 3 channels = 9 logs
+        $this->assertCount(9, $logs);
+
+        // Verify each audience received mail, whatsapp, and database channels
+        foreach (['buyer', 'partner', 'admin'] as $aud) {
+            $templatesForAud = NotificationTemplate::where('event_key', 'payment.paid')
+                ->where('audience', $aud)
+                ->pluck('channel')
+                ->map(fn ($c) => $c instanceof NotificationChannel ? $c->value : $c)
+                ->all();
+
+            $this->assertContains('mail', $templatesForAud);
+            $this->assertContains('whatsapp', $templatesForAud);
+            $this->assertContains('database', $templatesForAud);
+        }
+    }
+
+    public function test_disabling_single_template_stops_only_that_channel(): void
+    {
+        Http::fake([
+            'https://wa.vexahostcloud.my.id/*' => Http::response([
+                'success' => true,
+                'data' => ['id' => 'msg_wa_fake', 'status' => 'queued'],
+            ], 200),
+        ]);
+        Mail::fake();
+
+        setting([
+            'admin_alert_emails' => ['admin@destinara.test'],
+            'admin_alert_whatsapp' => ['081234567899'],
+        ]);
+
+        $buyer = User::factory()->create([
+            'account_type' => 'buyer',
+            'email' => 'buyer-toggle@destinara.test',
+            'phone' => '081234567893',
+        ]);
+
+        $partner = User::factory()->create([
+            'account_type' => 'partner',
+            'email' => 'partner-toggle@destinara.test',
+            'phone' => '081234567894',
+        ]);
+
+        // Deactivate ONLY buyer whatsapp template
+        NotificationTemplate::where('event_key', 'payment.paid')
+            ->where('audience', 'buyer')
+            ->where('channel', NotificationChannel::WHATSAPP)
+            ->update(['is_active' => false]);
+
+        $context = [
+            'user' => $buyer,
+            'partner_user' => $partner,
+            'booking_code' => 'DST-PAY-TOGGLE',
+            'total_amount' => '750.000',
+        ];
+
+        $dispatcher = app(NotificationDispatcher::class);
+        $logs = $dispatcher->send('payment.paid', $context, ['buyer', 'partner', 'admin']);
+
+        // Out of 9, buyer whatsapp is skipped -> 8 logs
+        $this->assertCount(8, $logs);
+
+        $channelsForBuyer = collect($logs)->filter(function ($log) use ($buyer) {
+            return $log->recipient === $buyer->email || $log->recipient === (string) $buyer->id || $log->recipient === $buyer->phone;
+        })->pluck('channel')->map(fn ($c) => $c instanceof NotificationChannel ? $c->value : $c)->all();
+
+        $this->assertContains('mail', $channelsForBuyer);
+        $this->assertContains('database', $channelsForBuyer);
+        $this->assertNotContains('whatsapp', $channelsForBuyer);
+    }
+
+    public function test_admin_can_manage_and_preview_notification_templates(): void
+    {
+        $admin = User::where('account_type', 'internal')->first();
+
+        // 1. Create a custom template for a new event/channel combination
+        $response = $this->actingAs($admin)->post('/admin/notifikasi/template', [
+            'event_key' => 'custom.school_holiday',
+            'channel' => 'whatsapp',
+            'audience' => 'buyer',
+            'subject' => null,
+            'body' => 'Promo liburan sekolah untuk {institution_name}!',
+            'is_active' => 1,
+        ]);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $template = NotificationTemplate::where('event_key', 'custom.school_holiday')
+            ->where('channel', 'whatsapp')
+            ->where('audience', 'buyer')
+            ->firstOrFail();
+
+        $this->assertTrue($template->is_active);
+
+        // 2. Toggle active state
+        $toggleResponse = $this->actingAs($admin)->post("/admin/notifikasi/template/{$template->id}/toggle");
+        $toggleResponse->assertRedirect();
+        $this->assertFalse($template->fresh()->is_active);
+
+        // Toggle back to active
+        $this->actingAs($admin)->post("/admin/notifikasi/template/{$template->id}/toggle");
+        $this->assertTrue($template->fresh()->is_active);
+
+        // 3. Preview with sample data
+        $previewResponse = $this->actingAs($admin)->get("/admin/notifikasi/template/{$template->id}/preview");
+        $previewResponse->assertOk();
+        $previewResponse->assertJsonStructure([
+            'event_key',
+            'channel',
+            'audience',
+            'is_active',
+            'subject',
+            'body',
+        ]);
+        $previewResponse->assertJsonFragment([
+            'event_key' => 'custom.school_holiday',
+            'channel' => 'whatsapp',
+            'audience' => 'buyer',
+        ]);
     }
 }

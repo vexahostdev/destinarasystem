@@ -7,6 +7,7 @@ use App\Domain\Booking\Services\BookingService;
 use App\Domain\Catalog\Services\AvailabilityCalendarService;
 use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Domain\Notification\Services\TemplateRenderer;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\NotificationChannel;
@@ -799,9 +800,79 @@ class AdminController extends Controller
 
     public function notificationTemplates()
     {
-        $templates = NotificationTemplate::all();
+        $templates = NotificationTemplate::orderBy('event_key')->orderBy('channel')->get();
+        $availableEvents = [
+            'auth.welcome',
+            'booking.created',
+            'payment.reminder',
+            'booking.expired',
+            'payment.paid',
+            'partner.confirm_reminder',
+            'booking.confirmed',
+            'booking.rejected',
+            'booking.auto_cancelled',
+            'booking.cancelled',
+            'booking.rescheduled',
+            'visit.reminder',
+            'booking.checked_in',
+            'booking.completed',
+            'refund.created',
+            'refund.completed',
+            'payout.created',
+            'payout.transferred',
+            'destination.submitted',
+            'destination.approved',
+            'destination.revision_required',
+            'destination.rejected',
+            'partner.verified',
+            'partner.rejected',
+            'institution.verified',
+            'institution.rejected',
+            'review.received',
+            'payment.late_received',
+            'payment.amount_mismatch',
+            'system.wa_disconnected',
+        ];
 
-        return view('admin.notifications.templates', compact('templates'));
+        return view('admin.notifications.templates', compact('templates', 'availableEvents'));
+    }
+
+    public function storeNotificationTemplate(Request $request)
+    {
+        $validated = $request->validate([
+            'event_key' => 'required|string|max:100',
+            'channel' => 'required|string|in:mail,whatsapp,database',
+            'audience' => 'required|string|in:buyer,partner,admin',
+            'subject' => 'nullable|string|max:255',
+            'body' => 'required|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $exists = NotificationTemplate::where('event_key', $validated['event_key'])
+            ->where('channel', $validated['channel'])
+            ->where('audience', $validated['audience'])
+            ->exists();
+
+        if ($exists) {
+            return back()->with('error', "Template untuk event '{$validated['event_key']}' dengan kanal '{$validated['channel']}' dan sasaran '{$validated['audience']}' sudah terdaftar.");
+        }
+
+        $template = NotificationTemplate::create([
+            'event_key' => $validated['event_key'],
+            'channel' => $validated['channel'],
+            'audience' => $validated['audience'],
+            'subject' => $validated['subject'] ?? null,
+            'body' => $validated['body'],
+            'is_active' => $request->boolean('is_active', true),
+        ]);
+
+        AuditLogger::log(
+            action: 'create_notification_template',
+            target: $template,
+            description: "Template notifikasi baru dibuat: {$template->event_key} ({$template->channel->value} / {$template->audience})."
+        );
+
+        return back()->with('success', 'Template notifikasi baru berhasil ditambahkan.');
     }
 
     public function updateNotificationTemplate(Request $request, NotificationTemplate $template)
@@ -822,5 +893,66 @@ class AdminController extends Controller
         );
 
         return back()->with('success', 'Template notifikasi berhasil diperbarui.');
+    }
+
+    public function toggleNotificationTemplate(NotificationTemplate $template)
+    {
+        $template->is_active = ! $template->is_active;
+        $template->save();
+
+        AuditLogger::log(
+            action: 'toggle_notification_template',
+            target: $template,
+            description: "Status template {$template->event_key} ({$template->channel->value}) diubah menjadi ".($template->is_active ? 'aktif' : 'nonaktif').'.'
+        );
+
+        return back()->with('success', "Template {$template->event_key} ({$template->channel->value}) berhasil ".($template->is_active ? 'diaktifkan' : 'dinonaktifkan').'.');
+    }
+
+    public function previewNotificationTemplate(NotificationTemplate $template, TemplateRenderer $renderer)
+    {
+        $sampleContext = [
+            'user_name' => 'Budi Santoso',
+            'pic_name' => 'Budi Santoso',
+            'institution_name' => 'SMA Negeri 1 Yogyakarta',
+            'destination_name' => 'Desa Wisata Kalibiru',
+            'organization_name' => 'Pokdarwis Kalibiru',
+            'partner_name' => 'Bapak Budi',
+            'booking_code' => 'DST-2610-SAMPLE',
+            'total_amount' => '1.250.000',
+            'net_amount' => '1.125.000',
+            'refund_amount' => '625.000',
+            'refund_percent' => 50,
+            'participant_count' => 20,
+            'planned_date_start' => now()->addDays(7)->format('d/m/Y'),
+            'planned_date_end' => now()->addDays(8)->format('d/m/Y'),
+            'expires_at' => now()->addDay()->format('d/m/Y H:i'),
+            'payment_url' => url('/bayar/DST-2610-SAMPLE'),
+            'booking_url' => url('/booking/DST-2610-SAMPLE'),
+            'action_url' => url('/verifikasi/sample'),
+            'payout_number' => 'PAY/202610/0001',
+            'reason' => 'Perubahan jadwal dinas',
+            'moderation_notes' => 'Foto sampul sudah sesuai, informasi lengkap.',
+            'days_left' => 3,
+            'hours_left' => 6,
+            'payment_gateway' => 'Xendit Virtual Account',
+            'rating' => 5,
+            'review_comment' => 'Kegiatan sangat edukatif dan fasilitas memadai.',
+            'bank_name' => 'BCA',
+            'account_number' => '1234567890',
+            'account_holder' => 'SMA Negeri 1 Yogyakarta',
+        ];
+
+        $renderedSubject = $template->subject ? $renderer->render($template->subject, $sampleContext) : null;
+        $renderedBody = $renderer->render($template->body, $sampleContext);
+
+        return response()->json([
+            'event_key' => $template->event_key,
+            'channel' => $template->channel->value ?? $template->channel,
+            'audience' => $template->audience,
+            'is_active' => $template->is_active,
+            'subject' => $renderedSubject,
+            'body' => $renderedBody,
+        ]);
     }
 }

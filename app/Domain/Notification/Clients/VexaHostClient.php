@@ -80,6 +80,9 @@ class VexaHostClient
         if (in_array($status, [400, 401, 403, 404, 422])) {
             $errData = $response->json();
             $errMsg = $errData['message'] ?? $errData['error'] ?? $response->body();
+            if (is_array($errMsg)) {
+                $errMsg = json_encode($errMsg);
+            }
             throw new NonRetryableNotificationException("VexaHost Client Error [{$status}]: {$errMsg}");
         }
 
@@ -130,6 +133,9 @@ class VexaHostClient
         if (in_array($status, [400, 401, 403, 404, 422])) {
             $errData = $response->json();
             $errMsg = $errData['message'] ?? $errData['error'] ?? $response->body();
+            if (is_array($errMsg)) {
+                $errMsg = json_encode($errMsg);
+            }
             throw new NonRetryableNotificationException("VexaHost Media Error [{$status}]: {$errMsg}");
         }
 
