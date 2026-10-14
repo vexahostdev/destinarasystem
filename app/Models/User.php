@@ -2,91 +2,107 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\AccountType;
+use App\Traits\Auditable;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes, Auditable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
+        'account_type',
         'phone',
         'status',
+        'suspended_reason',
+        'last_login_at',
+        'last_login_ip',
     ];
 
-    /**
-     * Relasi ke data institusi (untuk user role buyer)
-     */
-    public function institution()
-    {
-        return $this->hasOne(Institution::class);
-    }
-
-    /**
-     * Relasi ke pesanan/booking
-     */
-    public function bookings()
-    {
-        return $this->hasMany(Booking::class);
-    }
-
-    /**
-     * Relasi ke profil lembaga mitra pengelola tapak
-     */
-    public function partnerProfile()
-    {
-        return $this->hasOne(PartnerProfile::class);
-    }
-
-    /**
-     * Relasi ke pencairan dana mitra (payouts)
-     */
-    public function partnerPayouts()
-    {
-        return $this->hasMany(PartnerPayout::class, 'partner_id');
-    }
-
-    /**
-     * Relasi ke destinasi yang dikelola mitra
-     */
-    public function destinations()
-    {
-        return $this->hasMany(Destination::class, 'partner_id');
-    }
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'account_type' => AccountType::class,
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    public function isBuyer(): bool
+    {
+        return $this->account_type === AccountType::BUYER;
+    }
+
+    public function isPartner(): bool
+    {
+        return $this->account_type === AccountType::PARTNER;
+    }
+
+    public function isInternal(): bool
+    {
+        return $this->account_type === AccountType::INTERNAL;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->isInternal() && $this->hasRole('super_admin');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+
+    public function institution(): HasOne
+    {
+        return $this->hasOne(Institution::class);
+    }
+
+    public function partnerProfile(): HasOne
+    {
+        return $this->hasOne(PartnerProfile::class);
+    }
+
+    public function destinations(): HasMany
+    {
+        return $this->hasMany(Destination::class, 'partner_id');
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function partnerPayouts(): HasMany
+    {
+        return $this->hasMany(PartnerPayout::class, 'partner_id');
+    }
+
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
     }
 }

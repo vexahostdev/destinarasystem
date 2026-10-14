@@ -2,91 +2,200 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
+use App\Enums\InquiryType;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, Auditable;
 
     protected $fillable = [
         'booking_code',
-        'institution_id',
         'user_id',
+        'institution_id',
         'destination_id',
+        'package_id',
         'inquiry_type',
         'planned_date_start',
         'planned_date_end',
         'participant_count',
-        'guide_count',
+        'companion_count',
         'purpose_notes',
         'needs_permit_letter',
-        'support_doc_path',
+        'permit_details',
         'subtotal_amount',
+        'addons_amount',
         'insurance_amount',
-        'platform_fee',
+        'platform_fee_amount',
+        'discount_amount',
         'total_amount',
+        'commission_percent',
+        'commission_amount',
+        'partner_net_amount',
+        'voucher_id',
         'status',
+        'expires_at',
+        'paid_at',
+        'partner_confirm_deadline',
+        'confirmed_at',
+        'checked_in_at',
+        'completed_at',
+        'cancelled_at',
+        'cancelled_by',
+        'cancel_reason',
+        'cancellation_source',
         'internal_notes',
     ];
 
-    protected $casts = [
-        'planned_date_start' => 'date',
-        'planned_date_end' => 'date',
-        'participant_count' => 'integer',
-        'guide_count' => 'integer',
-        'needs_permit_letter' => 'boolean',
-        'subtotal_amount' => 'decimal:2',
-        'insurance_amount' => 'decimal:2',
-        'platform_fee' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-    ];
-
-    public function institution()
+    protected function casts(): array
     {
-        return $this->belongsTo(Institution::class);
+        return [
+            'inquiry_type' => InquiryType::class,
+            'status' => BookingStatus::class,
+            'planned_date_start' => 'date',
+            'planned_date_end' => 'date',
+            'participant_count' => 'integer',
+            'companion_count' => 'integer',
+            'needs_permit_letter' => 'boolean',
+            'permit_details' => 'array',
+            'subtotal_amount' => 'integer',
+            'addons_amount' => 'integer',
+            'insurance_amount' => 'integer',
+            'platform_fee_amount' => 'integer',
+            'discount_amount' => 'integer',
+            'total_amount' => 'integer',
+            'commission_percent' => 'integer',
+            'commission_amount' => 'integer',
+            'partner_net_amount' => 'integer',
+            'expires_at' => 'datetime',
+            'paid_at' => 'datetime',
+            'partner_confirm_deadline' => 'datetime',
+            'confirmed_at' => 'datetime',
+            'checked_in_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function destination()
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
+    }
+
+    public function destination(): BelongsTo
     {
         return $this->belongsTo(Destination::class);
     }
 
-    public function payment()
+    public function package(): BelongsTo
     {
-        return $this->hasOne(Payment::class);
+        return $this->belongsTo(Package::class);
     }
 
-    public function documents()
+    public function voucher(): BelongsTo
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(BookingItem::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(BookingStatusHistory::class)->orderBy('created_at', 'asc');
+    }
+
+    public function slotAllocations(): HasMany
+    {
+        return $this->hasMany(BookingSlotAllocation::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function latestPayment(): HasOne
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    public function checkIn(): HasOne
+    {
+        return $this->hasOne(CheckIn::class);
+    }
+
+    public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
     }
 
-    // Accessor aliases for seamless compatibility
-    public function getTotalPaxAttribute()
+    public function refunds(): HasMany
     {
-        return $this->participant_count ?? 30;
+        return $this->hasMany(Refund::class);
     }
 
-    public function getVisitDateAttribute()
+    public function partnerPayout(): HasOne
     {
-        return $this->planned_date_start;
+        return $this->hasOne(PartnerPayout::class);
     }
 
-    public function setVisitDateAttribute($value)
+    public function review(): HasOne
     {
-        $this->attributes['planned_date_start'] = $value;
-        $this->attributes['planned_date_end'] = $value;
+        return $this->hasOne(Review::class);
     }
 
-    public function getTotalPriceAttribute()
+    public function isWaitingPayment(): bool
     {
-        return $this->total_amount ?? 0;
+        return $this->status === BookingStatus::MENUNGGU_PEMBAYARAN;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status === BookingStatus::DIBAYAR;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->status === BookingStatus::DIKONFIRMASI;
+    }
+
+    public function isOngoing(): bool
+    {
+        return $this->status === BookingStatus::BERLANGSUNG;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === BookingStatus::SELESAI;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === BookingStatus::BATAL;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->status === BookingStatus::KEDALUWARSA;
     }
 }
-
