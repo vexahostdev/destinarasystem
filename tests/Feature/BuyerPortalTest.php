@@ -6,6 +6,7 @@ use App\Domain\Booking\Services\BookingCodeGenerator;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\VerificationStatus;
 use App\Livewire\Buyer\BookingForm;
 use App\Models\Booking;
@@ -15,9 +16,14 @@ use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerProfile;
+use App\Models\Payment;
 use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -250,12 +256,12 @@ class BuyerPortalTest extends TestCase
             'expires_at' => now()->addHours(24),
         ]);
 
-        \App\Models\Payment::create([
+        Payment::create([
             'booking_id' => $booking->id,
             'gateway' => 'manual_transfer',
             'external_id' => 'PAY-'.$booking->booking_code,
             'amount' => 940000,
-            'status' => \App\Enums\PaymentStatus::PENDING,
+            'status' => PaymentStatus::PENDING,
             'payment_method' => 'manual_transfer',
         ]);
 
@@ -266,7 +272,7 @@ class BuyerPortalTest extends TestCase
 
     public function test_buyer_can_reupload_manual_proof(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
         $this->actingAs($this->buyer);
 
         $booking = Booking::create([
@@ -292,17 +298,17 @@ class BuyerPortalTest extends TestCase
             'expires_at' => now()->addHours(24),
         ]);
 
-        $payment = \App\Models\Payment::create([
+        $payment = Payment::create([
             'booking_id' => $booking->id,
             'gateway' => 'manual_transfer',
             'external_id' => 'PAY-'.$booking->booking_code,
             'amount' => 940000,
-            'status' => \App\Enums\PaymentStatus::PENDING,
+            'status' => PaymentStatus::PENDING,
             'payment_method' => 'manual_transfer',
             'raw_response' => ['rejection_reason' => 'Gambar buram'],
         ]);
 
-        $file = \Illuminate\Http\UploadedFile::fake()->create('proof.jpg', 500, 'image/jpeg');
+        $file = UploadedFile::fake()->create('proof.jpg', 500, 'image/jpeg');
 
         $response = $this->post("/buyer/booking/{$booking->booking_code}/bukti-transfer", [
             'proof_file' => $file,
@@ -316,8 +322,8 @@ class BuyerPortalTest extends TestCase
     {
         $this->actingAs($this->buyer);
 
-        $notif = \Illuminate\Notifications\DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+        $notif = DatabaseNotification::create([
+            'id' => Str::uuid()->toString(),
             'type' => 'Destinara\\InAppNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $this->buyer->id,
@@ -334,8 +340,8 @@ class BuyerPortalTest extends TestCase
         $this->post("/buyer/notifikasi/{$notif->id}/read")->assertRedirect();
         $this->assertNotNull($notif->fresh()->read_at);
 
-        $notif2 = \Illuminate\Notifications\DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+        $notif2 = DatabaseNotification::create([
+            'id' => Str::uuid()->toString(),
             'type' => 'Destinara\\InAppNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $this->buyer->id,

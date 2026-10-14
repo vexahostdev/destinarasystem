@@ -13,6 +13,7 @@ use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class AdminPortalTest extends TestCase
@@ -198,7 +199,7 @@ class AdminPortalTest extends TestCase
             'https://api.xendit.co/*' => Http::response(['balance' => 5000000], 200),
             'https://api.sandbox.midtrans.com/*' => Http::response(['status_code' => '200'], 200),
         ]);
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
 
         $this->actingAs($this->superAdmin);
 
@@ -262,7 +263,7 @@ class AdminPortalTest extends TestCase
 
         $this->assertEmpty(
             $orphanKeys,
-            'Orphan setting keys found in codebase that are missing from config/destinara.php: ' . implode(', ', $orphanKeys)
+            'Orphan setting keys found in codebase that are missing from config/destinara.php: '.implode(', ', $orphanKeys)
         );
     }
 }

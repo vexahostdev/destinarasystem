@@ -11,6 +11,7 @@ use App\Enums\VerificationStatus;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
+use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerProfile;
@@ -73,10 +74,11 @@ class CheckInReviewTest extends TestCase
 
         $province = Province::first();
         $policy = CancellationPolicy::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'desa-wisata'], ['name' => 'Desa Wisata', 'is_active' => true]);
 
         $this->destination = Destination::create([
             'partner_id' => $this->partnerUser->id,
-            'category_id' => 1,
+            'category_id' => $category->id,
             'province_id' => $province->id,
             'cancellation_policy_id' => $policy->id,
             'name' => 'Desa Wisata Kaki Langit',

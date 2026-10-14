@@ -12,9 +12,11 @@ use App\Enums\PaymentStatus;
 use App\Enums\PayoutStatus;
 use App\Enums\RefundStatus;
 use App\Enums\VerificationStatus;
+use App\Models\Bank;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
+use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerPayout;
@@ -76,7 +78,7 @@ class FinanceTest extends TestCase
             'address' => 'Jl. Nglanggeran Wetan',
             'city' => 'Gunungkidul',
             'province' => 'DI Yogyakarta',
-            'bank_id' => \App\Models\Bank::first()?->id,
+            'bank_id' => Bank::first()?->id,
             'bank_account_number' => '1370012345678',
             'bank_account_holder' => 'Koperasi Nglanggeran',
             'verification_status' => VerificationStatus::VERIFIED,
@@ -89,10 +91,11 @@ class FinanceTest extends TestCase
 
         $province = Province::first();
         $policy = CancellationPolicy::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'geowisata'], ['name' => 'Geowisata', 'is_active' => true]);
 
         $destination = Destination::create([
             'partner_id' => $this->partnerUser->id,
-            'category_id' => 1,
+            'category_id' => $category->id,
             'province_id' => $province->id,
             'cancellation_policy_id' => $policy->id,
             'name' => 'Gunung Api Purba Nglanggeran',

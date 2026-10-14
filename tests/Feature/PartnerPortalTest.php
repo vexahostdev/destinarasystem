@@ -24,7 +24,9 @@ use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PartnerPortalTest extends TestCase
@@ -376,8 +378,8 @@ class PartnerPortalTest extends TestCase
     {
         $this->actingAs($this->partner);
 
-        $notif = \Illuminate\Notifications\DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+        $notif = DatabaseNotification::create([
+            'id' => Str::uuid()->toString(),
             'type' => 'Destinara\\InAppNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $this->partner->id,
@@ -394,8 +396,8 @@ class PartnerPortalTest extends TestCase
         $this->post("/mitra/notifikasi/{$notif->id}/read")->assertRedirect();
         $this->assertNotNull($notif->fresh()->read_at);
 
-        $notif2 = \Illuminate\Notifications\DatabaseNotification::create([
-            'id' => \Illuminate\Support\Str::uuid()->toString(),
+        $notif2 = DatabaseNotification::create([
+            'id' => Str::uuid()->toString(),
             'type' => 'Destinara\\InAppNotification',
             'notifiable_type' => User::class,
             'notifiable_id' => $this->partner->id,

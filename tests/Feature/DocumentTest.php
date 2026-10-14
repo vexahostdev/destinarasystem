@@ -13,6 +13,7 @@ use App\Enums\VerificationStatus;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
+use App\Models\DestinationCategory;
 use App\Models\Document;
 use App\Models\Institution;
 use App\Models\Package;
@@ -89,10 +90,11 @@ class DocumentTest extends TestCase
 
         $province = Province::first();
         $policy = CancellationPolicy::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'ekowisata'], ['name' => 'Ekowisata', 'is_active' => true]);
 
         $this->destination = Destination::create([
             'partner_id' => $this->partnerUser->id,
-            'category_id' => 1,
+            'category_id' => $category->id,
             'province_id' => $province->id,
             'cancellation_policy_id' => $policy->id,
             'name' => 'Hutan Pinus Mangunan',

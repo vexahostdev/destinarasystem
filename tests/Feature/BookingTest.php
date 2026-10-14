@@ -16,6 +16,7 @@ use App\Models\Addon;
 use App\Models\AvailabilitySlot;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
+use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerProfile;
@@ -86,10 +87,11 @@ class BookingTest extends TestCase
 
         $this->cancellationPolicy = CancellationPolicy::first();
         $province = Province::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'desa-wisata'], ['name' => 'Desa Wisata', 'is_active' => true]);
 
         $this->destination = Destination::create([
             'partner_id' => $this->partnerUser->id,
-            'category_id' => 1,
+            'category_id' => $category->id,
             'province_id' => $province->id,
             'cancellation_policy_id' => $this->cancellationPolicy->id,
             'name' => 'Desa Wisata Kalibiru',
