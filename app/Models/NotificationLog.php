@@ -7,6 +7,7 @@ use App\Enums\NotificationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Str;
 
 class NotificationLog extends Model
 {
@@ -63,7 +64,7 @@ class NotificationLog extends Model
 
     public function getPreviewTextAttribute(): ?string
     {
-        return \Illuminate\Support\Str::limit(strip_tags((string) $this->body), 100);
+        return Str::limit(strip_tags((string) $this->body), 100);
     }
 
     public function getRetryCountAttribute(): int

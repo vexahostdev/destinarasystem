@@ -1154,7 +1154,7 @@ class NotificationTemplateSeeder extends Seeder
                 'channel' => 'whatsapp',
                 'audience' => 'admin',
                 'subject' => null,
-                'body' => "Mitra *{{organization_name}}* (PIC: {{partner_name}}) telah mengajukan berkas legalitas untuk verifikasi. Segera periksa di konsol admin.",
+                'body' => 'Mitra *{{organization_name}}* (PIC: {{partner_name}}) telah mengajukan berkas legalitas untuk verifikasi. Segera periksa di konsol admin.',
             ],
             [
                 'event_key' => 'partner.submitted',

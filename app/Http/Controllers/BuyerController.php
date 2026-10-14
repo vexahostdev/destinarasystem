@@ -16,6 +16,7 @@ use App\Models\Destination;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class BuyerController extends Controller
@@ -289,7 +290,7 @@ class BuyerController extends Controller
             return redirect()->route('buyer.booking.payment', $booking->booking_code)
                 ->with('info', 'Tagihan pembayaran telah disiapkan. Silakan selesaikan transaksi sesuai instruksi gateway.');
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Gateway payment initiation failed: '.$e->getMessage(), [
+            Log::error('Gateway payment initiation failed: '.$e->getMessage(), [
                 'booking_code' => $booking->booking_code,
                 'gateway' => $gateway,
             ]);

@@ -53,7 +53,7 @@ class BladeEnumArchitectureTest extends TestCase
 
         $this->assertEmpty(
             $offendingOccurrences,
-            "Ditemukan perbandingan field Enum dengan string literal di Blade:\n" . implode("\n", $offendingOccurrences)
+            "Ditemukan perbandingan field Enum dengan string literal di Blade:\n".implode("\n", $offendingOccurrences)
         );
     }
 }

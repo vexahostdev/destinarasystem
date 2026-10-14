@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Audit\AuditLogger;
 use App\Enums\VerificationStatus;
+use App\Events\UserRegistered;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -11,7 +12,6 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\Institution;
 use App\Models\PartnerProfile;
 use App\Models\User;
-use App\Events\UserRegistered;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;

@@ -11,6 +11,7 @@ use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class BookingForm extends Component
@@ -104,6 +105,7 @@ class BookingForm extends Component
     {
         if (! $package) {
             $this->availableInquiryTypes = ['study_tour'];
+
             return;
         }
 
@@ -224,7 +226,7 @@ class BookingForm extends Component
 
         $this->validate([
             'packageId' => 'required|exists:packages,id',
-            'inquiryType' => ['required', 'string', \Illuminate\Validation\Rule::in($this->availableInquiryTypes)],
+            'inquiryType' => ['required', 'string', Rule::in($this->availableInquiryTypes)],
             'plannedDateStart' => "required|date|after_or_equal:{$this->minDate}|before_or_equal:{$this->maxDate}",
             'participantCount' => "required|integer|min:{$package->min_pax}|max:{$package->max_pax}",
             'companionCount' => 'nullable|integer|min:0|max:50',

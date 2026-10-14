@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
 use App\Traits\Auditable;
 use Database\Factories\UserFactory;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\URL;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -108,7 +110,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
-        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+        $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(config('auth.verification.expire', 60)),
             [
@@ -118,7 +120,7 @@ class User extends Authenticatable implements MustVerifyEmail
         );
 
         $audience = $this->isPartner() ? 'partner' : 'buyer';
-        app(\App\Domain\Notification\Services\NotificationDispatcher::class)->send(
+        app(NotificationDispatcher::class)->send(
             'auth.verify_email',
             [
                 'user' => $this,
@@ -138,7 +140,7 @@ class User extends Authenticatable implements MustVerifyEmail
         ]);
 
         $audience = $this->isPartner() ? 'partner' : 'buyer';
-        app(\App\Domain\Notification\Services\NotificationDispatcher::class)->send(
+        app(NotificationDispatcher::class)->send(
             'auth.reset_password',
             [
                 'user' => $this,

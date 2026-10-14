@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
-use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;

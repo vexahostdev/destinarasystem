@@ -12,7 +12,6 @@ use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -23,9 +22,13 @@ class PartnerVerificationFlowTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $partnerUser;
+
     protected PartnerProfile $partnerProfile;
+
     protected Bank $bank;
+
     protected Province $province;
 
     protected function setUp(): void

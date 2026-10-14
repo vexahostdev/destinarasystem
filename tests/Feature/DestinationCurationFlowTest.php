@@ -2,9 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Domain\Catalog\Services\DestinationService;
 use App\Enums\AccountType;
-use App\Enums\AddonPricingType;
 use App\Enums\DestinationStatus;
 use App\Enums\VerificationStatus;
 use App\Events\DestinationModerated;
@@ -30,11 +28,17 @@ class DestinationCurationFlowTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $partner;
+
     protected DestinationCategory $category;
+
     protected Province $province;
+
     protected CancellationPolicy $policy;
+
     protected Facility $facility1;
+
     protected Facility $facility2;
 
     protected function setUp(): void
@@ -123,7 +127,7 @@ class DestinationCurationFlowTest extends TestCase
             ->post(route('mitra.destinations.store'), $payload);
 
         $response->assertRedirect();
-        
+
         $destination = Destination::where('name', 'Kawasan Konservasi Hutan Cikole')->first();
         $this->assertNotNull($destination);
         $this->assertEquals(DestinationStatus::DRAFT, $destination->status);

@@ -6,8 +6,11 @@ use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\VerificationStatus;
 use App\Models\Booking;
 use App\Models\Destination;
+use App\Models\DestinationCategory;
+use App\Models\Institution;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\User;
@@ -51,7 +54,7 @@ class PaymentAndGatewayFlowTest extends TestCase
             'status' => 'active',
         ]);
 
-        $institution = \App\Models\Institution::create([
+        $institution = Institution::create([
             'user_id' => $this->buyer->id,
             'institution_name' => 'SMA Negeri 1 Edukasi',
             'institution_type_id' => 1,
@@ -60,7 +63,7 @@ class PaymentAndGatewayFlowTest extends TestCase
             'pic_phone' => '081299998888',
             'pic_email' => 'sari@sekolah.sch.id',
             'address' => 'Jl. Pendidikan No. 1',
-            'verification_status' => \App\Enums\VerificationStatus::VERIFIED,
+            'verification_status' => VerificationStatus::VERIFIED,
         ]);
 
         $partnerUser = User::factory()->create([
@@ -70,7 +73,7 @@ class PaymentAndGatewayFlowTest extends TestCase
 
         $this->destination = Destination::create([
             'partner_id' => $partnerUser->id,
-            'category_id' => \App\Models\DestinationCategory::first()->id ?? 1,
+            'category_id' => DestinationCategory::first()->id ?? 1,
             'name' => 'Kampung Adat Pasir Luhur',
             'slug' => 'kampung-adat-pasir-luhur',
             'status' => 'published',

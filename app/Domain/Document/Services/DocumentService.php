@@ -5,6 +5,7 @@ namespace App\Domain\Document\Services;
 use App\Domain\Audit\AuditLogger;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use App\Models\Document;
 use App\Models\DocumentTemplate;
@@ -245,7 +246,7 @@ class DocumentService
         $package = $booking->package;
         $partner = $destination?->partner;
         $partnerProfile = $partner?->partnerProfile;
-        $payment = $booking->payments()->whereIn('status', [\App\Enums\PaymentStatus::PAID, 'paid'])->latest()->first()
+        $payment = $booking->payments()->whereIn('status', [PaymentStatus::PAID, 'paid'])->latest()->first()
             ?? $booking->payments()->latest()->first();
 
         // Render booking items table rows

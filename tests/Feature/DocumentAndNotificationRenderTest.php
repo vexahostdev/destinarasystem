@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Domain\Document\Services\DocumentService;
-use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Domain\Notification\Services\TemplateRenderer;
 use App\Enums\BookingStatus;
+use App\Enums\DestinationStatus;
 use App\Enums\DocumentType;
 use App\Enums\InquiryType;
 use App\Enums\PaymentStatus;
@@ -13,13 +13,16 @@ use App\Enums\PayoutStatus;
 use App\Events\BookingPaid;
 use App\Models\Booking;
 use App\Models\BookingItem;
+use App\Models\CancellationPolicy;
 use App\Models\Destination;
-use App\Models\Package;
+use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\NotificationLog;
+use App\Models\Package;
 use App\Models\PartnerPayout;
 use App\Models\PartnerProfile;
 use App\Models\Payment;
+use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -30,10 +33,15 @@ class DocumentAndNotificationRenderTest extends TestCase
     use RefreshDatabase;
 
     protected User $partner;
+
     protected User $buyer;
+
     protected User $admin;
+
     protected Destination $destination;
+
     protected Package $package;
+
     protected Booking $booking;
 
     protected function setUp(): void
@@ -79,9 +87,9 @@ class DocumentAndNotificationRenderTest extends TestCase
             'email' => 'admin@destinara.test',
         ]);
 
-        $category = \App\Models\DestinationCategory::firstOrCreate(['slug' => 'ekowisata'], ['name' => 'Ekowisata', 'is_active' => true]);
-        $province = \App\Models\Province::first();
-        $policy = \App\Models\CancellationPolicy::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'ekowisata'], ['name' => 'Ekowisata', 'is_active' => true]);
+        $province = Province::first();
+        $policy = CancellationPolicy::first();
 
         $this->destination = Destination::create([
             'partner_id' => $this->partner->id,
@@ -93,7 +101,7 @@ class DocumentAndNotificationRenderTest extends TestCase
             'city' => 'Gunungkidul',
             'address' => 'Nglanggeran, Patuk',
             'description' => 'Desa Wisata Nglanggeran.',
-            'status' => \App\Enums\DestinationStatus::PUBLISHED,
+            'status' => DestinationStatus::PUBLISHED,
         ]);
 
         $this->package = Package::create([
@@ -156,14 +164,14 @@ class DocumentAndNotificationRenderTest extends TestCase
             foreach ($matches[1] as $stream) {
                 $decompressed = @gzuncompress($stream);
                 if ($decompressed !== false) {
-                    $text .= ' ' . $decompressed;
+                    $text .= ' '.$decompressed;
                 } else {
-                    $text .= ' ' . $stream;
+                    $text .= ' '.$stream;
                 }
             }
         }
 
-        return $pdfBinary . ' ' . $text;
+        return $pdfBinary.' '.$text;
     }
 
     public function test_template_renderer_does_not_leave_braces_and_expands_booking(): void

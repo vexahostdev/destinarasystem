@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AccountType;
+use App\Events\UserRegistered;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -66,7 +67,7 @@ class AuthTest extends TestCase
 
     public function test_buyer_registration(): void
     {
-        Event::fake([Registered::class, \App\Events\UserRegistered::class]);
+        Event::fake([Registered::class, UserRegistered::class]);
 
         $response = $this->post('/daftar', [
             'name' => 'Budi Santoso',
@@ -92,12 +93,12 @@ class AuthTest extends TestCase
         ]);
 
         Event::assertDispatched(Registered::class);
-        Event::assertDispatched(\App\Events\UserRegistered::class);
+        Event::assertDispatched(UserRegistered::class);
     }
 
     public function test_partner_registration(): void
     {
-        Event::fake([Registered::class, \App\Events\UserRegistered::class]);
+        Event::fake([Registered::class, UserRegistered::class]);
 
         $response = $this->post('/daftar', [
             'name' => 'Ketut Suardana',
@@ -123,7 +124,7 @@ class AuthTest extends TestCase
         ]);
 
         Event::assertDispatched(Registered::class);
-        Event::assertDispatched(\App\Events\UserRegistered::class);
+        Event::assertDispatched(UserRegistered::class);
     }
 
     public function test_logout_requires_post_and_invalidates_session(): void
