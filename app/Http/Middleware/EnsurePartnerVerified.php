@@ -25,7 +25,7 @@ class EnsurePartnerVerified
                     ], 403);
                 }
 
-                return redirect()->route('partner.profile')->with(
+                return redirect()->route('mitra.profile')->with(
                     'warning',
                     'Akun Anda belum terverifikasi. Lengkapi profil dan dokumen legalitas untuk diproses oleh administrator.'
                 );

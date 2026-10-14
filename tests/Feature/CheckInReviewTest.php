@@ -126,7 +126,7 @@ class CheckInReviewTest extends TestCase
 
     public function test_signed_checkin_url_processes_checkin_and_transitions_booking(): void
     {
-        $signedUrl = URL::signedRoute('partner.checkin.show', ['code' => $this->booking->booking_code]);
+        $signedUrl = URL::signedRoute('mitra.checkin.show', ['code' => $this->booking->booking_code]);
 
         // 1. Visit signed URL
         $this->actingAs($this->partnerUser);

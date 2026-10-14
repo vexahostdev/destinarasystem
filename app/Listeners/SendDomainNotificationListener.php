@@ -27,7 +27,7 @@ use App\Events\RefundCreated;
 use App\Events\UserRegistered;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendDomainNotificationListener implements ShouldQueue
+class SendDomainNotificationListener
 {
     public bool $afterCommit = true;
 

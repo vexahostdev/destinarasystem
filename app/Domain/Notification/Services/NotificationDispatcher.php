@@ -92,15 +92,15 @@ class NotificationDispatcher
             ],
             'partner' => [
                 'user' => $booking?->destination?->partner ?: ($context['partner_user'] ?? null),
-                'user_id' => $booking?->destination?->partner_id ?: ($context['partner_user']?->id ?? null),
-                'email' => $context['partner_email'] ?? $booking?->destination?->partner?->email ?? $context['partner_user']?->email,
-                'phone' => $context['partner_phone'] ?? $booking?->destination?->partner?->phone ?? $context['partner_user']?->phone,
+                'user_id' => $booking?->destination?->partner_id ?: (($context['partner_user'] ?? null)?->id),
+                'email' => $context['partner_email'] ?? $booking?->destination?->partner?->email ?? (($context['partner_user'] ?? null)?->email),
+                'phone' => $context['partner_phone'] ?? $booking?->destination?->partner?->phone ?? (($context['partner_user'] ?? null)?->phone),
             ],
             'admin' => [
                 'user' => User::where('account_type', 'internal')->first(),
                 'user_id' => User::where('account_type', 'internal')->first()?->id,
-                'email' => setting('admin_alert_emails'),
-                'phone' => setting('admin_alert_whatsapp'),
+                'email' => is_array(setting('admin_alert_emails')) ? (setting('admin_alert_emails')[0] ?? null) : setting('admin_alert_emails'),
+                'phone' => is_array(setting('admin_alert_whatsapp')) ? (setting('admin_alert_whatsapp')[0] ?? null) : setting('admin_alert_whatsapp'),
             ],
             default => [
                 'user' => $user,

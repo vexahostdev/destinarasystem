@@ -75,7 +75,7 @@ Route::prefix('webhooks')->group(function () {
 */
 use App\Http\Controllers\BuyerController;
 
-Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:buyer'])->group(function () {
+Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:buyer', 'verified'])->group(function () {
     // 1. Dashboard Buyer
     Route::get('/dashboard', [BuyerController::class, 'dashboard'])->name('dashboard');
 
@@ -88,6 +88,9 @@ Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:b
     // 4. Pembayaran / Checkout & Simulasi Pelunasan
     Route::get('/booking/{code}/pembayaran', [BuyerController::class, 'payment'])->name('booking.payment');
     Route::post('/booking/{code}/bayar', [BuyerController::class, 'processPayment'])->name('booking.pay');
+    Route::post('/booking/{code}/cek-status', [BuyerController::class, 'checkPaymentStatus'])->middleware('throttle:6,1')->name('booking.checkStatus');
+    Route::post('/booking/{code}/bukti-transfer', [BuyerController::class, 'reuploadManualProof'])->name('booking.reuploadProof');
+    Route::post('/booking/{code}/batal', [BuyerController::class, 'cancelBooking'])->name('booking.cancel');
 
     // 5. Riwayat Transaksi & Re-order
     Route::get('/riwayat', [BuyerController::class, 'history'])->name('history');
@@ -102,6 +105,8 @@ Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:b
 
     // 8. Pusat Notifikasi Buyer
     Route::get('/notifikasi', [BuyerController::class, 'notifications'])->name('notifications');
+    Route::post('/notifikasi/{id}/read', [BuyerController::class, 'markNotificationAsRead'])->name('notifications.read');
+    Route::post('/notifikasi/read-all', [BuyerController::class, 'markAllNotificationsAsRead'])->name('notifications.readAll');
 
     // 9. Ulasan Kunjungan Selesai
     Route::post('/booking/{code}/ulasan', [BuyerController::class, 'submitReview'])->name('booking.review');
@@ -131,50 +136,70 @@ Route::get('/dashboard', function () {
 */
 use App\Http\Controllers\PartnerController;
 
-Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:partner'])->group(function () {
-    // 1. Dashboard Mitra
+Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:partner', 'verified'])->group(function () {
+    // 1. Dashboard Mitra (Akses terbuka untuk melengkapi profil)
     Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
 
     // 2. Laporan Pendapatan (Read-only Payout)
     Route::get('/pendapatan', [PartnerController::class, 'incomeReport'])->name('income');
 
-    // 3. Kelola Listing Destinasi
-    Route::get('/destinasi', [PartnerController::class, 'destinations'])->name('destinations');
-
-    // 4. Kelola Ketersediaan / Kalender Slot
-    Route::get('/ketersediaan', [PartnerController::class, 'availability'])->name('availability');
-    Route::post('/ketersediaan/slot/update', [PartnerController::class, 'updateSlot'])->name('slot.update');
-    Route::post('/ketersediaan/bulk', [PartnerController::class, 'bulkGenerateSlots'])->name('slots.bulk');
-
-    // 5. Booking Masuk
-    Route::get('/booking', [PartnerController::class, 'incomingBookings'])->name('bookings');
-    Route::post('/booking/{id}/terima', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
-    Route::post('/booking/{id}/tolak', [PartnerController::class, 'rejectBooking'])->name('booking.reject');
-
-    // 6. Form Ajukan Destinasi Baru
-    Route::get('/destinasi/tambah', [PartnerController::class, 'createDestination'])->name('destinations.create');
-    Route::post('/destinasi/simpan', [PartnerController::class, 'storeDestination'])->name('destinations.store');
-
-    // 7. Profil Pengelola & Rekening Payout
+    // 3. Profil Pengelola, Rekening Payout & Dokumen Legalitas
     Route::get('/profil', [PartnerController::class, 'profile'])->name('profile');
     Route::post('/profil/update', [PartnerController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profil/dokumen', [PartnerController::class, 'uploadLegalDocument'])->name('profile.document.upload');
+    Route::post('/profil/dokumen/{id}/delete', [PartnerController::class, 'deleteLegalDocument'])->name('profile.document.delete');
+    Route::post('/profil/ajukan-verifikasi', [PartnerController::class, 'submitVerification'])->name('profile.submitVerification');
 
-    // 8. Check-in QR (Signed URL - SPEC §11, §8.8)
-    Route::get('/checkin/{code}', [PartnerController::class, 'showCheckin'])->name('checkin.show');
+    // 4. Pusat Notifikasi Mitra (Database Notifications)
+    Route::get('/notifikasi', [PartnerController::class, 'notifications'])->name('notifications');
+    Route::post('/notifikasi/{id}/read', [PartnerController::class, 'markNotificationAsRead'])->name('notifications.read');
+    Route::post('/notifikasi/read-all', [PartnerController::class, 'markAllNotificationsAsRead'])->name('notifications.readAll');
+
+    // 5. Check-in QR (Satu route saja dengan signed URL - SPEC §11, §8.8)
+    Route::get('/checkin/{code}', [PartnerController::class, 'showCheckin'])->middleware('signed')->name('checkin.show');
     Route::post('/checkin/{code}/konfirmasi', [PartnerController::class, 'confirmCheckin'])->name('checkin.confirm');
 
-    // 9. Pusat Notifikasi Mitra
-    Route::get('/notifikasi', [PartnerController::class, 'notifications'])->name('notifications');
+    // 6. Fitur Operasional yang Memerlukan Mitra Terverifikasi (partner.verified)
+    Route::middleware('partner.verified')->group(function () {
+        // Kelola Listing Destinasi
+        Route::get('/destinasi', [PartnerController::class, 'destinations'])->name('destinations');
+        Route::get('/destinasi/tambah', [PartnerController::class, 'createDestination'])->name('destinations.create');
+        Route::post('/destinasi/simpan', [PartnerController::class, 'storeDestination'])->name('destinations.store');
+        Route::get('/destinasi/{destination}/edit', [PartnerController::class, 'editDestination'])->name('destinations.edit');
+        Route::post('/destinasi/{destination}/update', [PartnerController::class, 'updateDestination'])->name('destinations.update');
+        Route::post('/destinasi/{destination}/submit', [PartnerController::class, 'submitDestination'])->name('destinations.submit');
+        Route::post('/destinasi/{destination}/toggle-active', [PartnerController::class, 'toggleDestinationActive'])->name('destinations.toggleActive');
 
-    // 10. Balas Ulasan Pembeli
-    Route::post('/ulasan/{id}/balas', [PartnerController::class, 'replyReview'])->name('reviews.reply');
+        // Sub-resources Destinasi Mitra
+        Route::post('/destinasi/{destination}/media', [PartnerController::class, 'addDestinationMedia'])->name('destinations.media.add');
+        Route::post('/destinasi/{destination}/media/{media}/delete', [PartnerController::class, 'deleteDestinationMedia'])->name('destinations.media.delete');
+        Route::post('/destinasi/{destination}/media/sort', [PartnerController::class, 'sortDestinationMedia'])->name('destinations.media.sort');
+        Route::post('/destinasi/{destination}/facilities', [PartnerController::class, 'updateDestinationFacilities'])->name('destinations.facilities.update');
+        Route::post('/destinasi/{destination}/contacts', [PartnerController::class, 'saveDestinationContact'])->name('destinations.contacts.save');
+        Route::post('/destinasi/{destination}/contacts/{contact}/delete', [PartnerController::class, 'deleteDestinationContact'])->name('destinations.contacts.delete');
+        Route::post('/destinasi/{destination}/packages', [PartnerController::class, 'saveDestinationPackage'])->name('destinations.packages.save');
+        Route::post('/destinasi/{destination}/packages/{package}/toggle', [PartnerController::class, 'togglePackageActive'])->name('destinations.packages.toggle');
+        Route::post('/destinasi/{destination}/packages/{package}/delete', [PartnerController::class, 'deleteDestinationPackage'])->name('destinations.packages.delete');
+        Route::post('/destinasi/{destination}/addons', [PartnerController::class, 'saveDestinationAddon'])->name('destinations.addons.save');
+        Route::post('/destinasi/{destination}/addons/{addon}/delete', [PartnerController::class, 'deleteDestinationAddon'])->name('destinations.addons.delete');
+
+        // Kelola Ketersediaan / Kalender Slot
+        Route::get('/ketersediaan', [PartnerController::class, 'availability'])->name('availability');
+        Route::post('/ketersediaan/slot/update', [PartnerController::class, 'updateSlot'])->name('slot.update');
+        Route::post('/ketersediaan/bulk', [PartnerController::class, 'bulkGenerateSlots'])->name('slots.bulk');
+
+        // Booking Masuk & Konfirmasi / Tolak
+        Route::get('/booking', [PartnerController::class, 'incomingBookings'])->name('bookings');
+        Route::post('/booking/{id}/terima', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
+        Route::post('/booking/{id}/tolak', [PartnerController::class, 'rejectBooking'])->name('booking.reject');
+
+        // Balas Ulasan Pembeli
+        Route::post('/ulasan/{id}/balas', [PartnerController::class, 'replyReview'])->name('reviews.reply');
+    });
 });
 
 // Route alias for partner dashboard
 Route::get('/partner/dashboard', fn () => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
-
-// Named alias for signed URL generation
-Route::get('/mitra/checkin/{code}', [PartnerController::class, 'showCheckin'])->middleware(['signed'])->name('partner.checkin.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -208,7 +233,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     Route::get('/destinasi', [AdminController::class, 'destinations'])->middleware('can:destinations.view')->name('destinations.index');
     Route::get('/destinasi/tambah', [AdminController::class, 'createDestination'])->middleware('can:destinations.create')->name('destinations.create');
     Route::post('/destinasi', [AdminController::class, 'storeDestination'])->middleware('can:destinations.create')->name('destinations.store');
+    Route::get('/destinasi/{destination}', [AdminController::class, 'editDestination'])->middleware('can:destinations.update')->name('destinations.edit');
+    Route::post('/destinasi/{destination}/update', [AdminController::class, 'updateDestination'])->middleware('can:destinations.update')->name('destinations.update');
+    Route::post('/destinasi/{destination}/featured', [AdminController::class, 'toggleDestinationFeatured'])->middleware('can:destinations.feature')->name('destinations.toggleFeatured');
     Route::post('/destinasi/{destination}/toggle-active', [AdminController::class, 'toggleDestinationActive'])->middleware('can:destinations.update')->name('destinations.toggleActive');
+
+    // Sub-resources Destinasi Admin
+    Route::post('/destinasi/{destination}/media', [AdminController::class, 'addDestinationMedia'])->middleware('can:destinations.update')->name('destinations.media.add');
+    Route::post('/destinasi/{destination}/media/{media}/delete', [AdminController::class, 'deleteDestinationMedia'])->middleware('can:destinations.update')->name('destinations.media.delete');
+    Route::post('/destinasi/{destination}/media/sort', [AdminController::class, 'sortDestinationMedia'])->middleware('can:destinations.update')->name('destinations.media.sort');
+    Route::post('/destinasi/{destination}/facilities', [AdminController::class, 'updateDestinationFacilities'])->middleware('can:destinations.update')->name('destinations.facilities.update');
+    Route::post('/destinasi/{destination}/contacts', [AdminController::class, 'saveDestinationContact'])->middleware('can:destinations.update')->name('destinations.contacts.save');
+    Route::post('/destinasi/{destination}/contacts/{contact}/delete', [AdminController::class, 'deleteDestinationContact'])->middleware('can:destinations.update')->name('destinations.contacts.delete');
+    Route::post('/destinasi/{destination}/packages', [AdminController::class, 'saveDestinationPackage'])->middleware('can:packages.manage')->name('destinations.packages.save');
+    Route::post('/destinasi/{destination}/packages/{package}/toggle', [AdminController::class, 'togglePackageActive'])->middleware('can:packages.manage')->name('destinations.packages.toggle');
+    Route::post('/destinasi/{destination}/packages/{package}/delete', [AdminController::class, 'deleteDestinationPackage'])->middleware('can:packages.manage')->name('destinations.packages.delete');
+    Route::post('/destinasi/{destination}/addons', [AdminController::class, 'saveDestinationAddon'])->middleware('can:addons.manage')->name('destinations.addons.save');
+    Route::post('/destinasi/{destination}/addons/{addon}/delete', [AdminController::class, 'deleteDestinationAddon'])->middleware('can:addons.manage')->name('destinations.addons.delete');
+    Route::post('/destinasi/{destination}/slots/bulk', [AdminController::class, 'bulkGenerateDestinationSlots'])->middleware('can:availability.manage')->name('destinations.slots.bulk');
+    Route::post('/destinasi/{destination}/slots/update', [AdminController::class, 'updateDestinationSlot'])->middleware('can:availability.manage')->name('destinations.slots.update');
 
     // 3. Verifikasi & Kurasi Destinasi
     Route::get('/destinasi/verifikasi', [AdminController::class, 'verifyDestinations'])->middleware('can:destinations.verify')->name('destinations.verify');

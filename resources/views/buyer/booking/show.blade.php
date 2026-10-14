@@ -48,17 +48,34 @@
         </div>
 
         <!-- Tombol Aksi Cepat Sesuai Status -->
-        <div class="flex items-center gap-2">
-            @if($booking->status === 'menunggu_pembayaran')
+        <div class="flex flex-wrap items-center gap-2">
+            @if($booking->status === \App\Enums\BookingStatus::MENUNGGU_PEMBAYARAN || $booking->status === 'menunggu_pembayaran')
                 <a href="{{ route('buyer.booking.payment', $booking->booking_code) }}" class="rgs-btn-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">payment</span>
                     <span>Lanjutkan Pembayaran</span>
                 </a>
+
+                @if(isset($latestPayment))
+                    <form action="{{ route('buyer.booking.checkStatus', $booking->booking_code) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="rgs-btn-outline px-3.5 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-gray-100" title="Cek status terkini ke gateway pembayaran">
+                            <span class="material-symbols-outlined text-[18px]">sync</span>
+                            <span>Cek Status</span>
+                        </button>
+                    </form>
+                @endif
             @else
                 <a href="#dokumen" class="px-4 py-2 bg-[#51634b] text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#3f4f3a] transition-colors">
                     <span class="material-symbols-outlined text-[18px]">file_download</span>
                     <span>Unduh Dokumen Resmi</span>
                 </a>
+            @endif
+
+            @if(isset($canCancel) && $canCancel)
+                <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.remove('hidden')" class="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-300 rounded-full flex items-center gap-1.5 transition">
+                    <span class="material-symbols-outlined text-[18px]">cancel</span>
+                    <span>Batalkan</span>
+                </button>
             @endif
 
             <a href="{{ route('buyer.booking.create', ['reorder' => $booking->booking_code]) }}" class="rgs-btn-outline px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
@@ -67,6 +84,34 @@
             </a>
         </div>
     </div>
+
+    @if(isset($manualPayment) && isset($manualPayment->raw_response['rejection_reason']))
+        <!-- Banner Peringatan Bukti Transfer Ditolak & Form Upload Ulang -->
+        <div class="p-5 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 space-y-3">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-rose-600 text-2xl mt-0.5">error</span>
+                <div class="space-y-1">
+                    <h4 class="font-bold text-sm">Bukti Transfer Pembayaran Ditolak Admin</h4>
+                    <p class="text-xs text-rose-700">
+                        Catatan penolakan: <strong>"{{ $manualPayment->raw_response['rejection_reason'] }}"</strong>
+                    </p>
+                    <p class="text-[11px] text-rose-600">
+                        Silakan unggah ulang bukti transfer yang jelas (struk ATM, mutasi m-banking, atau nota resmi bank).
+                    </p>
+                </div>
+            </div>
+            <form action="{{ route('buyer.booking.reuploadProof', $booking->booking_code) }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3 pt-3 border-t border-rose-200">
+                @csrf
+                <div class="flex-1 min-w-[200px]">
+                    <input type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required class="w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-700 file:text-white hover:file:bg-rose-800">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                    <span>Unggah Ulang Bukti</span>
+                </button>
+            </form>
+        </div>
+    @endif
 
     <!-- 5-Stage Visual Progress Tracker -->
     <div class="rgs-card p-6 border-t-4 border-t-[#703A3A]">
@@ -425,5 +470,80 @@
 
     </div>
 
+    @if(isset($canCancel) && $canCancel)
+    <!-- Modal Pembatalan Pesanan Mandiri -->
+    <div id="modal-cancel-booking" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden" onclick="if(event.target === this) this.classList.add('hidden')">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-2 text-rose-700">
+                    <span class="material-symbols-outlined text-2xl">cancel</span>
+                    <h3 class="font-serif text-lg font-bold text-slate-900">Batalkan Pesanan</h3>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.add('hidden')" class="p-1 text-slate-400 hover:text-slate-600 rounded-full">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <!-- Kalkulasi Estimasi Refund -->
+            <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl text-xs space-y-2">
+                <div class="flex items-center justify-between font-bold text-amber-900">
+                    <span>Estimasi Pengembalian Dana (Refund):</span>
+                    <span class="text-sm font-black text-[#703A3A]">{{ $refundCalc['percent'] }}% (Rp {{ number_format($refundCalc['amount'], 0, ',', '.') }})</span>
+                </div>
+                <p class="text-[11px] text-amber-800 leading-relaxed">
+                    {{ $refundCalc['tier_note'] ?? 'Sesuai dengan ketentuan kebijakan pembatalan destinasi dan jangka waktu pelaksanaan.' }}
+                </p>
+                @if($refundCalc['percent'] == 0)
+                    <div class="text-[11px] text-rose-700 font-medium">
+                        * Pembatalan pada tahap ini tidak berhak atas pengembalian dana (0%).
+                    </div>
+                @endif
+            </div>
+
+            <form action="{{ route('buyer.booking.cancel', $booking->booking_code) }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Alasan Pembatalan <span class="text-rose-500">*</span></label>
+                    <textarea name="reason" rows="3" required minlength="5" maxlength="500" class="w-full text-xs border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-[#703A3A] outline-none" placeholder="Tuliskan alasan pembatalan kegiatan ekskursi..."></textarea>
+                </div>
+
+                @if($refundCalc['percent'] > 0)
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <span class="text-xs font-bold text-slate-900 block">Informasi Rekening Pengembalian Dana</span>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Bank Tujuan <span class="text-rose-500">*</span></label>
+                            <select name="bank_name" required class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-[#703A3A]">
+                                <option value="">-- Pilih Bank --</option>
+                                @foreach($banks as $b)
+                                    <option value="{{ $b->name }}">{{ $b->name }} ({{ $b->code }})</option>
+                                @endforeach
+                                <option value="Bank Lainnya">Bank Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Rekening <span class="text-rose-500">*</span></label>
+                                <input type="text" name="bank_account_number" required maxlength="50" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#703A3A]" placeholder="1234567890">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Pemilik Rekening <span class="text-rose-500">*</span></label>
+                                <input type="text" name="bank_account_holder" required maxlength="255" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#703A3A]" placeholder="a.n. Sekolah / Lembaga">
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="pt-2 flex items-center justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.add('hidden')" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase rounded-full hover:bg-slate-100">
+                        Kembali
+                    </button>
+                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini secara permanen?')" class="px-5 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-full transition shadow-sm">
+                        Ya, Batalkan Pesanan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection

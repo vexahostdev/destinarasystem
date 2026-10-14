@@ -130,6 +130,19 @@
                 <span>Profil Institusi</span>
             </a>
 
+            <a href="{{ route('buyer.notifications') }}" 
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.notifications*') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">notifications</span>
+                    <span>Notifikasi</span>
+                </div>
+                @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                    <span class="px-2 py-0.5 text-[10px] font-bold bg-rose-600 text-white rounded-full">
+                        {{ Auth::user()->unreadNotifications()->count() }}
+                    </span>
+                @endif
+            </a>
+
             <div class="pt-4 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                 Eksplorasi Tapak
             </div>
@@ -189,6 +202,13 @@
                     <span class="material-symbols-outlined text-[14px]">verified</span>
                     <span>Dana BOS Siap Digunakan</span>
                 </div>
+
+                <a href="{{ route('buyer.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#703A3A] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">
+                    <span class="material-symbols-outlined text-[20px]">notifications</span>
+                    @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-600 rounded-full ring-2 ring-white"></span>
+                    @endif
+                </a>
 
                 <a href="{{ route('buyer.booking.create') }}" class="rgs-btn-primary px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
                     <span class="material-symbols-outlined text-[16px]">add_circle</span>

@@ -27,6 +27,14 @@ use App\Models\PartnerPayout;
 use App\Models\PartnerProfile;
 use App\Models\Province;
 use App\Models\Refund;
+use App\Domain\Booking\Services\BookingService;
+use App\Domain\Catalog\Services\DestinationService;
+use App\Models\Addon;
+use App\Models\DestinationContact;
+use App\Models\DestinationMedia;
+use App\Models\Facility;
+use App\Models\Package;
+use App\Models\PartnerDocument;
 use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -36,6 +44,11 @@ use Illuminate\Support\Str;
 
 class PartnerController extends Controller
 {
+    public function __construct(
+        protected DestinationService $destinationService,
+        protected BookingService $bookingService
+    ) {}
+
     /**
      * Halaman 1: Dashboard Mitra
      */
@@ -231,6 +244,232 @@ class PartnerController extends Controller
             ->with('success', "Draf destinasi '{$dest->name}' berhasil dibuat. Silakan tambahkan minimal 1 paket aktif, foto, dan slot ketersediaan sebelum mengajukan kurasi.");
     }
 
+    public function editDestination($id)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($id);
+        $destination->load([
+            'category',
+            'province',
+            'cancellationPolicy',
+            'facilities',
+            'media',
+            'contacts',
+            'allPackages',
+            'allAddons',
+            'availabilitySlots' => fn ($q) => $q->where('date', '>=', now()->toDateString())->orderBy('date')->limit(60),
+            'moderations.admin',
+        ]);
+
+        $categories = DestinationCategory::where('is_active', true)->get();
+        $provinces = Province::orderBy('name')->get();
+        $policies = CancellationPolicy::all();
+        $facilities = Facility::where('is_active', true)->get();
+
+        return view('partner.destinations.edit', compact('destination', 'categories', 'provinces', 'policies', 'facilities'));
+    }
+
+    public function updateDestination(Request $request, $id)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($id);
+
+        $validated = $request->validate([
+            'category_id' => 'required|exists:destination_categories,id',
+            'name' => 'required|string|max:255',
+            'province_id' => 'required|exists:provinces,id',
+            'city' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'short_description' => 'required|string|max:300',
+            'description' => 'required|string',
+            'educational_highlights' => 'nullable|string',
+            'default_daily_capacity' => 'required|integer|min:1',
+            'cancellation_policy_id' => 'required|exists:cancellation_policies,id',
+            'cover_image' => 'nullable|image|max:5120',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+        ]);
+
+        $this->destinationService->updateDestination($destination, $validated, Auth::user());
+
+        return back()->with('success', "Informasi destinasi '{$destination->name}' berhasil diperbarui.");
+    }
+
+    public function submitDestination($id)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($id);
+
+        try {
+            $this->destinationService->submitForReview($destination, Auth::user());
+            \App\Events\DestinationSubmitted::dispatch($destination, Auth::user());
+
+            return back()->with('success', "Destinasi '{$destination->name}' berhasil diajukan untuk kurasi tim Destinara.");
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function toggleDestinationActive($id)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($id);
+
+        try {
+            $this->destinationService->toggleActive($destination);
+            $statusLabel = $destination->status === DestinationStatus::PUBLISHED ? 'diaktifkan kembali' : 'dinonaktifkan sementara';
+
+            return back()->with('success', "Status destinasi '{$destination->name}' berhasil {$statusLabel}.");
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function addDestinationMedia(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+
+        $request->validate([
+            'image' => 'required|image|max:5120',
+            'caption' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $this->destinationService->addMedia($destination, $request->file('image'), $request->caption);
+
+            return back()->with('success', 'Foto galeri berhasil ditambahkan.');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function deleteDestinationMedia($destinationId, $mediaId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $media = DestinationMedia::where('destination_id', $destination->id)->findOrFail($mediaId);
+
+        $this->destinationService->deleteMedia($media);
+
+        return back()->with('success', 'Foto galeri berhasil dihapus.');
+    }
+
+    public function sortDestinationMedia(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $request->validate(['order' => 'required|array']);
+
+        $this->destinationService->sortMedia($destination, $request->order);
+
+        return back()->with('success', 'Urutan galeri foto berhasil diperbarui.');
+    }
+
+    public function updateDestinationFacilities(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $facilities = $request->input('facilities', []);
+
+        $destination->facilities()->sync($facilities);
+
+        return back()->with('success', 'Daftar fasilitas destinasi berhasil diperbarui.');
+    }
+
+    public function saveDestinationContact(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+
+        $validated = $request->validate([
+            'contact_id' => 'nullable|exists:destination_contacts,id',
+            'contact_name' => 'required|string|max:255',
+            'role' => 'nullable|string|max:100',
+            'phone' => 'required|string|max:50',
+            'is_primary' => 'nullable|boolean',
+        ]);
+
+        $this->destinationService->saveContact($destination, $validated, $validated['contact_id'] ?? null);
+
+        return back()->with('success', 'Kontak narahubung destinasi berhasil disimpan.');
+    }
+
+    public function deleteDestinationContact($destinationId, $contactId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $contact = DestinationContact::where('destination_id', $destination->id)->findOrFail($contactId);
+
+        $this->destinationService->deleteContact($contact);
+
+        return back()->with('success', 'Kontak narahubung berhasil dihapus.');
+    }
+
+    public function saveDestinationPackage(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+
+        $validated = $request->validate([
+            'package_id' => 'nullable|exists:packages,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price_per_pax' => 'required|numeric|min:0',
+            'min_participants' => 'required|integer|min:1',
+            'duration_days' => 'required|integer|min:1',
+            'inquiry_types' => 'nullable|array',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $validated['inquiry_types'] = $validated['inquiry_types'] ?? ['study_tour'];
+
+        $this->destinationService->savePackage($destination, $validated, $validated['package_id'] ?? null);
+
+        return back()->with('success', 'Paket edukasi berhasil disimpan.');
+    }
+
+    public function togglePackageActive($destinationId, $packageId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $pkg = Package::where('destination_id', $destination->id)->findOrFail($packageId);
+
+        $this->destinationService->togglePackageActive($pkg);
+
+        return back()->with('success', "Status paket '{$pkg->name}' berhasil diperbarui.");
+    }
+
+    public function deleteDestinationPackage($destinationId, $packageId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $pkg = Package::where('destination_id', $destination->id)->findOrFail($packageId);
+
+        try {
+            $this->destinationService->deletePackage($pkg);
+
+            return back()->with('success', 'Paket berhasil dihapus.');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function saveDestinationAddon(Request $request, $destinationId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+
+        $validated = $request->validate([
+            'addon_id' => 'nullable|exists:addons,id',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'pricing_type' => 'required|in:per_pax,per_group,fixed',
+            'description' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $this->destinationService->saveAddon($destination, $validated, $validated['addon_id'] ?? null);
+
+        return back()->with('success', 'Add-on fasilitas/layanan berhasil disimpan.');
+    }
+
+    public function deleteDestinationAddon($destinationId, $addonId)
+    {
+        $destination = Destination::where('partner_id', Auth::id())->findOrFail($destinationId);
+        $addon = Addon::where('destination_id', $destination->id)->findOrFail($addonId);
+
+        $this->destinationService->deleteAddon($addon);
+
+        return back()->with('success', 'Add-on berhasil dihapus.');
+    }
+
     /**
      * Halaman 4: Kelola Ketersediaan / Kalender Slot
      */
@@ -356,12 +595,8 @@ class PartnerController extends Controller
     /**
      * Konfirmasi Booking Masuk oleh Mitra (SPEC §8.3)
      */
-    public function confirmBooking(
-        $id,
-        BookingStateMachine $stateMachine,
-        AvailabilityService $availabilityService,
-        NotificationDispatcher $notifier
-    ) {
+    public function confirmBooking($id)
+    {
         $user = Auth::user();
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 
@@ -369,49 +604,20 @@ class PartnerController extends Controller
             ->whereIn('destination_id', $destinationIds)
             ->findOrFail($id);
 
-        if ($booking->status !== BookingStatus::DIBAYAR) {
-            return redirect()->back()->with('error', 'Hanya booking berstatus DIBAYAR yang dapat dikonfirmasi oleh mitra.');
+        try {
+            $this->bookingService->confirm($booking, $user);
+
+            return redirect()->back()->with('success', "Pesanan #{$booking->booking_code} berhasil dikonfirmasi! Dokumen e-Pass dan surat izin diterbitkan.");
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        DB::transaction(function () use ($booking, $user, $stateMachine, $notifier) {
-            $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
-
-            // 1. Transition State Machine
-            $stateMachine->transition(
-                booking: $locked,
-                to: BookingStatus::DIKONFIRMASI,
-                actor: $user,
-                note: "Dikonfirmasi kesiapannya oleh pengelola tapak ({$user->name})."
-            );
-
-            // 2. Dispatch e-Voucher & Surat Izin Generation
-            GenerateDocumentJob::dispatch($locked, DocumentType::E_VOUCHER, $user);
-            if ($locked->needs_permit_letter) {
-                GenerateDocumentJob::dispatch($locked, DocumentType::PERMIT_DRAFT, $user);
-            }
-
-            // 3. Dispatch Notification
-            $notifier->send('booking.confirmed', [
-                'booking' => $locked,
-                'user' => $locked->user,
-                'destination_name' => $locked->destination->name,
-                'booking_code' => $locked->booking_code,
-            ], ['buyer', 'partner']);
-        });
-
-        return redirect()->back()->with('success', "Pesanan #{$booking->booking_code} berhasil dikonfirmasi! Dokumen e-Pass dan surat izin diterbitkan.");
     }
 
     /**
      * Tolak Booking Masuk oleh Mitra (SPEC §8.3 & §8.6)
      */
-    public function rejectBooking(
-        Request $request,
-        $id,
-        BookingStateMachine $stateMachine,
-        AvailabilityService $availabilityService,
-        NotificationDispatcher $notifier
-    ) {
+    public function rejectBooking(Request $request, $id)
+    {
         $user = Auth::user();
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 
@@ -423,46 +629,13 @@ class PartnerController extends Controller
             'reason' => 'required|string|min:5|max:500',
         ]);
 
-        $reason = $request->reason;
+        try {
+            $this->bookingService->reject($booking, $user, $request->reason);
 
-        DB::transaction(function () use ($booking, $user, $reason, $stateMachine, $availabilityService, $notifier) {
-            $locked = Booking::where('id', $booking->id)->lockForUpdate()->first();
-
-            // 1. Transition to BATAL
-            $stateMachine->transition(
-                booking: $locked,
-                to: BookingStatus::BATAL,
-                actor: $user,
-                note: "Ditolak oleh pengelola tapak. Alasan: {$reason}"
-            );
-
-            // 2. Release allocated slots
-            $availabilityService->releaseSlots($locked);
-
-            // 3. Create 100% full refund record for buyer
-            $paidPayment = $locked->payments()->where('status', PaymentStatus::PAID)->latest()->first();
-            if ($paidPayment) {
-                Refund::create([
-                    'booking_id' => $locked->id,
-                    'payment_id' => $paidPayment->id,
-                    'amount' => $locked->total_amount,
-                    'percent' => 100,
-                    'reason' => "Ditolak oleh pengelola: {$reason}",
-                    'status' => RefundStatus::PENDING,
-                ]);
-            }
-
-            // 4. Dispatch notification
-            $notifier->send('booking.cancelled', [
-                'booking' => $locked,
-                'user' => $locked->user,
-                'destination_name' => $locked->destination->name,
-                'booking_code' => $locked->booking_code,
-                'reason' => $reason,
-            ], ['buyer']);
-        });
-
-        return redirect()->back()->with('error', "Pesanan #{$booking->booking_code} telah ditolak. Pengembalian dana 100% telah dijadwalkan.");
+            return redirect()->back()->with('error', "Pesanan #{$booking->booking_code} telah ditolak. Pengembalian dana 100% telah dijadwalkan.");
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -527,6 +700,8 @@ class PartnerController extends Controller
             'organization_name' => $user->name,
         ]);
 
+        $profile->load('documents', 'bank');
+
         $organizationTypes = OrganizationType::all();
         $provinces = Province::orderBy('name')->get();
         $banks = Bank::where('is_active', true)->get();
@@ -578,18 +753,91 @@ class PartnerController extends Controller
     }
 
     /**
+     * Upload Dokumen Legalitas Mitra
+     */
+    public function uploadLegalDocument(Request $request)
+    {
+        $user = Auth::user();
+        $profile = $user->partnerProfile;
+        if (! $profile) {
+            abort(403);
+        }
+
+        $request->validate([
+            'type' => 'required|in:sk_pengelola,ktp_pic,npwp,lainnya',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = $request->file('file')->store("partner_documents/{$profile->id}", 'local');
+
+        $profile->documents()->create([
+            'type' => $request->type,
+            'file_path' => $path,
+            'original_name' => $request->file('file')->getClientOriginalName(),
+        ]);
+
+        return redirect()->back()->with('success', 'Dokumen legalitas berhasil diunggah.');
+    }
+
+    /**
+     * Hapus Dokumen Legalitas Mitra
+     */
+    public function deleteLegalDocument($id)
+    {
+        $user = Auth::user();
+        $profile = $user->partnerProfile;
+        if (! $profile) {
+            abort(403);
+        }
+
+        $doc = $profile->documents()->findOrFail($id);
+        \Illuminate\Support\Facades\Storage::disk('local')->delete($doc->file_path);
+        $doc->delete();
+
+        return redirect()->back()->with('success', 'Dokumen legalitas berhasil dihapus.');
+    }
+
+    /**
+     * Ajukan Verifikasi Akun Mitra ke Administrator
+     */
+    public function submitVerification()
+    {
+        $user = Auth::user();
+        $profile = $user->partnerProfile;
+        if (! $profile) {
+            abort(403);
+        }
+
+        $profile->verification_status = \App\Enums\VerificationStatus::PENDING;
+        $profile->save();
+
+        return redirect()->back()->with('success', 'Pengajuan verifikasi berhasil dikirimkan ke administrator. Kami akan memproses verifikasi berkas legalitas Anda.');
+    }
+
+    /**
      * Halaman 7: Pusat Notifikasi Mitra
      */
     public function notifications()
     {
         $user = Auth::user();
-        $notifications = NotificationLog::where('user_id', $user->id)
-            ->orWhere('target', $user->phone)
-            ->orWhere('target', $user->email)
-            ->latest()
-            ->paginate(15);
+        $notifications = $user->notifications()->latest()->paginate(15);
 
         return view('partner.notifications', compact('user', 'notifications'));
+    }
+
+    public function markNotificationAsRead($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return redirect()->back()->with('success', 'Notifikasi ditandai sudah dibaca.');
+    }
+
+    public function markAllNotificationsAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return redirect()->back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 
     /**

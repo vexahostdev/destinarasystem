@@ -53,7 +53,7 @@ class DocumentService
 
             // If E-Voucher, generate signed check-in QR
             if ($type === DocumentType::E_VOUCHER) {
-                $checkinUrl = URL::signedRoute('partner.checkin.show', ['code' => $booking->booking_code]);
+                $checkinUrl = URL::signedRoute('mitra.checkin.show', ['code' => $booking->booking_code]);
                 $checkinQrSvg = QrCode::format('svg')->size(160)->generate($checkinUrl);
                 $checkinQrBase64 = base64_encode($checkinQrSvg);
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\Services\BookingService;
+use App\Domain\Catalog\Services\AvailabilityCalendarService;
 use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\BookingStatus;
@@ -12,13 +13,20 @@ use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\RefundStatus;
 use App\Jobs\SendNotificationJob;
+use App\Models\Addon;
 use App\Models\AuditLog;
+use App\Models\AvailabilitySlot;
 use App\Models\Booking;
+use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
+use App\Models\DestinationContact;
+use App\Models\DestinationMedia;
+use App\Models\Facility;
 use App\Models\Institution;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
+use App\Models\Package;
 use App\Models\PartnerProfile;
 use App\Models\Province;
 use App\Models\Refund;
@@ -208,6 +216,286 @@ class AdminController extends Controller
         return redirect()->route('admin.destinations.index')->with('success', "Destinasi '{$destination->name}' berhasil ditambahkan.");
     }
 
+    public function editDestination(Destination $destination)
+    {
+        $destination->load([
+            'category',
+            'province',
+            'cancellationPolicy',
+            'facilities',
+            'media',
+            'contacts',
+            'allPackages',
+            'allAddons',
+            'availabilitySlots' => fn ($q) => $q->where('date', '>=', now()->toDateString())->orderBy('date')->limit(60),
+            'moderations.admin',
+            'partner.partnerProfile',
+        ]);
+
+        $categories = DestinationCategory::where('is_active', true)->get();
+        $provinces = Province::orderBy('name')->get();
+        $policies = CancellationPolicy::all();
+        $facilities = Facility::where('is_active', true)->orderBy('sort_order')->get();
+        $partners = User::where('account_type', 'partner')->orderBy('name')->get();
+
+        return view('admin.destinations.edit', compact(
+            'destination',
+            'categories',
+            'provinces',
+            'policies',
+            'facilities',
+            'partners'
+        ));
+    }
+
+    public function updateDestination(Request $request, Destination $destination)
+    {
+        $validated = $request->validate([
+            'partner_id' => 'nullable|exists:users,id',
+            'category_id' => 'required|exists:destination_categories,id',
+            'name' => 'required|string|max:255',
+            'province_id' => 'required|exists:provinces,id',
+            'cancellation_policy_id' => 'required|exists:cancellation_policies,id',
+            'city' => 'required|string|max:255',
+            'address' => 'nullable|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'short_description' => 'required|string|max:300',
+            'description' => 'required|string',
+            'educational_highlights' => 'nullable|string',
+            'default_daily_capacity' => 'required|integer|min:1',
+            'cover_image' => 'nullable|image|max:5120',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'facilities' => 'nullable|array',
+            'facilities.*' => 'exists:facilities,id',
+        ]);
+
+        $this->destinationService->updateDestination($destination, $validated, Auth::user());
+
+        return back()->with('success', "Informasi destinasi '{$destination->name}' berhasil diperbarui.");
+    }
+
+    public function toggleDestinationFeatured(Destination $destination)
+    {
+        $destination->is_featured = ! $destination->is_featured;
+        $destination->save();
+
+        AuditLogger::log(
+            action: 'toggle_destination_featured',
+            target: $destination,
+            description: "Status featured destinasi '{$destination->name}' diubah menjadi " . ($destination->is_featured ? 'aktif' : 'nonaktif')
+        );
+
+        return back()->with('success', "Status featured destinasi '{$destination->name}' berhasil diperbarui.");
+    }
+
+    public function addDestinationMedia(Request $request, Destination $destination)
+    {
+        $request->validate([
+            'image' => 'required|image|max:5120',
+            'caption' => 'nullable|string|max:255',
+        ]);
+
+        $this->destinationService->addMedia($destination, $request->file('image'), $request->caption);
+
+        return back()->with('success', 'Foto galeri berhasil diunggah.');
+    }
+
+    public function deleteDestinationMedia(Destination $destination, DestinationMedia $media)
+    {
+        if ($media->destination_id !== $destination->id) {
+            abort(403);
+        }
+
+        $this->destinationService->deleteMedia($media);
+
+        return back()->with('success', 'Foto galeri berhasil dihapus.');
+    }
+
+    public function sortDestinationMedia(Request $request, Destination $destination)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer',
+        ]);
+
+        $this->destinationService->sortMedia($destination, $request->order);
+
+        return back()->with('success', 'Urutan galeri foto berhasil diperbarui.');
+    }
+
+    public function updateDestinationFacilities(Request $request, Destination $destination)
+    {
+        $request->validate([
+            'facilities' => 'nullable|array',
+            'facilities.*' => 'exists:facilities,id',
+        ]);
+
+        $destination->facilities()->sync($request->facilities ?? []);
+
+        AuditLogger::log('update_destination_facilities', $destination, "Fasilitas destinasi '{$destination->name}' diperbarui.");
+
+        return back()->with('success', 'Fasilitas destinasi berhasil disinkronkan.');
+    }
+
+    public function saveDestinationContact(Request $request, Destination $destination)
+    {
+        $validated = $request->validate([
+            'contact_id' => 'nullable|exists:destination_contacts,id',
+            'contact_name' => 'required|string|max:255',
+            'role' => 'required|string|max:100',
+            'phone' => 'required|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'is_primary' => 'boolean',
+        ]);
+
+        $validated['is_primary'] = $request->boolean('is_primary');
+        if ($validated['is_primary']) {
+            $destination->contacts()->update(['is_primary' => false]);
+        }
+
+        $this->destinationService->saveContact($destination, $validated, $request->contact_id);
+
+        return back()->with('success', 'Kontak pengelola destinasi berhasil disimpan.');
+    }
+
+    public function deleteDestinationContact(Destination $destination, DestinationContact $contact)
+    {
+        if ($contact->destination_id !== $destination->id) {
+            abort(403);
+        }
+
+        $this->destinationService->deleteContact($contact);
+
+        return back()->with('success', 'Kontak pengelola berhasil dihapus.');
+    }
+
+    public function saveDestinationPackage(Request $request, Destination $destination)
+    {
+        $validated = $request->validate([
+            'package_id' => 'nullable|exists:packages,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price_per_pax' => 'required|integer|min:0',
+            'min_participants' => 'required|integer|min:1',
+            'max_participants' => 'nullable|integer|min:1',
+            'duration_days' => 'required|integer|min:1',
+            'inquiry_types' => 'nullable|array',
+            'included_items' => 'nullable|string',
+            'excluded_items' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['inquiry_types'] = $request->input('inquiry_types', ['study_tour']);
+        if (! empty($validated['included_items']) && is_string($validated['included_items'])) {
+            $validated['included_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", $validated['included_items'])))));
+        }
+        if (! empty($validated['excluded_items']) && is_string($validated['excluded_items'])) {
+            $validated['excluded_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", $validated['excluded_items'])))));
+        }
+
+        $this->destinationService->savePackage($destination, $validated, $request->package_id);
+
+        return back()->with('success', 'Paket kunjungan berhasil disimpan.');
+    }
+
+    public function togglePackageActive(Destination $destination, Package $package)
+    {
+        if ($package->destination_id !== $destination->id) {
+            abort(403);
+        }
+
+        $this->destinationService->togglePackageActive($package);
+
+        return back()->with('success', "Status aktif paket '{$package->name}' berhasil diubah.");
+    }
+
+    public function deleteDestinationPackage(Destination $destination, Package $package)
+    {
+        if ($package->destination_id !== $destination->id) {
+            abort(403);
+        }
+
+        try {
+            $this->destinationService->deletePackage($package);
+            return back()->with('success', "Paket '{$package->name}' berhasil dihapus.");
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function saveDestinationAddon(Request $request, Destination $destination)
+    {
+        $validated = $request->validate([
+            'addon_id' => 'nullable|exists:addons,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|integer|min:0',
+            'price_type' => 'required|in:per_pax,per_group,per_day',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+        $this->destinationService->saveAddon($destination, $validated, $request->addon_id);
+
+        return back()->with('success', 'Add-on layanan berhasil disimpan.');
+    }
+
+    public function deleteDestinationAddon(Destination $destination, Addon $addon)
+    {
+        if ($addon->destination_id !== $destination->id) {
+            abort(403);
+        }
+
+        $this->destinationService->deleteAddon($addon);
+
+        return back()->with('success', 'Add-on berhasil dihapus.');
+    }
+
+    public function bulkGenerateDestinationSlots(Request $request, Destination $destination, AvailabilityCalendarService $calendarService)
+    {
+        $request->validate([
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'days_of_week' => 'required|array|min:1',
+            'days_of_week.*' => 'integer|between:0,6',
+            'capacity' => 'required|integer|min:1',
+        ]);
+
+        $count = $calendarService->bulkGenerateSlots(
+            destination: $destination,
+            startDate: Carbon::parse($request->start_date),
+            endDate: Carbon::parse($request->end_date),
+            daysOfWeek: array_map('intval', $request->days_of_week),
+            capacity: (int) $request->capacity
+        );
+
+        return back()->with('success', "Berhasil membuat/memperbarui {$count} slot ketersediaan pada destinasi {$destination->name}.");
+    }
+
+    public function updateDestinationSlot(Request $request, Destination $destination)
+    {
+        $request->validate([
+            'slot_id' => 'required|exists:availability_slots,id',
+            'status' => 'required|in:open,closed',
+            'capacity' => 'required|integer|min:1',
+        ]);
+
+        $slot = AvailabilitySlot::where('destination_id', $destination->id)->findOrFail($request->slot_id);
+        $minAllowed = $slot->booked_count + $slot->held_count;
+        if ((int) $request->capacity < $minAllowed) {
+            return back()->with('error', "Kapasitas tidak boleh lebih kecil dari kuota terpesan/held ({$minAllowed} pax).");
+        }
+
+        $slot->status = $request->status;
+        $slot->capacity = (int) $request->capacity;
+        $slot->save();
+
+        return back()->with('success', 'Slot tanggal ' . Carbon::parse($slot->date)->format('d/m/Y') . ' berhasil diperbarui.');
+    }
+
     public function toggleDestinationActive(Destination $destination)
     {
         $this->destinationService->toggleActive($destination);
@@ -239,15 +527,19 @@ class AdminController extends Controller
         $action = $request->input('action'); // approve, revision, reject
         $notes = $request->input('notes', '');
 
-        $this->destinationService->moderate($destination, $action, $notes, Auth::user());
+        try {
+            $this->destinationService->moderate($destination, $action, $notes, Auth::user());
 
-        $msg = match ($action) {
-            'approve' => "Destinasi '{$destination->name}' berhasil disetujui dan diterbitkan!",
-            'revision' => "Catatan revisi untuk '{$destination->name}' berhasil dikirim ke mitra.",
-            default => "Pengajuan destinasi '{$destination->name}' telah ditolak/diarsipkan.",
-        };
+            $msg = match ($action) {
+                'approve' => "Destinasi '{$destination->name}' berhasil disetujui dan diterbitkan!",
+                'revision' => "Catatan revisi untuk '{$destination->name}' berhasil dikirim ke mitra.",
+                default => "Pengajuan destinasi '{$destination->name}' telah ditolak/diarsipkan.",
+            };
 
-        return back()->with('success', $msg);
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -276,10 +568,16 @@ class AdminController extends Controller
     {
         $action = $request->input('action', 'verify'); // verify or reject
         $status = ($action === 'verify') ? 'verified' : 'rejected';
+        $note = $request->input('note');
 
         if ($type === 'institution') {
+            if (! Auth::user()->can('institutions.verify')) {
+                abort(403, 'Anda tidak memiliki izin untuk memverifikasi institusi pemesan.');
+            }
+
             $inst = Institution::findOrFail($id);
             $inst->verification_status = $status;
+            $inst->verification_note = $note;
             $inst->verified_at = ($action === 'verify') ? now() : null;
             $inst->save();
 
@@ -289,11 +587,23 @@ class AdminController extends Controller
                 description: "Verifikasi institusi '{$inst->institution_name}' diset menjadi {$status}."
             );
 
+            if ($action === 'verify') {
+                \App\Events\InstitutionVerified::dispatch($inst, Auth::user());
+            } else {
+                \App\Events\InstitutionRejected::dispatch($inst, $note, Auth::user());
+            }
+
             return back()->with('success', "Status verifikasi institusi {$inst->institution_name} diperbarui.");
         } else {
+            if (! Auth::user()->can('partners.verify')) {
+                abort(403, 'Anda tidak memiliki izin untuk memverifikasi mitra pengelola.');
+            }
+
             $partner = PartnerProfile::findOrFail($id);
             $partner->verification_status = $status;
+            $partner->verification_note = $note;
             $partner->verified_at = ($action === 'verify') ? now() : null;
+            $partner->verified_by = ($action === 'verify') ? Auth::id() : null;
             $partner->save();
 
             AuditLogger::log(
@@ -301,6 +611,12 @@ class AdminController extends Controller
                 target: $partner,
                 description: "Verifikasi lembaga mitra '{$partner->organization_name}' diset menjadi {$status}."
             );
+
+            if ($action === 'verify') {
+                \App\Events\PartnerVerified::dispatch($partner, Auth::user());
+            } else {
+                \App\Events\PartnerRejected::dispatch($partner, $note, Auth::user());
+            }
 
             return back()->with('success', "Status verifikasi lembaga mitra {$partner->organization_name} diperbarui.");
         }
@@ -364,29 +680,47 @@ class AdminController extends Controller
         $booking = Booking::findOrFail($id);
         $action = $request->input('action'); // force_confirm, complete, cancel, reschedule
 
-        if ($action === 'force_confirm') {
-            $this->bookingService->confirm($booking, Auth::user());
+        try {
+            if ($action === 'force_confirm') {
+                if (! Auth::user()->can('bookings.force_confirm')) {
+                    abort(403, 'Anda tidak memiliki hak akses untuk melakukan force confirm booking.');
+                }
+                $this->bookingService->confirm($booking, Auth::user());
 
-            return back()->with('success', "Reservasi {$booking->booking_code} berhasil dikonfirmasi secara resmi.");
-        } elseif ($action === 'complete') {
-            $this->bookingService->complete($booking, Auth::user(), 'Selesai melalui intervensi admin.');
+                return back()->with('success', "Reservasi {$booking->booking_code} berhasil dikonfirmasi secara resmi.");
+            } elseif ($action === 'complete') {
+                if (! Auth::user()->can('bookings.complete')) {
+                    abort(403, 'Anda tidak memiliki hak akses untuk menyelesaikan booking.');
+                }
+                $this->bookingService->complete($booking, Auth::user(), 'Selesai melalui intervensi admin.');
 
-            return back()->with('success', "Reservasi {$booking->booking_code} telah ditandai selesai.");
-        } elseif ($action === 'cancel') {
-            $reason = $request->input('reason', 'Dibatalkan oleh admin operasional');
-            $overridePercent = $request->filled('refund_percent') ? (int) $request->input('refund_percent') : null;
-            $this->bookingService->cancel($booking, Auth::user(), $reason, 'admin', $overridePercent);
+                return back()->with('success', "Reservasi {$booking->booking_code} telah ditandai selesai.");
+            } elseif ($action === 'cancel') {
+                if (! Auth::user()->can('bookings.cancel')) {
+                    abort(403, 'Anda tidak memiliki hak akses untuk membatalkan booking.');
+                }
+                $reason = $request->input('reason', 'Dibatalkan oleh admin operasional');
+                $overridePercent = $request->filled('refund_percent') ? (int) $request->input('refund_percent') : null;
+                $this->bookingService->cancel($booking, Auth::user(), $reason, 'admin', $overridePercent);
 
-            return back()->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
-        } elseif ($action === 'reschedule') {
-            $newDate = Carbon::parse($request->input('new_date'));
-            $reason = $request->input('reschedule_reason', 'Perubahan jadwal oleh admin');
-            $this->bookingService->reschedule($booking, $newDate, Auth::user(), $reason);
+                return back()->with('success', "Reservasi {$booking->booking_code} berhasil dibatalkan.");
+            } elseif ($action === 'reschedule') {
+                if (! Auth::user()->can('bookings.reschedule')) {
+                    abort(403, 'Anda tidak memiliki hak akses untuk melakukan reschedule booking.');
+                }
+                $newDate = Carbon::parse($request->input('new_date'));
+                $reason = $request->input('reschedule_reason', 'Perubahan jadwal oleh admin');
+                $this->bookingService->reschedule($booking, $newDate, Auth::user(), $reason);
 
-            return back()->with('success', "Jadwal kunjungan reservasi {$booking->booking_code} berhasil diperbarui.");
+                return back()->with('success', "Jadwal kunjungan reservasi {$booking->booking_code} berhasil diperbarui.");
+            }
+
+            return back()->with('error', 'Aksi tidak dikenali.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('error', 'Aksi tidak dikenali.');
     }
 
     /**

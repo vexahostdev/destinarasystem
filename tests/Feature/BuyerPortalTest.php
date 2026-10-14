@@ -187,4 +187,167 @@ class BuyerPortalTest extends TestCase
         $this->actingAs($this->buyer);
         $this->get('/buyer/booking/'.$booking->booking_code)->assertStatus(404);
     }
+
+    public function test_buyer_can_cancel_unpaid_booking_with_zero_refund(): void
+    {
+        $this->actingAs($this->buyer);
+
+        $booking = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 15,
+            'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
+            'subtotal_amount' => 900000,
+            'addons_amount' => 0,
+            'insurance_amount' => 30000,
+            'platform_fee_amount' => 10000,
+            'discount_amount' => 0,
+            'total_amount' => 940000,
+            'commission_percent' => 10,
+            'commission_amount' => 90000,
+            'partner_net_amount' => 810000,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        $response = $this->post("/buyer/booking/{$booking->booking_code}/batal", [
+            'reason' => 'Perubahan agenda sekolah',
+        ]);
+
+        $response->assertRedirect("/buyer/booking/{$booking->booking_code}");
+        $this->assertEquals(BookingStatus::BATAL, $booking->fresh()->status);
+    }
+
+    public function test_buyer_can_check_payment_status(): void
+    {
+        $this->actingAs($this->buyer);
+
+        $booking = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 15,
+            'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
+            'subtotal_amount' => 900000,
+            'addons_amount' => 0,
+            'insurance_amount' => 30000,
+            'platform_fee_amount' => 10000,
+            'discount_amount' => 0,
+            'total_amount' => 940000,
+            'commission_percent' => 10,
+            'commission_amount' => 90000,
+            'partner_net_amount' => 810000,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        \App\Models\Payment::create([
+            'booking_id' => $booking->id,
+            'gateway' => 'manual_transfer',
+            'external_id' => 'PAY-'.$booking->booking_code,
+            'amount' => 940000,
+            'status' => \App\Enums\PaymentStatus::PENDING,
+            'payment_method' => 'manual_transfer',
+        ]);
+
+        $response = $this->post("/buyer/booking/{$booking->booking_code}/cek-status");
+        $response->assertRedirect("/buyer/booking/{$booking->booking_code}");
+        $response->assertSessionHas('info');
+    }
+
+    public function test_buyer_can_reupload_manual_proof(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $this->actingAs($this->buyer);
+
+        $booking = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 15,
+            'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
+            'subtotal_amount' => 900000,
+            'addons_amount' => 0,
+            'insurance_amount' => 30000,
+            'platform_fee_amount' => 10000,
+            'discount_amount' => 0,
+            'total_amount' => 940000,
+            'commission_percent' => 10,
+            'commission_amount' => 90000,
+            'partner_net_amount' => 810000,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        $payment = \App\Models\Payment::create([
+            'booking_id' => $booking->id,
+            'gateway' => 'manual_transfer',
+            'external_id' => 'PAY-'.$booking->booking_code,
+            'amount' => 940000,
+            'status' => \App\Enums\PaymentStatus::PENDING,
+            'payment_method' => 'manual_transfer',
+            'raw_response' => ['rejection_reason' => 'Gambar buram'],
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('proof.jpg', 500, 'image/jpeg');
+
+        $response = $this->post("/buyer/booking/{$booking->booking_code}/bukti-transfer", [
+            'proof_file' => $file,
+        ]);
+
+        $response->assertRedirect("/buyer/booking/{$booking->booking_code}");
+        $this->assertNotNull($payment->fresh()->proof_path);
+    }
+
+    public function test_buyer_notifications_center(): void
+    {
+        $this->actingAs($this->buyer);
+
+        $notif = \Illuminate\Notifications\DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'Destinara\\InAppNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->buyer->id,
+            'data' => [
+                'subject' => 'Tagihan Siap Dibayar',
+                'message' => 'Tagihan Anda telah diterbitkan.',
+                'event_key' => 'booking.created',
+            ],
+            'read_at' => null,
+        ]);
+
+        $this->get('/buyer/notifikasi')->assertStatus(200)->assertSee('Tagihan Siap Dibayar');
+
+        $this->post("/buyer/notifikasi/{$notif->id}/read")->assertRedirect();
+        $this->assertNotNull($notif->fresh()->read_at);
+
+        $notif2 = \Illuminate\Notifications\DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'Destinara\\InAppNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->buyer->id,
+            'data' => [
+                'subject' => 'Pembayaran Dikonfirmasi',
+                'message' => 'Pembayaran lunas.',
+                'event_key' => 'payment.paid',
+            ],
+            'read_at' => null,
+        ]);
+
+        $this->post('/buyer/notifikasi/read-all')->assertRedirect();
+        $this->assertNotNull($notif2->fresh()->read_at);
+    }
 }

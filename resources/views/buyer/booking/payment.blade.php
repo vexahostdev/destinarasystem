@@ -4,7 +4,7 @@
 
 @section('content')
 <div x-data="{
-    gateway: '{{ $payment->gateway ?? 'xendit' }}',
+    gateway: '{{ in_array($payment->gateway ?? '', $enabledGateways) ? $payment->gateway : ($enabledGateways[0] ?? 'manual_transfer') }}',
     countdown: '',
     expiresAt: new Date('{{ $booking->expires_at ? $booking->expires_at->toIso8601String() : now()->addHours(24)->toIso8601String() }}').getTime(),
     updateTimer() {
@@ -111,6 +111,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             
+            @if(in_array('xendit', $enabledGateways))
             <!-- Xendit Online -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
                    :class="gateway === 'xendit' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
@@ -126,7 +127,9 @@
                     <span>Verifikasi Otomatis Seketika</span>
                 </div>
             </label>
+            @endif
 
+            @if(in_array('midtrans', $enabledGateways))
             <!-- Midtrans Snap -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
                    :class="gateway === 'midtrans' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
@@ -142,7 +145,9 @@
                     <span>Verifikasi Otomatis Seketika</span>
                 </div>
             </label>
+            @endif
 
+            @if(in_array('manual_transfer', $enabledGateways))
             <!-- Transfer Manual Bank Destinara -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
                    :class="gateway === 'manual_transfer' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
@@ -158,6 +163,7 @@
                     <span>Unggah Bukti Transfer</span>
                 </div>
             </label>
+            @endif
 
         </div>
 

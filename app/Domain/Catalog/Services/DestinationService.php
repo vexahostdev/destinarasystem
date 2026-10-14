@@ -62,8 +62,8 @@ class DestinationService
                 'cancellation_policy_id' => $data['cancellation_policy_id'] ?? null,
                 'default_daily_capacity' => $data['default_daily_capacity'] ?? 50,
                 'cover_image' => $coverPath,
-                'status' => $user->isInternal() ? DestinationStatus::PUBLISHED : DestinationStatus::DRAFT,
-                'published_at' => $user->isInternal() ? now() : null,
+                'status' => DestinationStatus::DRAFT,
+                'published_at' => null,
             ]);
 
             if (! empty($data['facilities'])) {
@@ -98,6 +98,13 @@ class DestinationService
                     $slug .= '-'.($count + 1);
                 }
                 $data['slug'] = $slug;
+            }
+
+            if (isset($data['status']) && ($data['status'] === DestinationStatus::PUBLISHED || $data['status'] === 'published')) {
+                $activePackagesCount = $destination->packages()->where('is_active', true)->count();
+                if ($activePackagesCount < 1) {
+                    throw new InvalidArgumentException('Destinasi tidak dapat dipublikasikan tanpa minimal 1 paket aktif.');
+                }
             }
 
             $destination->update($data);

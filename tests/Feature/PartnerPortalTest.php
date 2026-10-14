@@ -371,4 +371,43 @@ class PartnerPortalTest extends TestCase
         $this->assertNotNull($review->replied_at);
         $this->assertEquals('Terima kasih atas kunjungannya, kami nantikan kedatangan rombongan berikutnya.', $review->partner_reply);
     }
+
+    public function test_partner_notifications_center(): void
+    {
+        $this->actingAs($this->partner);
+
+        $notif = \Illuminate\Notifications\DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'Destinara\\InAppNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->partner->id,
+            'data' => [
+                'subject' => 'Pesanan Baru Perlu Konfirmasi',
+                'message' => 'Pesanan baru masuk dari sekolah.',
+                'event_key' => 'booking.paid',
+            ],
+            'read_at' => null,
+        ]);
+
+        $this->get('/mitra/notifikasi')->assertStatus(200)->assertSee('Pesanan Baru Perlu Konfirmasi');
+
+        $this->post("/mitra/notifikasi/{$notif->id}/read")->assertRedirect();
+        $this->assertNotNull($notif->fresh()->read_at);
+
+        $notif2 = \Illuminate\Notifications\DatabaseNotification::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'type' => 'Destinara\\InAppNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->partner->id,
+            'data' => [
+                'subject' => 'Pengajuan Payout Ditransfer',
+                'message' => 'Dana telah ditransfer ke rekening Anda.',
+                'event_key' => 'payout.transferred',
+            ],
+            'read_at' => null,
+        ]);
+
+        $this->post('/mitra/notifikasi/read-all')->assertRedirect();
+        $this->assertNotNull($notif2->fresh()->read_at);
+    }
 }

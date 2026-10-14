@@ -39,6 +39,11 @@ class CheckInService
                 );
             }
 
+            // Verify destination ownership for partner scanner
+            if ($scanner->isPartner() && $locked->destination && $locked->destination->partner_id !== $scanner->id) {
+                throw new InvalidArgumentException('Anda bukan pengelola destinasi dari pesanan ini.');
+            }
+
             // Date validation: visit range with tolerance (H-1 start to end + 1 day) (SPEC §11)
             $now = Carbon::now()->startOfDay();
             $earliestAllowed = Carbon::parse($locked->planned_date_start)->subDay()->startOfDay();

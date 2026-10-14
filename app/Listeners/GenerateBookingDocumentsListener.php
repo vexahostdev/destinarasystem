@@ -13,7 +13,7 @@ use App\Jobs\GenerateDocumentJob;
 use App\Models\Document;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class GenerateBookingDocumentsListener implements ShouldQueue
+class GenerateBookingDocumentsListener
 {
     public bool $afterCommit = true;
 

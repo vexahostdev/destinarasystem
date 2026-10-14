@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Booking\Services\BookingService;
 use App\Domain\Catalog\Services\ReviewService;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\BookingStatus;
@@ -157,12 +158,27 @@ class BuyerController extends Controller
             BookingStatus::BERLANGSUNG,
             BookingStatus::SELESAI,
         ]);
+        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $refundCalc = $bookingService->calculateRefund($booking, 'buyer');
+        $banks = \App\Models\Bank::where('is_active', true)->orderBy('name')->get();
+        $canCancel = (bool) setting('allow_buyer_cancel', true) && in_array($booking->status, [
+            BookingStatus::MENUNGGU_PEMBAYARAN,
+            BookingStatus::DIBAYAR,
+            BookingStatus::DIKONFIRMASI,
+        ]);
+        $latestPayment = $booking->payments()->latest('id')->first();
+        $manualPayment = $booking->payments()->where('gateway', 'manual_transfer')->latest('id')->first();
 
         return view('buyer.booking.show', [
             'user' => $user,
             'institution' => $user->institution,
             'booking' => $booking,
             'isPaid' => $isPaid,
+            'refundCalc' => $refundCalc,
+            'banks' => $banks,
+            'canCancel' => $canCancel,
+            'latestPayment' => $latestPayment,
+            'manualPayment' => $manualPayment,
         ]);
     }
 
@@ -191,8 +207,9 @@ class BuyerController extends Controller
         }
 
         $banks = Bank::where('is_active', true)->get();
+        $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
 
-        return view('buyer.booking.payment', compact('user', 'booking', 'payment', 'banks'));
+        return view('buyer.booking.payment', compact('user', 'booking', 'payment', 'banks', 'enabledGateways'));
     }
 
     /**
@@ -210,6 +227,11 @@ class BuyerController extends Controller
             'gateway' => 'required|in:xendit,midtrans,manual_transfer',
             'proof_file' => 'required_if:gateway,manual_transfer|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
+
+        $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
+        if (! in_array($request->gateway, $enabledGateways, true)) {
+            return back()->with('error', 'Metode pembayaran yang dipilih sedang tidak tersedia atau dinonaktifkan.');
+        }
 
         $gateway = $request->gateway;
         $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
@@ -382,18 +404,142 @@ class BuyerController extends Controller
     }
 
     /**
-     * Halaman 8: Notifikasi Buyer
+     * Batal Mandiri oleh Pemesan (SPEC §8.4)
+     */
+    public function cancelBooking(Request $request, string $code, BookingService $bookingService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if (! (bool) setting('allow_buyer_cancel', true)) {
+            abort(403, 'Fitur pembatalan mandiri oleh pemesan saat ini sedang dinonaktifkan.');
+        }
+
+        $calc = $bookingService->calculateRefund($booking, 'buyer');
+        $bankDetails = null;
+
+        if ($calc['percent'] > 0) {
+            $validated = $request->validate([
+                'reason' => 'required|string|min:5|max:500',
+                'bank_name' => 'required|string|max:100',
+                'bank_account_number' => 'required|string|max:50',
+                'bank_account_holder' => 'required|string|max:255',
+            ]);
+            $bankDetails = [
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['bank_account_number'],
+                'account_holder' => $validated['bank_account_holder'],
+            ];
+            $reason = $validated['reason'];
+        } else {
+            $validated = $request->validate([
+                'reason' => 'required|string|min:5|max:500',
+            ]);
+            $reason = $validated['reason'];
+        }
+
+        try {
+            $bookingService->cancel(
+                booking: $booking,
+                actor: $user,
+                reason: $reason,
+                source: 'buyer',
+                overridePercent: null,
+                bankDetails: $bankDetails
+            );
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Pesanan Anda berhasil dibatalkan.'.($calc['percent'] > 0 ? " Pengajuan refund {$calc['percent']}% telah diteruskan ke tim keuangan." : ''));
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Cek Status Transaksi ke Payment Gateway
+     */
+    public function checkPaymentStatus(string $code, PaymentService $paymentService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $payment = $booking->payments()->latest('id')->first();
+        if (! $payment) {
+            return back()->with('error', 'Tidak ada data transaksi pembayaran untuk pesanan ini.');
+        }
+
+        try {
+            $paymentService->checkStatus($payment);
+            $booking->refresh();
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('info', "Status pembayaran terkini: {$payment->fresh()->status->label()}. Status pesanan: {$booking->status->label()}.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal memeriksa status ke gateway: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Upload Ulang Bukti Transfer Manual
+     */
+    public function reuploadManualProof(Request $request, string $code, PaymentService $paymentService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $request->validate([
+            'proof_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $payment = $booking->payments()
+            ->where('gateway', 'manual_transfer')
+            ->latest('id')
+            ->first();
+
+        if (! $payment) {
+            return back()->with('error', 'Tidak ditemukan riwayat pembayaran transfer manual.');
+        }
+
+        try {
+            $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Bukti transfer pembayaran berhasil diunggah ulang. Tim Destinara akan memverifikasi dalam waktu 1x24 jam.');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Halaman 8: Notifikasi Buyer (Database Notifications)
      */
     public function notifications()
     {
         $user = Auth::user();
-        $notifications = NotificationLog::where('user_id', $user->id)
-            ->orWhere('target', $user->phone)
-            ->orWhere('target', $user->email)
-            ->latest()
-            ->paginate(15);
+        $notifications = $user->notifications()->latest()->paginate(15);
 
         return view('buyer.notifications', compact('user', 'notifications'));
+    }
+
+    public function markNotificationAsRead($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return redirect()->back()->with('success', 'Notifikasi ditandai sudah dibaca.');
+    }
+
+    public function markAllNotificationsAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return redirect()->back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 
     /**

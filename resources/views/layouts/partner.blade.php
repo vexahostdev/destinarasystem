@@ -141,6 +141,19 @@
                 <span class="material-symbols-outlined text-[18px]">badge</span>
                 <span>Profil Adat</span>
             </a>
+
+            <a href="{{ route('mitra.notifications') }}" 
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.notifications*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">notifications</span>
+                    <span>Notifikasi</span>
+                </div>
+                @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                    <span class="px-2 py-0.5 text-[10px] font-bold bg-[#703A3A] text-white rounded-full">
+                        {{ Auth::user()->unreadNotifications()->count() }}
+                    </span>
+                @endif
+            </a>
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
@@ -192,6 +205,13 @@
                 <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#faf6f0] border border-[#2B211E]/15 text-xs hover:border-[#51634b] transition-colors">
                     <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Siap Tarik:</span>
                     <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($readyBalance, 0, ',', '.') }}</span>
+                </a>
+
+                <a href="{{ route('mitra.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#51634b] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">
+                    <span class="material-symbols-outlined text-[20px]">notifications</span>
+                    @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-600 rounded-full ring-2 ring-white"></span>
+                    @endif
                 </a>
 
                 <a href="{{ route('mitra.availability') }}" class="rgs-btn-outline px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
