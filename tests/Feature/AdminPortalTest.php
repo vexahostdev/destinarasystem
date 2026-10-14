@@ -10,7 +10,9 @@ use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\Package;
 use App\Models\Province;
+use App\Models\Setting;
 use App\Models\User;
+use App\Providers\RuntimeConfigServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -265,5 +267,46 @@ class AdminPortalTest extends TestCase
             $orphanKeys,
             'Orphan setting keys found in codebase that are missing from config/destinara.php: '.implode(', ', $orphanKeys)
         );
+    }
+
+    public function test_settings_repository_distinguishes_unset_from_deliberately_emptied(): void
+    {
+        $repo = app(SettingsRepository::class);
+
+        // 1. Condition "Belum pernah diset": row does not exist in DB -> returns registry default
+        Setting::where('key', 'smtp_host')->delete();
+        $repo->clearCache();
+
+        $this->assertEquals('smtp-relay.brevo.com', $repo->get('smtp_host'));
+        $this->assertEquals('smtp-relay.brevo.com', $repo->group('email')['smtp_host']);
+
+        // 2. Condition "Sengaja dikosongkan": row exists with empty string -> returns ''
+        $repo->set('smtp_host', '');
+
+        $this->assertSame('', $repo->get('smtp_host'));
+        $this->assertSame('', $repo->group('email')['smtp_host']);
+    }
+
+    public function test_runtime_config_switches_to_smtp_only_when_fully_configured(): void
+    {
+        $provider = new RuntimeConfigServiceProvider($this->app);
+        $repo = app(SettingsRepository::class);
+
+        // 1. Incomplete SMTP settings (missing password) -> defaults to MAIL_MAILER / log
+        $repo->set('smtp_host', 'smtp.brevo.com');
+        $repo->set('smtp_username', 'user@example.com');
+        $repo->set('smtp_password', '');
+
+        $provider->applyRuntimeConfig($repo);
+        $this->assertEquals(env('MAIL_MAILER', 'log'), config('mail.default'));
+
+        // 2. Complete SMTP settings (host, user, pass all set) -> switches to 'smtp'
+        $repo->set('smtp_host', 'smtp.brevo.com');
+        $repo->set('smtp_username', 'user@example.com');
+        $repo->set('smtp_password', 'secret_pass_xyz');
+
+        $provider->applyRuntimeConfig($repo);
+        $this->assertEquals('smtp', config('mail.default'));
+        $this->assertEquals('smtp.brevo.com', config('mail.mailers.smtp.host'));
     }
 }

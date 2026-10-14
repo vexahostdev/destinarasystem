@@ -30,24 +30,27 @@ class Setting extends Model
     {
         $raw = $this->attributes['value'] ?? null;
 
-        if ($raw === null || $raw === '') {
-            return null;
+        if ($raw === null) {
+            return '';
         }
 
         if ($this->is_encrypted) {
+            if ($raw === '') {
+                return '';
+            }
             try {
                 $raw = Crypt::decryptString($raw);
             } catch (\Exception $e) {
-                return null;
+                return '';
             }
         }
 
         return match ($this->type) {
             'bool', 'boolean' => filter_var($raw, FILTER_VALIDATE_BOOLEAN),
-            'int', 'integer', 'money' => (int) $raw,
-            'float', 'percent' => (float) $raw,
-            'json' => json_decode($raw, true),
-            default => $raw,
+            'int', 'integer', 'money' => $raw === '' ? 0 : (int) $raw,
+            'float', 'percent' => $raw === '' ? 0.0 : (float) $raw,
+            'json' => $raw === '' ? [] : json_decode($raw, true),
+            default => (string) $raw,
         };
     }
 
@@ -56,8 +59,8 @@ class Setting extends Model
      */
     public function setParsedValue(mixed $value): void
     {
-        if ($value === null || $value === '') {
-            $this->attributes['value'] = null;
+        if ($value === null) {
+            $this->attributes['value'] = '';
 
             return;
         }
@@ -71,7 +74,7 @@ class Setting extends Model
         }
 
         if ($this->is_encrypted) {
-            $this->attributes['value'] = Crypt::encryptString($value);
+            $this->attributes['value'] = $value === '' ? '' : Crypt::encryptString($value);
         } else {
             $this->attributes['value'] = $value;
         }

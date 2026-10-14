@@ -76,6 +76,14 @@ class SendNotificationJob implements ShouldQueue
             throw new NonRetryableNotificationException("Alamat email tidak valid: {$log->recipient}");
         }
 
+        $smtpHost = setting('smtp_host');
+        $smtpUser = setting('smtp_username');
+        $smtpPass = setting('smtp_password');
+
+        if (empty($smtpHost) || empty($smtpUser) || empty($smtpPass)) {
+            throw new NonRetryableNotificationException('SMTP belum dikonfigurasi');
+        }
+
         Mail::to($log->recipient)->send(
             new TemplatedMail(
                 subjectText: $log->subject ?? setting('company_name', 'Destinara'),

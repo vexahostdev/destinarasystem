@@ -109,6 +109,12 @@ class NotificationTest extends TestCase
     {
         Mail::fake();
 
+        setting([
+            'smtp_host' => 'smtp.destinara.test',
+            'smtp_username' => 'destinara_user',
+            'smtp_password' => 'secret_pass_123',
+        ]);
+
         $log = NotificationLog::create([
             'event_key' => 'booking.created',
             'channel' => NotificationChannel::MAIL,
@@ -127,6 +133,35 @@ class NotificationTest extends TestCase
         Mail::assertSent(TemplatedMail::class, function ($mail) use ($log) {
             return $mail->hasTo('buyer@destinara.test') && $mail->subjectText === $log->subject;
         });
+    }
+
+    public function test_mail_notification_fails_without_retry_when_smtp_unconfigured(): void
+    {
+        Mail::fake();
+
+        setting([
+            'smtp_host' => 'smtp.destinara.test',
+            'smtp_username' => '',
+            'smtp_password' => '',
+        ]);
+
+        $log = NotificationLog::create([
+            'event_key' => 'booking.created',
+            'channel' => NotificationChannel::MAIL,
+            'recipient' => 'buyer@destinara.test',
+            'subject' => 'Reservasi Kunjungan Dibuat',
+            'body' => '<p>Halo, reservasi Anda berhasil diajukan.</p>',
+            'status' => NotificationStatus::QUEUED,
+        ]);
+
+        $job = new SendNotificationJob($log->id);
+        $job->handle(app(VexaHostClient::class));
+
+        $log->refresh();
+        $this->assertEquals(NotificationStatus::FAILED, $log->status);
+        $this->assertEquals('SMTP belum dikonfigurasi', $log->error);
+
+        Mail::assertNothingSent();
     }
 
     public function test_whatsapp_webhook_signature_and_status_update(): void

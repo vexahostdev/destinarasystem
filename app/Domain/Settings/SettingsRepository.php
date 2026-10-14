@@ -17,7 +17,12 @@ class SettingsRepository
         $all = $this->all();
 
         if (array_key_exists($key, $all)) {
-            return $all[$key];
+            $val = $all[$key];
+            if ($val === null) {
+                return '';
+            }
+
+            return $val;
         }
 
         // Check default in registry
@@ -38,11 +43,6 @@ class SettingsRepository
         $type = $registryItem['type'] ?? 'string';
         $group = $registryItem['group'] ?? 'general';
         $isEncrypted = $type === 'secret';
-
-        // If it's a secret and value is empty string, keep existing value
-        if ($isEncrypted && ($value === null || $value === '')) {
-            return;
-        }
 
         $setting = Setting::firstOrNew(['key' => $key]);
         $setting->type = $type;
@@ -82,7 +82,12 @@ class SettingsRepository
 
         foreach ($registry as $item) {
             if ($item['group'] === $group) {
-                $groupSettings[$item['key']] = $all[$item['key']] ?? $item['default'] ?? null;
+                $key = $item['key'];
+                if (array_key_exists($key, $all)) {
+                    $groupSettings[$key] = $all[$key] ?? '';
+                } else {
+                    $groupSettings[$key] = $item['default'] ?? null;
+                }
             }
         }
 

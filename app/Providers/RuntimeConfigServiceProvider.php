@@ -34,7 +34,7 @@ class RuntimeConfigServiceProvider extends ServiceProvider
     /**
      * Apply runtime settings to Laravel configuration.
      */
-    protected function applyRuntimeConfig(SettingsRepository $settings): void
+    public function applyRuntimeConfig(SettingsRepository $settings): void
     {
         try {
             // Check if settings table exists to avoid errors during initial migrations
@@ -45,16 +45,24 @@ class RuntimeConfigServiceProvider extends ServiceProvider
             // Apply Email / SMTP settings
             $email = $settings->group('email');
 
-            if (! empty($email['smtp_host']) && ! app()->environment('testing')) {
+            $hasCompleteSmtp = ! empty($email['smtp_host'])
+                && ! empty($email['smtp_username'])
+                && ! empty($email['smtp_password']);
+
+            if ($hasCompleteSmtp) {
                 config([
                     'mail.default' => 'smtp',
                     'mail.mailers.smtp.host' => $email['smtp_host'],
                     'mail.mailers.smtp.port' => (int) ($email['smtp_port'] ?? 587),
-                    'mail.mailers.smtp.encryption' => $email['smtp_encryption'] === 'null' ? null : $email['smtp_encryption'],
-                    'mail.mailers.smtp.username' => $email['smtp_username'] ?? null,
-                    'mail.mailers.smtp.password' => $email['smtp_password'] ?? null,
-                    'mail.from.address' => $email['mail_from_address'] ?? 'notifikasi@destinara.my.id',
-                    'mail.from.name' => $email['mail_from_name'] ?? 'Destinara',
+                    'mail.mailers.smtp.encryption' => ($email['smtp_encryption'] ?? 'tls') === 'null' ? null : ($email['smtp_encryption'] ?? 'tls'),
+                    'mail.mailers.smtp.username' => $email['smtp_username'],
+                    'mail.mailers.smtp.password' => $email['smtp_password'],
+                    'mail.from.address' => ! empty($email['mail_from_address']) ? $email['mail_from_address'] : config('mail.from.address', 'notifikasi@destinara.my.id'),
+                    'mail.from.name' => ! empty($email['mail_from_name']) ? $email['mail_from_name'] : config('mail.from.name', 'Destinara'),
+                ]);
+            } else {
+                config([
+                    'mail.default' => env('MAIL_MAILER', 'log'),
                 ]);
             }
 
