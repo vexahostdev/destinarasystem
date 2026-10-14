@@ -288,7 +288,7 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('buyer.document.download', ['code' => $booking->booking_code, 'type' => $doc->type]) }}" target="_blank" class="px-3.5 py-1.5 bg-[#faf6f0] hover:bg-[#703A3A] hover:text-white text-[#2B211E] text-xs font-bold uppercase tracking-wider border border-[#2B211E]/20 flex items-center justify-center gap-1.5 transition-colors">
+                        <a href="{{ route('documents.download', ['document' => $doc->id]) }}" target="_blank" class="px-3.5 py-1.5 bg-[#faf6f0] hover:bg-[#703A3A] hover:text-white text-[#2B211E] text-xs font-bold uppercase tracking-wider border border-[#2B211E]/20 flex items-center justify-center gap-1.5 transition-colors">
                             <span class="material-symbols-outlined text-[16px]">visibility</span>
                             <span>Pratinjau / Unduh</span>
                         </a>
@@ -300,6 +300,61 @@
                     @endforelse
                 </div>
             </div>
+
+            <!-- Card Ulasan Kunjungan Selesai -->
+            @if($booking->status === \App\Enums\BookingStatus::SELESAI || $booking->status === 'selesai')
+                <div class="rgs-card p-6 border-t-4 border-t-amber-500 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500 text-[20px]">star</span>
+                            <h2 class="font-serif text-lg font-bold text-[#2B211E]">Ulasan & Penilaian Ekskursi</h2>
+                        </div>
+                    </div>
+
+                    @if($booking->review)
+                        <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-200/50 space-y-2 text-xs">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1 text-amber-500 font-bold">
+                                    @for($s = 1; $s <= 5; $s++)
+                                        <span>{{ $s <= $booking->review->rating ? '★' : '☆' }}</span>
+                                    @endfor
+                                    <span class="text-slate-800 ml-1">({{ $booking->review->rating }}/5)</span>
+                                </div>
+                                <span class="text-[11px] text-slate-500">{{ $booking->review->created_at->translatedFormat('d M Y') }}</span>
+                            </div>
+                            <p class="text-slate-700 italic">"{{ $booking->review->comment }}"</p>
+                            @if($booking->review->reply)
+                                <div class="mt-3 p-3 bg-white rounded-xl border border-slate-200 text-xs">
+                                    <span class="font-bold text-slate-900 block mb-0.5">Tanggapan Pengelola Tapak:</span>
+                                    <p class="text-slate-600">{{ $booking->review->reply }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <form action="{{ route('buyer.booking.review', $booking->booking_code) }}" method="POST" class="space-y-3">
+                            @csrf
+                            <p class="text-xs text-slate-600">Bagikan pengalaman ekskursi institusi Anda untuk membantu sekolah lain dan pengelola tapak.</p>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Rating</label>
+                                <select name="rating" class="text-xs border border-slate-300 rounded-lg p-2 bg-white" required>
+                                    <option value="5">★★★★★ — Sangat Memuaskan (5)</option>
+                                    <option value="4">★★★★☆ — Memuaskan (4)</option>
+                                    <option value="3">★★★☆☆ — Cukup (3)</option>
+                                    <option value="2">★★☆☆☆ — Kurang (2)</option>
+                                    <option value="1">★☆☆☆☆ — Sangat Kurang (1)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Komentar / Masukan Pembelajaran</label>
+                                <textarea name="comment" rows="3" required class="w-full text-xs border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#8C5151]" placeholder="Ceritakan bagaimana kegiatan berlangsung, kesesuaian modul edukasi, keramahan pemandu..."></textarea>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold uppercase rounded-lg transition">
+                                Kirim Ulasan Resmi
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @endif
 
         </div>
 

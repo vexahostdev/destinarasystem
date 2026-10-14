@@ -75,13 +75,12 @@ Route::prefix('webhooks')->group(function () {
 */
 use App\Http\Controllers\BuyerController;
 
-Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'role:buyer'])->group(function () {
+Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'active', 'account:buyer'])->group(function () {
     // 1. Dashboard Buyer
     Route::get('/dashboard', [BuyerController::class, 'dashboard'])->name('dashboard');
 
     // 2. Form Pengajuan Booking
     Route::get('/booking/create', [BuyerController::class, 'createBooking'])->name('booking.create');
-    Route::post('/booking/store', [BuyerController::class, 'storeBooking'])->name('booking.store');
 
     // 3. Detail Booking & Status Verifikasi
     Route::get('/booking/{code}', [BuyerController::class, 'showBooking'])->name('booking.show');
@@ -97,20 +96,29 @@ Route::prefix('buyer')->name('buyer.')->middleware(['auth', 'role:buyer'])->grou
     Route::get('/profil', [BuyerController::class, 'profile'])->name('profile');
     Route::post('/profil/update', [BuyerController::class, 'updateProfile'])->name('profile.update');
 
-    // Helper: Unduh Dokumen Resmi (Invoice, e-Pass, Draf Izin)
-    Route::get('/booking/{code}/dokumen/{type}', [BuyerController::class, 'downloadDoc'])->name('document.download');
+    // 7. Wishlist Tapak Edukasi
+    Route::get('/wishlist', [BuyerController::class, 'wishlist'])->name('wishlist');
+    Route::post('/wishlist/toggle', [BuyerController::class, 'toggleWishlist'])->name('wishlist.toggle');
+
+    // 8. Pusat Notifikasi Buyer
+    Route::get('/notifikasi', [BuyerController::class, 'notifications'])->name('notifications');
+
+    // 9. Ulasan Kunjungan Selesai
+    Route::post('/booking/{code}/ulasan', [BuyerController::class, 'submitReview'])->name('booking.review');
 });
 
-// Pengalihan cerdas /dashboard ke portal sesuai peran
+// Pengalihan cerdas /dashboard ke portal sesuai tipe akun
 Route::get('/dashboard', function() {
     if (!Auth::check()) return redirect()->route('login');
-    return match(Auth::user()->role) {
-        'partner', 'mitra' => redirect()->route('mitra.dashboard'),
-        'admin' => redirect()->route('admin.dashboard'),
-        'super_admin', 'superadmin' => redirect()->route('superadmin.dashboard'),
-        default => redirect()->route('buyer.dashboard'),
-    };
-});
+    $user = Auth::user();
+    if ($user->isPartner()) {
+        return redirect()->route('mitra.dashboard');
+    }
+    if ($user->isInternal()) {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('buyer.dashboard');
+})->middleware('auth')->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -120,7 +128,7 @@ Route::get('/dashboard', function() {
 */
 use App\Http\Controllers\PartnerController;
 
-Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'role:partner'])->group(function () {
+Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:partner'])->group(function () {
     // 1. Dashboard Mitra
     Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
 
