@@ -70,8 +70,12 @@
                             <span class="block text-[11px] text-gray-500">{{ $p->booking->destination?->name }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
+                            @php
+                                $gwStr = $p->gateway instanceof \UnitEnum ? $p->gateway->value : (string)$p->gateway;
+                                $isManual = ($gwStr === 'manual_transfer');
+                            @endphp
                             <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-semibold uppercase">
-                                {{ $p->gateway->value ?? $p->gateway }}
+                                {{ $gwStr }}
                             </span>
                             @if($p->payment_method)
                                 <span class="block text-[11px] text-gray-400 mt-0.5">{{ $p->payment_method }}</span>
@@ -93,7 +97,7 @@
                             @endif
                         </td>
                         <td class="py-3.5 text-right space-x-2">
-                            @if($p->gateway->value === 'manual_transfer' && $p->status === \App\Enums\PaymentStatus::PENDING)
+                            @if($isManual && $p->status === \App\Enums\PaymentStatus::PENDING)
                                 @can('payments.verify_manual')
                                 <form action="{{ route('admin.finance.verifyManual', $p->id) }}" method="POST" class="inline">
                                     @csrf
@@ -105,7 +109,7 @@
                                 @endcan
                             @endif
 
-                            @if($p->gateway->value !== 'manual_transfer' && $p->status === \App\Enums\PaymentStatus::PENDING)
+                            @if(!$isManual && $p->status === \App\Enums\PaymentStatus::PENDING)
                                 <form action="{{ route('admin.finance.checkGatewayStatus', $p->id) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">

@@ -233,6 +233,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     Route::get('/destinasi', [AdminController::class, 'destinations'])->middleware('can:destinations.view')->name('destinations.index');
     Route::get('/destinasi/tambah', [AdminController::class, 'createDestination'])->middleware('can:destinations.create')->name('destinations.create');
     Route::post('/destinasi', [AdminController::class, 'storeDestination'])->middleware('can:destinations.create')->name('destinations.store');
+    Route::get('/destinasi/verifikasi', [AdminController::class, 'verifyDestinations'])->middleware('can:destinations.verify')->name('destinations.verify');
+    Route::post('/destinasi/{id}/status', [AdminController::class, 'updateDestinationStatus'])->middleware('can:destinations.verify')->name('destinations.updateStatus');
+
     Route::get('/destinasi/{destination}', [AdminController::class, 'editDestination'])->middleware('can:destinations.update')->name('destinations.edit');
     Route::post('/destinasi/{destination}/update', [AdminController::class, 'updateDestination'])->middleware('can:destinations.update')->name('destinations.update');
     Route::post('/destinasi/{destination}/featured', [AdminController::class, 'toggleDestinationFeatured'])->middleware('can:destinations.feature')->name('destinations.toggleFeatured');
@@ -252,10 +255,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     Route::post('/destinasi/{destination}/addons/{addon}/delete', [AdminController::class, 'deleteDestinationAddon'])->middleware('can:addons.manage')->name('destinations.addons.delete');
     Route::post('/destinasi/{destination}/slots/bulk', [AdminController::class, 'bulkGenerateDestinationSlots'])->middleware('can:availability.manage')->name('destinations.slots.bulk');
     Route::post('/destinasi/{destination}/slots/update', [AdminController::class, 'updateDestinationSlot'])->middleware('can:availability.manage')->name('destinations.slots.update');
-
-    // 3. Verifikasi & Kurasi Destinasi
-    Route::get('/destinasi/verifikasi', [AdminController::class, 'verifyDestinations'])->middleware('can:destinations.verify')->name('destinations.verify');
-    Route::post('/destinasi/{id}/status', [AdminController::class, 'updateDestinationStatus'])->middleware('can:destinations.verify')->name('destinations.updateStatus');
 
     // 4. Pengguna & Validasi Legalitas
     Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->middleware('can:institutions.verify')->name('users.verify');

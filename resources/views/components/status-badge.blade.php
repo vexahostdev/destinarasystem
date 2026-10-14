@@ -1,15 +1,16 @@
-@props(['status', 'label' => null, 'color' => null])
+@props(['status' => null, 'enum' => null, 'label' => null, 'color' => null])
 
 @php
+    $statusVal = $enum ?? $status ?? null;
     $labelText = $label;
     $colorClass = $color;
 
-    if ($status instanceof \UnitEnum) {
-        if (method_exists($status, 'label')) {
-            $labelText = $labelText ?? $status->label();
+    if ($statusVal instanceof \UnitEnum) {
+        if (method_exists($statusVal, 'label')) {
+            $labelText = $labelText ?? $statusVal->label();
         }
-        if (method_exists($status, 'color')) {
-            $colorName = $status->color();
+        if (method_exists($statusVal, 'color')) {
+            $colorName = $statusVal->color();
             $colorClass = match($colorName) {
                 'success', 'emerald', 'green' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                 'warning', 'amber', 'yellow' => 'bg-amber-50 text-amber-700 border-amber-200',
@@ -21,7 +22,7 @@
         }
     }
 
-    $labelText = $labelText ?? (string) $status;
+    $labelText = $labelText ?? (string) ($statusVal ?? '-');
     $colorClass = $colorClass ?? 'bg-slate-100 text-slate-700 border-slate-200';
 @endphp
 

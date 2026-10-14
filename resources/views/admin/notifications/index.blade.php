@@ -176,6 +176,9 @@
     </div>
 
     <!-- Audit Trail Admin Operasional -->
+    @php
+        $auditLogs = $auditLogs ?? collect();
+    @endphp
     <div class="rgs-card bg-white p-6">
         <div class="flex items-center justify-between border-b border-[#2B211E]/10 pb-3 mb-4">
             <div>

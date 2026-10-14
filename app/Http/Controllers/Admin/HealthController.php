@@ -28,7 +28,9 @@ class HealthController extends Controller
         $start = microtime(true);
         try {
             DB::connection()->getPdo();
-            $tablesCount = count(DB::select('SHOW TABLES'));
+            $tablesCount = DB::connection()->getDriverName() === 'sqlite'
+                ? count(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"))
+                : count(DB::select('SHOW TABLES'));
             $latency = round((microtime(true) - $start) * 1000, 2);
             $checks['database'] = [
                 'name' => 'Database Relasional (MySQL)',

@@ -12,6 +12,10 @@ use App\Enums\DestinationStatus;
 use App\Enums\NotificationChannel;
 use App\Enums\NotificationStatus;
 use App\Enums\RefundStatus;
+use App\Events\InstitutionRejected;
+use App\Events\InstitutionVerified;
+use App\Events\PartnerRejected;
+use App\Events\PartnerVerified;
 use App\Jobs\SendNotificationJob;
 use App\Models\Addon;
 use App\Models\AuditLog;
@@ -34,6 +38,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdminController extends Controller
 {
@@ -235,6 +240,7 @@ class AdminController extends Controller
         $categories = DestinationCategory::where('is_active', true)->get();
         $provinces = Province::orderBy('name')->get();
         $policies = CancellationPolicy::all();
+        $cancellationPolicies = $policies;
         $facilities = Facility::where('is_active', true)->orderBy('sort_order')->get();
         $partners = User::where('account_type', 'partner')->orderBy('name')->get();
 
@@ -243,6 +249,7 @@ class AdminController extends Controller
             'categories',
             'provinces',
             'policies',
+            'cancellationPolicies',
             'facilities',
             'partners'
         ));
@@ -284,7 +291,7 @@ class AdminController extends Controller
         AuditLogger::log(
             action: 'toggle_destination_featured',
             target: $destination,
-            description: "Status featured destinasi '{$destination->name}' diubah menjadi " . ($destination->is_featured ? 'aktif' : 'nonaktif')
+            description: "Status featured destinasi '{$destination->name}' diubah menjadi ".($destination->is_featured ? 'aktif' : 'nonaktif')
         );
 
         return back()->with('success', "Status featured destinasi '{$destination->name}' berhasil diperbarui.");
@@ -390,10 +397,10 @@ class AdminController extends Controller
         $validated['is_active'] = $request->boolean('is_active');
         $validated['inquiry_types'] = $request->input('inquiry_types', ['study_tour']);
         if (! empty($validated['included_items']) && is_string($validated['included_items'])) {
-            $validated['included_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", $validated['included_items'])))));
+            $validated['included_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['included_items'])))));
         }
         if (! empty($validated['excluded_items']) && is_string($validated['excluded_items'])) {
-            $validated['excluded_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", $validated['excluded_items'])))));
+            $validated['excluded_items'] = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", '', $validated['excluded_items'])))));
         }
 
         $this->destinationService->savePackage($destination, $validated, $request->package_id);
@@ -420,6 +427,7 @@ class AdminController extends Controller
 
         try {
             $this->destinationService->deletePackage($package);
+
             return back()->with('success', "Paket '{$package->name}' berhasil dihapus.");
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -493,7 +501,7 @@ class AdminController extends Controller
         $slot->capacity = (int) $request->capacity;
         $slot->save();
 
-        return back()->with('success', 'Slot tanggal ' . Carbon::parse($slot->date)->format('d/m/Y') . ' berhasil diperbarui.');
+        return back()->with('success', 'Slot tanggal '.Carbon::parse($slot->date)->format('d/m/Y').' berhasil diperbarui.');
     }
 
     public function toggleDestinationActive(Destination $destination)
@@ -588,9 +596,9 @@ class AdminController extends Controller
             );
 
             if ($action === 'verify') {
-                \App\Events\InstitutionVerified::dispatch($inst, Auth::user());
+                InstitutionVerified::dispatch($inst, Auth::user());
             } else {
-                \App\Events\InstitutionRejected::dispatch($inst, $note, Auth::user());
+                InstitutionRejected::dispatch($inst, $note, Auth::user());
             }
 
             return back()->with('success', "Status verifikasi institusi {$inst->institution_name} diperbarui.");
@@ -613,9 +621,9 @@ class AdminController extends Controller
             );
 
             if ($action === 'verify') {
-                \App\Events\PartnerVerified::dispatch($partner, Auth::user());
+                PartnerVerified::dispatch($partner, Auth::user());
             } else {
-                \App\Events\PartnerRejected::dispatch($partner, $note, Auth::user());
+                PartnerRejected::dispatch($partner, $note, Auth::user());
             }
 
             return back()->with('success', "Status verifikasi lembaga mitra {$partner->organization_name} diperbarui.");
@@ -633,7 +641,15 @@ class AdminController extends Controller
         $query = Booking::with(['destination', 'user.institution', 'package', 'payments']);
 
         if ($status !== 'all') {
-            $query->where('status', $status);
+            $mappedStatus = match ($status) {
+                'pending_confirmation' => BookingStatus::DIBAYAR,
+                'awaiting_payment' => BookingStatus::MENUNGGU_PEMBAYARAN,
+                'confirmed' => BookingStatus::DIKONFIRMASI,
+                'completed' => BookingStatus::SELESAI,
+                'cancelled' => BookingStatus::BATAL,
+                default => $status,
+            };
+            $query->where('status', $mappedStatus);
         }
 
         if (! empty($search)) {
@@ -649,11 +665,17 @@ class AdminController extends Controller
         $statusCounts = [
             'all' => Booking::count(),
             'menunggu_pembayaran' => Booking::where('status', BookingStatus::MENUNGGU_PEMBAYARAN)->count(),
+            'awaiting_payment' => Booking::where('status', BookingStatus::MENUNGGU_PEMBAYARAN)->count(),
             'dibayar' => Booking::where('status', BookingStatus::DIBAYAR)->count(),
+            'pending_confirmation' => Booking::where('status', BookingStatus::DIBAYAR)->count(),
             'dikonfirmasi' => Booking::where('status', BookingStatus::DIKONFIRMASI)->count(),
+            'confirmed' => Booking::where('status', BookingStatus::DIKONFIRMASI)->count(),
             'selesai' => Booking::where('status', BookingStatus::SELESAI)->count(),
+            'completed' => Booking::where('status', BookingStatus::SELESAI)->count(),
             'batal' => Booking::where('status', BookingStatus::BATAL)->count(),
+            'cancelled' => Booking::where('status', BookingStatus::BATAL)->count(),
             'kedaluwarsa' => Booking::where('status', BookingStatus::KEDALUWARSA)->count(),
+            'expired' => Booking::where('status', BookingStatus::KEDALUWARSA)->count(),
         ];
 
         return view('admin.bookings.index', compact('bookings', 'status', 'search', 'statusCounts'));
@@ -716,7 +738,7 @@ class AdminController extends Controller
             }
 
             return back()->with('error', 'Aksi tidak dikenali.');
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             throw $e;
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
@@ -728,18 +750,22 @@ class AdminController extends Controller
      */
     public function notificationLogs(Request $request)
     {
+        $channel = $request->query('channel', 'all');
+        $status = $request->query('status', 'all');
+        $eventKey = $request->query('event_key', 'all');
+
         $query = NotificationLog::query();
 
-        if ($request->filled('channel')) {
-            $query->where('channel', $request->query('channel'));
+        if ($channel !== 'all' && ! empty($channel)) {
+            $query->where('channel', $channel);
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->query('status'));
+        if ($status !== 'all' && ! empty($status)) {
+            $query->where('status', $status);
         }
 
-        if ($request->filled('event_key')) {
-            $query->where('event_key', $request->query('event_key'));
+        if ($eventKey !== 'all' && ! empty($eventKey)) {
+            $query->where('event_key', $eventKey);
         }
 
         $logs = $query->latest('id')->paginate(20)->withQueryString();
@@ -754,7 +780,9 @@ class AdminController extends Controller
             'failed' => NotificationLog::where('status', NotificationStatus::FAILED)->count(),
         ];
 
-        return view('admin.notifications.index', compact('logs', 'events', 'channels', 'statuses', 'stats'));
+        $auditLogs = AuditLog::with('user')->latest('id')->take(10)->get();
+
+        return view('admin.notifications.index', compact('logs', 'events', 'channels', 'statuses', 'stats', 'channel', 'status', 'auditLogs'));
     }
 
     public function retryNotification($id)

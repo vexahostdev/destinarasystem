@@ -132,32 +132,36 @@
                             @endif
                         </td>
                         <td class="py-4 px-4 text-center">
-                            @if(in_array($b->status, ['confirmed', 'dikonfirmasi']))
+                            @php
+                                $bSt = $b->status instanceof \UnitEnum ? $b->status->value : (string)$b->status;
+                                $bLabel = $b->status instanceof \App\Enums\BookingStatus ? $b->status->label() : strtoupper($bSt);
+                            @endphp
+                            @if(in_array($bSt, ['confirmed', 'dikonfirmasi']))
                                 <span class="px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-semibold uppercase font-mono">
                                     Terkonfirmasi
                                 </span>
-                            @elseif(in_array($b->status, ['awaiting_payment', 'menunggu_pembayaran']))
+                            @elseif(in_array($bSt, ['awaiting_payment', 'menunggu_pembayaran']))
                                 <span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-semibold uppercase font-mono">
                                     Menunggu Bayar
                                 </span>
-                            @elseif(in_array($b->status, ['pending_confirmation', 'review_mitra']))
+                            @elseif(in_array($bSt, ['pending_confirmation', 'review_mitra', 'dibayar']))
                                 <span class="px-2.5 py-1 bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-semibold uppercase font-mono">
                                     Review Mitra
                                 </span>
-                            @elseif(in_array($b->status, ['completed', 'selesai']))
+                            @elseif(in_array($bSt, ['completed', 'selesai']))
                                 <span class="px-2.5 py-1 bg-gray-100 text-gray-800 border border-gray-300 text-[10px] font-semibold uppercase font-mono">
                                     Selesai
                                 </span>
                             @else
                                 <span class="px-2.5 py-1 bg-red-100 text-red-800 border border-red-300 text-[10px] font-semibold uppercase font-mono">
-                                    {{ strtoupper($b->status) }}
+                                    {{ $bLabel }}
                                 </span>
                             @endif
                         </td>
                         <td class="py-4 px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 
-                                @if($b->status === 'pending_confirmation')
+                                @if(in_array($bSt, ['pending_confirmation', 'dibayar']))
                                     <!-- Force Confirm Button -->
                                     <form action="{{ route('admin.bookings.updateStatus', $b->id) }}" method="POST">
                                         @csrf
@@ -181,7 +185,7 @@
                                     <span class="material-symbols-outlined text-[16px]">description</span>
                                 </a>
 
-                                @if($b->status !== 'cancelled')
+                                @if(!in_array($bSt, ['cancelled', 'dibatalkan']))
                                 <!-- Cancel Modal Button -->
                                 <button type="button" 
                                         @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; cancelModal = true"

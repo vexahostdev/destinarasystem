@@ -8,6 +8,7 @@ use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Domain\Settings\SettingsRepository;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class SettingsController extends Controller
@@ -170,7 +171,7 @@ class SettingsController extends Controller
      */
     public function testMail(Request $request)
     {
-        $recipient = $request->input('test_email', \Illuminate\Support\Facades\Auth::user()->email ?? 'admin@destinara.id');
+        $recipient = $request->input('test_email', Auth::user()->email ?? 'admin@destinara.id');
 
         try {
             Mail::raw('Ini adalah email uji coba dari konsol admin Destinara pada '.now()->toRfc850String(), function ($message) use ($recipient) {
