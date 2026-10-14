@@ -209,7 +209,7 @@ class PaymentService
             throw new InvalidArgumentException('Pembayaran ini tidak dalam status menunggu pembayaran.');
         }
 
-        $dir = 'private/payments/'.now()->format('Y/m');
+        $dir = 'payments/'.now()->format('Y/m');
         $fileName = 'proof_'.$payment->external_id.'_'.uniqid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs($dir, $fileName, 'local');
 

@@ -17,6 +17,7 @@ use App\Models\Payment;
 use App\Models\Refund;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class FinanceController extends Controller
 {
@@ -89,6 +90,25 @@ class FinanceController extends Controller
         ];
 
         return view('admin.finance.manual-payments', compact('payments', 'status', 'counts'));
+    }
+
+    /**
+     * Unduh Berkas Bukti Transfer Manual
+     */
+    public function downloadProof(Payment $payment)
+    {
+        if (empty($payment->proof_path)) {
+            abort(404, 'Bukti transfer tidak ditemukan.');
+        }
+
+        if (! Storage::disk('local')->exists($payment->proof_path)) {
+            abort(404, 'Berkas fisik bukti transfer tidak ditemukan di penyimpanan server.');
+        }
+
+        return Storage::disk('local')->download(
+            $payment->proof_path,
+            basename($payment->proof_path)
+        );
     }
 
     /**

@@ -97,6 +97,12 @@
                             @endif
                         </td>
                         <td class="py-3.5 text-right space-x-2">
+                            @if($p->proof_path)
+                                <a href="{{ route('admin.finance.downloadProof', $p->id) }}" target="_blank"
+                                   class="inline-block border border-[#703A3A] text-[#703A3A] hover:bg-[#703A3A] hover:text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase transition">
+                                    Unduh Bukti
+                                </a>
+                            @endif
                             @if($isManual && $p->status === \App\Enums\PaymentStatus::PENDING)
                                 @can('payments.verify_manual')
                                 <form action="{{ route('admin.finance.verifyManual', $p->id) }}" method="POST" class="inline">

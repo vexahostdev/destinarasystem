@@ -646,7 +646,21 @@ class PartnerController extends Controller
             }
         }
 
-        return view('partner.checkin', compact('booking'));
+        // Date validation: visit range with tolerance (H-1 start to end + 1 day) (SPEC §11)
+        $now = Carbon::now()->startOfDay();
+        $earliestAllowed = Carbon::parse($booking->planned_date_start)->subDay()->startOfDay();
+        $latestAllowed = Carbon::parse($booking->planned_date_end)->addDay()->endOfDay();
+
+        $isWithinWindow = ! ($now->lt($earliestAllowed) || $now->gt($latestAllowed));
+        $dateWindowError = null;
+
+        if (! $isWithinWindow) {
+            $dateWindowError = 'Check-in hanya dapat dilakukan pada rentang jadwal kunjungan ('.
+                Carbon::parse($booking->planned_date_start)->format('d/m/Y').' s.d. '.
+                Carbon::parse($booking->planned_date_end)->format('d/m/Y').').';
+        }
+
+        return view('partner.checkin', compact('booking', 'isWithinWindow', 'dateWindowError'));
     }
 
     /**

@@ -149,6 +149,57 @@ class CheckInReviewTest extends TestCase
         ]);
     }
 
+    public function test_mitra_checkin_show_signed_url_authorization_and_date_window(): void
+    {
+        // 1. Signed URL valid -> 200
+        $validSignedUrl = URL::signedRoute('mitra.checkin.show', ['code' => $this->booking->booking_code]);
+        $response = $this->actingAs($this->partnerUser)->get($validSignedUrl);
+        $response->assertOk();
+        $response->assertSee('Verifikasi Check-in Masuk Tapak');
+        $response->assertSee('Konfirmasi Masuk Tapak (Check-in)');
+
+        // 2. Tanpa signature -> 403
+        $unsignedUrl = route('mitra.checkin.show', ['code' => $this->booking->booking_code]);
+        $this->actingAs($this->partnerUser)->get($unsignedUrl)->assertStatus(403);
+
+        // 3. Partner lain -> 403
+        $otherPartner = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+        ]);
+        $this->actingAs($otherPartner)->get($validSignedUrl)->assertStatus(403);
+
+        // 4. Di luar jendela tanggal (misal kunjungan 7 hari lagi) -> pesan error ditampilkan
+        $futureBooking = Booking::create([
+            'booking_code' => 'DST-FUTURE-01',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->booking->package_id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::today()->addDays(7)->toDateString(),
+            'planned_date_end' => Carbon::today()->addDays(8)->toDateString(),
+            'participant_count' => 15,
+            'subtotal_amount' => 750000,
+            'addons_amount' => 0,
+            'insurance_amount' => 30000,
+            'platform_fee_amount' => 25000,
+            'discount_amount' => 0,
+            'total_amount' => 805000,
+            'commission_percent' => 10,
+            'commission_amount' => 75000,
+            'partner_net_amount' => 675000,
+            'status' => BookingStatus::DIKONFIRMASI,
+            'confirmed_at' => now(),
+        ]);
+
+        $futureSignedUrl = URL::signedRoute('mitra.checkin.show', ['code' => $futureBooking->booking_code]);
+        $futureResponse = $this->actingAs($this->partnerUser)->get($futureSignedUrl);
+        $futureResponse->assertOk();
+        $futureResponse->assertSee('Check-in hanya dapat dilakukan pada rentang jadwal kunjungan');
+        $futureResponse->assertDontSee('Konfirmasi Masuk Tapak (Check-in)');
+    }
+
     public function test_auto_complete_marks_ongoing_booking_as_completed(): void
     {
         $this->booking->status = BookingStatus::BERLANGSUNG;
@@ -163,7 +214,15 @@ class CheckInReviewTest extends TestCase
         $this->assertEquals(BookingStatus::SELESAI, $this->booking->status);
         $this->assertNotNull($this->booking->completed_at);
 
-        // Payout automatically created
+        // Payout is not created immediately (V3-2 decoupling)
+        $this->assertDatabaseMissing('partner_payouts', [
+            'booking_id' => $this->booking->id,
+        ]);
+
+        // After payout delay has elapsed, payouts:generate creates it
+        $this->travel(3)->days();
+        $this->artisan('payouts:generate')->assertExitCode(0);
+
         $this->assertDatabaseHas('partner_payouts', [
             'booking_id' => $this->booking->id,
             'partner_id' => $this->partnerUser->id,

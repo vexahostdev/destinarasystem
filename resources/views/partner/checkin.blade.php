@@ -23,6 +23,12 @@
                 </div>
             @endif
 
+            @if(isset($dateWindowError) && $dateWindowError)
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+                    {{ $dateWindowError }}
+                </div>
+            @endif
+
             <div class="border-b border-gray-100 pb-4 mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-sm text-gray-500 font-mono">{{ $booking->booking_code }}</span>
@@ -56,7 +62,7 @@
                 </div>
             </div>
 
-            @if($booking->isConfirmed())
+            @if($booking->isConfirmed() && empty($dateWindowError))
                 <form action="{{ route('mitra.checkin.confirm', $booking->booking_code) }}" method="POST" class="space-y-4">
                     @csrf
                     <div>

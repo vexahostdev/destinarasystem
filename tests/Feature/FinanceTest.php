@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Domain\Finance\Services\PayoutService;
 use App\Domain\Finance\Services\ReconciliationService;
 use App\Domain\Finance\Services\RefundService;
+use App\Domain\Payment\Services\PaymentService;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
@@ -88,6 +89,7 @@ class FinanceTest extends TestCase
             'account_type' => AccountType::INTERNAL,
             'status' => 'active',
         ]);
+        $this->adminUser->assignRole('super_admin');
 
         $province = Province::first();
         $policy = CancellationPolicy::first();
@@ -293,5 +295,39 @@ class FinanceTest extends TestCase
         $this->assertEquals($bank->name, $released->bank_name);
         $this->assertEquals('137000999888', $released->bank_account_number);
         $this->assertEquals('Koperasi Desa Sejahtera', $released->bank_account_holder);
+    }
+
+    public function test_manual_transfer_proof_storage_path_and_admin_download(): void
+    {
+        $payment = Payment::create([
+            'booking_id' => $this->booking->id,
+            'external_id' => 'PAY-MANUAL-TEST-001',
+            'amount' => 1000000,
+            'gateway' => 'manual_transfer',
+            'status' => PaymentStatus::PENDING,
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $paymentService = app(PaymentService::class);
+        $file = UploadedFile::fake()->create('bukti_bayar_mandiri.jpg', 400, 'image/jpeg');
+
+        $paymentService->processManualProofUpload($payment, $file, $this->buyer);
+        $payment->refresh();
+
+        // 1. Verify storage path format: payments/{yyyy}/{mm}/ without double private/
+        $this->assertNotNull($payment->proof_path);
+        $this->assertStringStartsWith('payments/'.now()->format('Y/m').'/', $payment->proof_path);
+        $this->assertStringNotContainsString('private/payments/', $payment->proof_path);
+        Storage::disk('local')->assertExists($payment->proof_path);
+
+        // 2. Admin can download proof
+        $this->actingAs($this->adminUser)
+            ->get(route('admin.finance.downloadProof', $payment->id))
+            ->assertOk();
+
+        // 3. Guest cannot download proof
+        auth()->logout();
+        $this->get(route('admin.finance.downloadProof', $payment->id))
+            ->assertRedirect();
     }
 }

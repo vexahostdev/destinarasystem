@@ -273,6 +273,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     // 6. Keuangan: Pembayaran, Refund, Payout, Rekonsiliasi
     Route::prefix('keuangan')->name('finance.')->group(function () {
         Route::get('/pembayaran', [FinanceController::class, 'payments'])->middleware('can:payments.view')->name('payments');
+        Route::get('/pembayaran/{payment}/bukti', [FinanceController::class, 'downloadProof'])->middleware('can:payments.view')->name('downloadProof');
         Route::post('/pembayaran/{payment}/verifikasi', [FinanceController::class, 'verifyManualPayment'])->middleware('can:payments.verify_manual')->name('verifyManual');
         Route::post('/pembayaran/{payment}/cek-status', [FinanceController::class, 'checkGatewayStatus'])->middleware('can:payments.view')->name('checkGatewayStatus');
 
