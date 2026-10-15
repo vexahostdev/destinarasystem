@@ -195,7 +195,7 @@
                 </div>
             </div>
 
-            <!-- Right: Saldo Siap Tarik & Quick Action -->
+            <!-- Right: Payout Menunggu Proses & Quick Action -->
                 @php
                     $readyBalance = Auth::check() ? \App\Models\PartnerPayout::where('partner_id', Auth::id())
                         ->where('status', \App\Enums\PayoutStatus::PENDING)
@@ -203,7 +203,7 @@
                         ->sum('net_amount') : 0;
                 @endphp
                 <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#faf6f0] border border-[#2B211E]/15 text-xs hover:border-[#51634b] transition-colors">
-                    <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Siap Tarik:</span>
+                    <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Menunggu Payout:</span>
                     <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($readyBalance, 0, ',', '.') }}</span>
                 </a>
 

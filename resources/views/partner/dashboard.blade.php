@@ -97,10 +97,10 @@
             <div class="text-[11px] text-gray-400 mt-1">Siap berkunjung ke tapak</div>
         </div>
 
-        <!-- Metric 3: Saldo Siap Tarik -->
+        <!-- Metric 3: Payout Menunggu Proses -->
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs hover:shadow-md transition-all">
             <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-2">
-                <span>Saldo Siap Tarik</span>
+                <span>Payout Menunggu Proses</span>
                 <div class="w-8 h-8 rounded-full bg-[#703A3A]/10 text-[#703A3A] flex items-center justify-center">
                     <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                 </div>
@@ -108,7 +108,7 @@
             <div class="text-2xl sm:text-3xl font-extrabold text-[#703A3A]">
                 Rp {{ number_format($readyBalance, 0, ',', '.') }}
             </div>
-            <div class="text-[11px] text-[#51634b] font-semibold mt-1">Dapat dicairkan ke rekening terdaftar</div>
+            <div class="text-[11px] text-[#51634b] font-semibold mt-1">Ditransfer otomatis oleh admin sesuai jadwal rekonsiliasi (H+{{ (int) setting('payout_delay_days', 3) }} kunjungan selesai)</div>
         </div>
 
         <!-- Metric 4: Total Payout Diterima -->

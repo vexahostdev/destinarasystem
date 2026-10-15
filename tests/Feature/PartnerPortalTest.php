@@ -136,6 +136,9 @@ class PartnerPortalTest extends TestCase
         $categoryName = strtoupper($this->destination->category->name);
         $response->assertSee($categoryName);
         $response->assertDontSee('{"id":');
+        $response->assertSee('Payout Menunggu Proses');
+        $response->assertDontSee('Saldo Siap Tarik');
+        $response->assertSee('Ditransfer otomatis oleh admin sesuai jadwal rekonsiliasi');
 
         $destResponse = $this->actingAs($this->partner)->get(route('mitra.destinations'));
         $destResponse->assertOk();
