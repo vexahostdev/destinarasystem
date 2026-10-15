@@ -9,6 +9,7 @@ use App\Enums\DestinationStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\VerificationStatus;
 use App\Livewire\Buyer\BookingForm;
+use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
@@ -139,6 +140,96 @@ class BuyerPortalTest extends TestCase
             'participant_count' => 20,
             'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
         ]);
+    }
+
+    public function test_livewire_booking_form_validates_pax_bounds_zeros_total_and_differentiates_slot_messages(): void
+    {
+        $this->actingAs($this->buyer);
+
+        $futureDate = now()->addDays(15)->format('Y-m-d');
+
+        // 1. Participant count < min_pax (5 < 10)
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('plannedDateStart', $futureDate)
+            ->set('participantCount', 5)
+            ->call('recalculate')
+            ->assertHasErrors(['participantCount' => 'Paket ini untuk 10–100 peserta'])
+            ->assertSet('grandTotal', 0)
+            ->assertSet('subtotal', 0)
+            ->call('submit')
+            ->assertHasErrors(['participantCount'])
+            ->assertNoRedirect();
+
+        // 2. Participant count > max_pax (150 > 100)
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('plannedDateStart', $futureDate)
+            ->set('participantCount', 150)
+            ->call('recalculate')
+            ->assertHasErrors(['participantCount' => 'Paket ini untuk 10–100 peserta'])
+            ->assertSet('grandTotal', 0)
+            ->call('submit')
+            ->assertHasErrors(['participantCount'])
+            ->assertNoRedirect();
+
+        // 3. Valid participant count clears error and calculates total
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('plannedDateStart', $futureDate)
+            ->set('participantCount', 20)
+            ->call('recalculate')
+            ->assertHasNoErrors('participantCount')
+            ->assertSet('grandTotal', 1265000);
+
+        // 4. Slot message: tanggal di luar rentang
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', now()->addDays(1)->format('Y-m-d'))
+            ->call('recalculate')
+            ->assertSet('isSlotAvailable', false)
+            ->assertSee('di luar rentang');
+
+        // 5. Slot message: slot ditutup
+        $closedDate = now()->addDays(20)->format('Y-m-d');
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $closedDate,
+            'capacity' => 100,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'closed',
+        ]);
+
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', $closedDate)
+            ->call('recalculate')
+            ->assertSet('isSlotAvailable', false)
+            ->assertSet('availabilityMessage', 'Slot ditutup oleh pengelola tapak pada tanggal ini.')
+            ->assertSee('Slot ditutup');
+
+        // 6. Slot message: slot penuh
+        $fullDate = now()->addDays(25)->format('Y-m-d');
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $fullDate,
+            'capacity' => 10,
+            'booked_count' => 10,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', $fullDate)
+            ->call('recalculate')
+            ->assertSet('isSlotAvailable', false)
+            ->assertSet('availabilityMessage', 'Slot penuh untuk tanggal kunjungan yang dipilih.')
+            ->assertSee('Slot penuh');
     }
 
     public function test_destination_detail_accessible_by_buyer(): void
