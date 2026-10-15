@@ -91,6 +91,10 @@ class DocumentService
 
             Storage::disk('local')->put($filePath, $pdf->output());
 
+            $latestVersion = Document::where('booking_id', $booking->id)
+                ->where('type', $type)
+                ->max('version') ?? 0;
+
             // 5. Create Document Record
             $document = Document::create([
                 'booking_id' => $booking->id,
@@ -102,7 +106,7 @@ class DocumentService
                 'status' => $status,
                 'generated_at' => now(),
                 'generated_by' => $actor?->id,
-                'version' => 1,
+                'version' => $latestVersion + 1,
             ]);
 
             AuditLogger::log(

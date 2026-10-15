@@ -103,6 +103,7 @@ class DocumentTest extends TestCase
             'address' => 'Mangunan, Dlingo',
             'description' => 'Ekowisata Hutan Pinus.',
             'status' => DestinationStatus::PUBLISHED,
+            'default_daily_capacity' => 100,
         ]);
 
         $package = Package::create([
@@ -224,5 +225,65 @@ class DocumentTest extends TestCase
         $this->assertEquals(DocumentStatus::VOID, $oldDoc->status);
         $this->assertEquals(DocumentStatus::FINAL, $newDoc->status);
         $this->assertEquals(2, $newDoc->version);
+    }
+
+    public function test_reschedule_documents_lifecycle_v7_1(): void
+    {
+        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $docService = app(DocumentService::class);
+
+        // 1. Reschedule booking with status DIBAYAR: no confirmation letter or e-voucher generated
+        $this->booking->status = BookingStatus::DIBAYAR;
+        $this->booking->save();
+
+        $bookingService->reschedule(
+            $this->booking,
+            now()->addDays(15),
+            $this->adminUser,
+            'Penyesuaian jadwal rombongan sekolah'
+        );
+
+        $this->booking->refresh();
+        $this->assertEquals(BookingStatus::DIBAYAR, $this->booking->status);
+        $this->assertEquals(0, Document::where('booking_id', $this->booking->id)
+            ->whereIn('type', [DocumentType::CONFIRMATION_LETTER, DocumentType::E_VOUCHER])
+            ->count());
+
+        // 2. Reschedule booking with status DIKONFIRMASI: existing documents are voided and new versions issued
+        $this->booking->status = BookingStatus::DIKONFIRMASI;
+        $this->booking->save();
+
+        $oldConf = $docService->generateForBooking($this->booking, DocumentType::CONFIRMATION_LETTER, $this->adminUser);
+        $oldVoucher = $docService->generateForBooking($this->booking, DocumentType::E_VOUCHER, $this->adminUser);
+        $this->assertEquals(DocumentStatus::FINAL, $oldConf->status);
+        $this->assertEquals(DocumentStatus::FINAL, $oldVoucher->status);
+
+        $bookingService->reschedule(
+            $this->booking,
+            now()->addDays(25),
+            $this->adminUser,
+            'Penyesuaian jadwal ulang tahap 2'
+        );
+
+        $oldConf->refresh();
+        $oldVoucher->refresh();
+        $this->assertEquals(DocumentStatus::VOID, $oldConf->status);
+        $this->assertEquals(DocumentStatus::VOID, $oldVoucher->status);
+
+        $newConf = Document::where('booking_id', $this->booking->id)
+            ->where('type', DocumentType::CONFIRMATION_LETTER)
+            ->where('status', DocumentStatus::FINAL)
+            ->latest('id')
+            ->first();
+        $newVoucher = Document::where('booking_id', $this->booking->id)
+            ->where('type', DocumentType::E_VOUCHER)
+            ->where('status', DocumentStatus::FINAL)
+            ->latest('id')
+            ->first();
+
+        $this->assertNotNull($newConf);
+        $this->assertNotNull($newVoucher);
+        $this->assertNotEquals($oldConf->id, $newConf->id);
+        $this->assertNotEquals($oldVoucher->id, $newVoucher->id);
     }
 }

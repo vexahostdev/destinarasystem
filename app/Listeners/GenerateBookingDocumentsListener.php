@@ -35,15 +35,27 @@ class GenerateBookingDocumentsListener
                 GenerateDocumentJob::dispatch($event->booking, DocumentType::PERMIT_DRAFT, $event->actor)->afterCommit();
             }
         } elseif ($event instanceof BookingRescheduled) {
-            // Void previous versions
-            Document::where('booking_id', $event->booking->id)
-                ->whereIn('type', [DocumentType::CONFIRMATION_LETTER, DocumentType::E_VOUCHER])
+            // Only regenerate document types that have ALREADY been published for this booking (V7-1)
+            $existingTypes = Document::where('booking_id', $event->booking->id)
+                ->whereIn('type', [DocumentType::CONFIRMATION_LETTER, DocumentType::E_VOUCHER, DocumentType::PERMIT_DRAFT])
                 ->where('status', '!=', DocumentStatus::VOID)
-                ->update(['status' => DocumentStatus::VOID]);
+                ->pluck('type')
+                ->unique()
+                ->values();
 
-            // Regenerate updated confirmation letter & e-voucher
-            GenerateDocumentJob::dispatch($event->booking, DocumentType::CONFIRMATION_LETTER, $event->actor)->afterCommit();
-            GenerateDocumentJob::dispatch($event->booking, DocumentType::E_VOUCHER, $event->actor)->afterCommit();
+            if ($existingTypes->isNotEmpty()) {
+                // Void previous versions
+                Document::where('booking_id', $event->booking->id)
+                    ->whereIn('type', $existingTypes)
+                    ->where('status', '!=', DocumentStatus::VOID)
+                    ->update(['status' => DocumentStatus::VOID]);
+
+                // Regenerate only the types that were previously published
+                foreach ($existingTypes as $type) {
+                    $docType = $type instanceof DocumentType ? $type : DocumentType::from($type);
+                    GenerateDocumentJob::dispatch($event->booking, $docType, $event->actor)->afterCommit();
+                }
+            }
         } elseif ($event instanceof PayoutTransferred) {
             GenerateDocumentJob::dispatch($event->payout, DocumentType::PAYOUT_RECEIPT, $event->actor)->afterCommit();
         }
