@@ -188,7 +188,7 @@
                     <p class="brand-tagline">Platform Reservasi Kunjungan Edukasi & Pengabdian Tapak Nusantara</p>
                     <div style="margin-top: 10px; font-size: 9pt; color: #4A5568;">
                         <strong>Nomor:</strong> {{ $documentNumber }}<br>
-                        <strong>Tanggal Terbit:</strong> {{ $dateIssued ?? now()->format('d F Y') }}
+                        <strong>Tanggal Terbit:</strong> {{ $dateIssued ?? now()->translatedFormat('d F Y') }}
                     </div>
                 </td>
                 <td style="vertical-align: top; width: 40%; text-align: right;">

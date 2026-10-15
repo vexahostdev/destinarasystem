@@ -333,4 +333,17 @@ class CheckInReviewTest extends TestCase
         $duplicateResponse->assertRedirect(route('buyer.booking.show', $this->booking->booking_code));
         $duplicateResponse->assertSessionHas('error', 'Ulasan untuk pesanan ini sudah pernah dikirimkan.');
     }
+
+    public function test_checkin_and_booking_details_render_dates_with_indonesian_locale(): void
+    {
+        $signedUrl = URL::signedRoute('mitra.checkin.show', ['code' => $this->booking->booking_code]);
+        $response = $this->actingAs($this->partnerUser)->get($signedUrl);
+
+        $response->assertOk();
+        $expectedStartDate = $this->booking->planned_date_start->translatedFormat('d F Y');
+        $expectedEndDate = $this->booking->planned_date_end->translatedFormat('d F Y');
+
+        $response->assertSee($expectedStartDate);
+        $response->assertSee($expectedEndDate);
+    }
 }

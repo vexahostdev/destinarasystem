@@ -72,7 +72,7 @@
                         </td>
                         <td class="py-3.5 pr-2">
                             <span class="font-semibold text-gray-800 block">{{ $rev->booking?->user?->institution?->institution_name ?? $rev->booking?->user?->name }}</span>
-                            <span class="text-[10px] text-gray-400 font-mono">{{ $rev->created_at?->format('d M Y') }}</span>
+                            <span class="text-[10px] text-gray-400 font-mono">{{ $rev->created_at?->translatedFormat('d M Y') }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
                             <div class="flex items-center text-amber-500">
@@ -85,7 +85,7 @@
                             <p class="text-gray-700 italic">"{{ $rev->comment }}"</p>
                             @if($rev->partner_reply)
                                 <div class="mt-2 p-2 rounded-xl bg-stone-50 border border-stone-200/60 text-[11px] text-stone-600">
-                                    <span class="font-bold text-gray-800 block">Balasan Mitra ({{ $rev->replied_at?->format('d/m/Y') }}):</span>
+                                    <span class="font-bold text-gray-800 block">Balasan Mitra ({{ $rev->replied_at?->translatedFormat('d M Y') }}):</span>
                                     <span>{{ $rev->partner_reply }}</span>
                                 </div>
                             @endif

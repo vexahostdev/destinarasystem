@@ -83,7 +83,7 @@
                     <div>
                         <span class="text-gray-400 block font-semibold">Tanggal Kunjungan:</span>
                         <span class="font-bold text-gray-800 font-mono">
-                            {{ $booking->planned_date_start?->format('d M Y') }} s/d {{ $booking->planned_date_end?->format('d M Y') }}
+                            {{ $booking->planned_date_start?->translatedFormat('d F Y') }} s/d {{ $booking->planned_date_end?->translatedFormat('d F Y') }}
                         </span>
                     </div>
                     <div>
@@ -194,7 +194,7 @@
                     <div class="ml-4 relative">
                         <span class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-[#703A3A] border-2 border-white"></span>
                         <div class="font-bold text-gray-800 uppercase">{{ $hist->to_status->value ?? $hist->to_status }}</div>
-                        <div class="text-[10px] text-gray-400 font-mono">{{ $hist->created_at->format('d/m/Y H:i') }} • {{ $hist->actor?->name ?? 'System' }}</div>
+                        <div class="text-[10px] text-gray-400 font-mono">{{ $hist->created_at->translatedFormat('d M Y, H:i') }} • {{ $hist->actor?->name ?? 'System' }}</div>
                         @if($hist->note)
                             <p class="text-gray-600 mt-0.5 text-[11px]">{{ $hist->note }}</p>
                         @endif

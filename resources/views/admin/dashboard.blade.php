@@ -192,7 +192,7 @@
                                     <span class="text-[11px] text-gray-400">{{ $b->destination?->city ?? '' }}</span>
                                 </td>
                                 <td class="py-3.5 pr-2 font-mono text-gray-600">
-                                    {{ $b->planned_date_start?->format('d M Y') ?? '-' }}
+                                    {{ $b->planned_date_start?->translatedFormat('d M Y') ?? '-' }}
                                 </td>
                                 <td class="py-3.5 pr-2 text-right font-mono font-bold text-[#1E1B1B]">
                                     {{ $b->participant_count }} Pax

@@ -53,6 +53,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Set locale Indonesia untuk Carbon dan format tanggal (C4)
+        \Carbon\Carbon::setLocale('id');
+        @setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'id', 'indonesian');
+
         // Super Admin bypasses all permissions via Gate::before (SPEC §4.2)
         Gate::before(function (User $user, string $ability) {
             return $user->isSuperAdmin() ? true : null;

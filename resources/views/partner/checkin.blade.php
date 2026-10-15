@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     <span class="text-gray-500 block">Jadwal Kunjungan:</span>
-                    <span class="font-medium text-gray-800">{{ $booking->planned_date_start->format('d M Y') }} s.d. {{ $booking->planned_date_end->format('d M Y') }}</span>
+                    <span class="font-medium text-gray-800">{{ $booking->planned_date_start->translatedFormat('d F Y') }} s.d. {{ $booking->planned_date_end->translatedFormat('d F Y') }}</span>
                 </div>
                 <div>
                     <span class="text-gray-500 block">Peserta Terdaftar:</span>
@@ -84,7 +84,7 @@
             @elseif($booking->isOngoing() && $booking->checkIn)
                 <div class="p-4 bg-green-50 border border-green-200 rounded-lg text-sm">
                     <p class="font-bold text-green-900">Rombongan Telah Check-in</p>
-                    <p class="text-green-800 mt-1">Check-in berhasil diverifikasi pada {{ $booking->checkIn->scanned_at->format('d M Y, H:i') }} WIB dengan jumlah {{ $booking->checkIn->actual_participant_count }} peserta hadir.</p>
+                    <p class="text-green-800 mt-1">Check-in berhasil diverifikasi pada {{ $booking->checkIn->scanned_at->translatedFormat('d F Y, H:i') }} WIB dengan jumlah {{ $booking->checkIn->actual_participant_count }} peserta hadir.</p>
                 </div>
             @else
                 <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
