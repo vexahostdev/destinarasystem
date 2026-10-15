@@ -738,14 +738,27 @@ class BuyerController extends Controller
             'comment' => 'required|string|min:10|max:2000',
         ]);
 
-        $reviewService->submitReview(
-            booking: $booking,
-            buyer: $user,
-            rating: (int) $request->rating,
-            comment: $request->comment
-        );
+        try {
+            $reviewService->createReview(
+                booking: $booking,
+                buyer: $user,
+                rating: (int) $request->rating,
+                comment: $request->comment
+            );
 
-        return redirect()->route('buyer.booking.show', $booking->booking_code)
-            ->with('success', 'Ulasan dan penilaian berhasil dikirim. Terima kasih atas kontribusi Anda!');
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Ulasan dan penilaian berhasil dikirim. Terima kasih atas kontribusi Anda!');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Review submission error: '.$e->getMessage(), [
+                'booking_code' => $booking->booking_code,
+                'user_id' => $user->id,
+            ]);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Terjadi kesalahan saat menyimpan ulasan: '.$e->getMessage());
+        }
     }
 }

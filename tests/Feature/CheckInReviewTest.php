@@ -284,4 +284,53 @@ class CheckInReviewTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $reviewService->reply($review, $this->partnerUser, 'Balasan kedua tidak boleh.');
     }
+
+    public function test_buyer_review_submission_via_form_payload_and_domain_error_handling(): void
+    {
+        // 1. If booking is not completed, submitting review returns error flash (not 500)
+        $this->booking->update(['status' => BookingStatus::DIKONFIRMASI]);
+
+        $payload = [
+            'rating' => 5,
+            'comment' => 'Kunjungan ini sangat bermakna bagi seluruh peserta didik.',
+        ];
+
+        $response = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.review', $this->booking->booking_code),
+            $payload
+        );
+
+        $response->assertRedirect(route('buyer.booking.show', $this->booking->booking_code));
+        $response->assertSessionHas('error', 'Ulasan hanya dapat diberikan untuk pesanan yang telah selesai.');
+
+        // 2. Booking completed: submitting review succeeds
+        $this->booking->update([
+            'status' => BookingStatus::SELESAI,
+            'completed_at' => now()->subDay(),
+        ]);
+
+        $successResponse = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.review', $this->booking->booking_code),
+            $payload
+        );
+
+        $successResponse->assertRedirect(route('buyer.booking.show', $this->booking->booking_code));
+        $successResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reviews', [
+            'booking_id' => $this->booking->id,
+            'destination_id' => $this->destination->id,
+            'rating' => 5,
+            'comment' => 'Kunjungan ini sangat bermakna bagi seluruh peserta didik.',
+        ]);
+
+        // 3. Submitting again on same booking returns error flash (already reviewed)
+        $duplicateResponse = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.review', $this->booking->booking_code),
+            $payload
+        );
+
+        $duplicateResponse->assertRedirect(route('buyer.booking.show', $this->booking->booking_code));
+        $duplicateResponse->assertSessionHas('error', 'Ulasan untuk pesanan ini sudah pernah dikirimkan.');
+    }
 }
