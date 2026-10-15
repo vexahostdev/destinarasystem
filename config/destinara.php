@@ -588,7 +588,7 @@ return [
             'label' => 'Daftar Email Admin untuk Notifikasi Darurat (JSON)',
             'group' => 'notification',
             'type' => 'json',
-            'default' => ['admin@destinara.my.id'],
+            'default' => [],
             'rules' => 'nullable|array',
             'permission' => 'settings.notification',
         ],

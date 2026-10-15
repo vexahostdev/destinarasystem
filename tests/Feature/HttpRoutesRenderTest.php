@@ -701,6 +701,10 @@ class HttpRoutesRenderTest extends TestCase
 
     public function test_buyer_booking_payment_renders_for_unpaid_booking(): void
     {
+        app(\App\Domain\Settings\SettingsRepository::class)->set('manual_transfer_accounts', [
+            ['bank' => 'Bank Mandiri', 'number' => '1370012345678', 'holder' => 'PT Destinara Chakrawal Artha'],
+        ]);
+
         $unpaidBooking = $this->statusBookings[BookingStatus::MENUNGGU_PEMBAYARAN->value];
         $response = $this->actingAs($this->buyer)->get(route('buyer.booking.payment', $unpaidBooking->booking_code));
         $response->assertStatus(200);

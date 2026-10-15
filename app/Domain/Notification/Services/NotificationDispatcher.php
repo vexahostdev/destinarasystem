@@ -79,7 +79,7 @@ class NotificationDispatcher
 
                 // Audience Admin: Channel MAIL -> dikirim ke daftar admin_alert_emails
                 if ($audience === 'admin' && $template->channel === NotificationChannel::MAIL) {
-                    $alertEmails = setting('admin_alert_emails', ['admin@destinara.my.id']);
+                    $alertEmails = setting('admin_alert_emails', []);
                     if (is_string($alertEmails)) {
                         $alertEmails = json_decode($alertEmails, true) ?: array_map('trim', explode(',', $alertEmails));
                     }

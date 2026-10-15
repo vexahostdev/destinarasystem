@@ -59,15 +59,18 @@ class SettingsController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk mengubah pengaturan sistem.');
         }
 
-        $activeGroup = $request->query('group');
+        $activeGroup = $request->old('group', $request->query('group'));
         if (! $activeGroup || ! isset($availableGroups[$activeGroup])) {
             $activeGroup = array_key_first($availableGroups);
         }
+
+        $banks = \App\Models\Bank::where('is_active', true)->orderBy('name')->get();
 
         return view('admin.settings.index', [
             'groupedSettings' => $groupedSettings,
             'groups' => $availableGroups,
             'activeGroup' => $activeGroup,
+            'banks' => $banks,
         ]);
     }
 
@@ -81,6 +84,23 @@ class SettingsController extends Controller
             $permission = "settings.{$targetGroup}";
             if ($user && ! $user->can($permission)) {
                 abort(403, "Anda tidak memiliki izin untuk mengubah pengaturan grup '{$targetGroup}'.");
+            }
+        }
+
+        // Handle missing checkboxes/repeaters when submitted empty
+        if ($targetGroup === 'payment') {
+            if (! $request->has('enabled_gateways')) {
+                $request->merge(['enabled_gateways' => []]);
+            }
+            if (! $request->has('manual_transfer_accounts')) {
+                $request->merge(['manual_transfer_accounts' => []]);
+            }
+        } elseif ($targetGroup === 'notification') {
+            if (! $request->has('admin_alert_emails')) {
+                $request->merge(['admin_alert_emails' => []]);
+            }
+            if (! $request->has('admin_alert_whatsapp')) {
+                $request->merge(['admin_alert_whatsapp' => []]);
             }
         }
 
@@ -110,7 +130,7 @@ class SettingsController extends Controller
 
                 $inputKey = $request->has($underscoreKey) ? $underscoreKey : $key;
 
-                // Handle JSON fields pre-decoding before validation
+                // Handle JSON fields pre-decoding or array sanitization before validation
                 if (($item['type'] ?? '') === 'json') {
                     $raw = $request->input($inputKey);
                     if (is_string($raw)) {
@@ -122,10 +142,27 @@ class SettingsController extends Controller
                             if (json_last_error() === JSON_ERROR_NONE) {
                                 $request->merge([$inputKey => $decoded]);
                             } else {
-                                return back()
+                                return redirect()->route('admin.settings.index', ['group' => $targetGroup ?: 'general'])
                                     ->withInput()
                                     ->withErrors([$inputKey => "Format JSON pada pengaturan '{$item['label']}' tidak valid."]);
                             }
+                        }
+                    } elseif (is_array($raw)) {
+                        if ($inputKey === 'manual_transfer_accounts') {
+                            $cleaned = [];
+                            foreach ($raw as $acc) {
+                                if (is_array($acc) && (! empty($acc['bank']) || ! empty($acc['number']))) {
+                                    $cleaned[] = [
+                                        'bank' => trim((string) ($acc['bank'] ?? '')),
+                                        'number' => trim((string) ($acc['number'] ?? '')),
+                                        'holder' => trim((string) ($acc['holder'] ?? setting('company_name', config('app.name')))),
+                                    ];
+                                }
+                            }
+                            $request->merge([$inputKey => $cleaned]);
+                        } elseif (in_array($inputKey, ['admin_alert_emails', 'admin_alert_whatsapp', 'enabled_gateways'])) {
+                            $cleaned = array_values(array_filter(array_map('trim', (array) $raw)));
+                            $request->merge([$inputKey => $cleaned]);
                         }
                     }
                 }
@@ -141,7 +178,12 @@ class SettingsController extends Controller
         }
 
         if (! empty($validationRules)) {
-            $request->validate($validationRules);
+            try {
+                $request->validate($validationRules);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $redirectUrl = route('admin.settings.index', ['group' => $targetGroup ?: 'general']);
+                throw $e->redirectTo($redirectUrl);
+            }
         }
 
         foreach ($keysToUpdate as $key => $meta) {

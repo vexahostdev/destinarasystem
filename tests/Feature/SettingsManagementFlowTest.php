@@ -142,4 +142,94 @@ class SettingsManagementFlowTest extends TestCase
         $response->assertSee('Midtrans dinonaktifkan di pengaturan pembayaran.', false);
         $response->assertSee('Email SMTP (Brevo / Relay)');
     }
+
+    public function test_admin_can_save_settings_with_structured_ui_payload(): void
+    {
+        // 1. Payment with array checkboxes and array repeater
+        $paymentPayload = [
+            'group' => 'payment',
+            'default_gateway' => 'manual_transfer',
+            'enabled_gateways' => ['manual_transfer', 'xendit'],
+            'min_payment_amount' => 20000,
+            'xendit_mode' => 'test',
+            'midtrans_mode' => 'sandbox',
+            'manual_transfer_accounts' => [
+                [
+                    'bank' => 'BCA',
+                    'number' => '9988776655',
+                    'holder' => 'PT DESTINARA CHAKRAWAL ARTHA',
+                ],
+                [
+                    'bank' => 'Mandiri',
+                    'number' => '1122334455',
+                    'holder' => 'PT DESTINARA CHAKRAWAL ARTHA',
+                ],
+            ],
+        ];
+
+        $resPayment = $this->actingAs($this->admin)->post(route('admin.settings.update'), $paymentPayload);
+        $resPayment->assertRedirect(route('admin.settings.index', ['group' => 'payment']));
+        $resPayment->assertSessionHas('success');
+
+        $repo = app(SettingsRepository::class);
+        $enabled = $repo->get('enabled_gateways');
+        $this->assertEquals(['manual_transfer', 'xendit'], $enabled);
+        $accounts = $repo->get('manual_transfer_accounts');
+        $this->assertCount(2, $accounts);
+        $this->assertEquals('9988776655', $accounts[0]['number']);
+        $this->assertEquals('BCA', $accounts[0]['bank']);
+
+        // 2. Notification with structured alert email and whatsapp repeaters
+        $notifPayload = [
+            'group' => 'notification',
+            'admin_alert_emails' => [
+                'ops@destinara.test',
+                'finance@destinara.test',
+            ],
+            'admin_alert_whatsapp' => [
+                '6281234567890',
+            ],
+        ];
+
+        $resNotif = $this->actingAs($this->admin)->post(route('admin.settings.update'), $notifPayload);
+        $resNotif->assertRedirect(route('admin.settings.index', ['group' => 'notification']));
+        $resNotif->assertSessionHas('success');
+
+        $emails = $repo->get('admin_alert_emails');
+        $this->assertEquals(['ops@destinara.test', 'finance@destinara.test'], $emails);
+        $wa = $repo->get('admin_alert_whatsapp');
+        $this->assertEquals(['6281234567890'], $wa);
+    }
+
+    public function test_go_live_checklist_marks_admin_alert_emails_unhealthy_when_empty_and_healthy_when_filled(): void
+    {
+        $repo = app(SettingsRepository::class);
+
+        // Case 1: Empty default -> Unhealthy
+        $repo->set('admin_alert_emails', []);
+        $resEmpty = $this->actingAs($this->admin)->get(route('admin.health.index'));
+        $resEmpty->assertOk();
+        $resEmpty->assertSee('Email Alert Darurat Admin (Checklist Go-Live)');
+        $resEmpty->assertSee('Kosong! Wajib diisi minimal 1 email admin', false);
+
+        // Case 2: Populated -> Healthy
+        $repo->set('admin_alert_emails', ['superadmin@destinara.test']);
+        $resFilled = $this->actingAs($this->admin)->get(route('admin.health.index'));
+        $resFilled->assertOk();
+        $resFilled->assertSee('Terisi: superadmin@destinara.test');
+    }
+
+    public function test_validation_error_preserves_active_settings_tab(): void
+    {
+        $payload = [
+            'group' => 'payment',
+            'min_payment_amount' => 'not-a-number',
+        ];
+
+        $response = $this->actingAs($this->admin)->post(route('admin.settings.update'), $payload);
+
+        $response->assertRedirect(route('admin.settings.index', ['group' => 'payment']));
+        $response->assertSessionHasErrors('min_payment_amount');
+    }
 }
+

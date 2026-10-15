@@ -212,6 +212,21 @@ class HealthController extends Controller
             'detail' => $lastBackupTime !== '-' ? "Cadangan terakhir: {$lastBackupTime}" : 'Belum ada arsip backup terdeteksi.',
         ];
 
+        // 8. Admin Alert Emails (Checklist Go-Live)
+        $alertEmails = setting('admin_alert_emails', []);
+        if (is_string($alertEmails)) {
+            $alertEmails = json_decode($alertEmails, true) ?? [];
+        }
+        $hasAlertEmails = is_array($alertEmails) && count(array_filter($alertEmails)) > 0;
+        $checks['admin_alert_emails'] = [
+            'name' => 'Email Alert Darurat Admin (Checklist Go-Live)',
+            'status' => $hasAlertEmails ? 'healthy' : 'unhealthy',
+            'latency' => '-',
+            'detail' => $hasAlertEmails
+                ? 'Terisi: '.implode(', ', $alertEmails)
+                : 'Kosong! Wajib diisi minimal 1 email admin di Pengaturan > Notifikasi sebelum go-live untuk menerima alert insiden sistem.',
+        ];
+
         return view('admin.health.index', compact('checks'));
     }
 }
