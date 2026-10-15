@@ -374,6 +374,8 @@ class AdminPortalTest extends TestCase
             'reschedule_reason' => 'Pergeseran jadwal sekolah',
         ]);
         $response->assertSessionHasErrors(['new_date']);
+        $newDateError = session('errors')->first('new_date');
+        $this->assertStringStartsWith('Tanggal baru harus', $newDateError);
 
         // 2. Validation error when reschedule_reason is missing
         $responseMissingReason = $this->actingAs($this->superAdmin)->post("/admin/booking/{$booking->id}/status", [

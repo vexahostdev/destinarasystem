@@ -31,6 +31,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -56,6 +57,39 @@ class AppServiceProvider extends ServiceProvider
         // Set locale Indonesia untuk Carbon dan format tanggal (C4)
         \Carbon\Carbon::setLocale('id');
         @setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'id', 'indonesian');
+
+        // Format tanggal berbahasa Indonesia pada pesan validasi tanggal (V7-2)
+        Validator::replacer('after_or_equal', function ($message, $attribute, $rule, $parameters) {
+            $date = $parameters[0] ?? '';
+            if (! empty($date) && strtotime($date)) {
+                return str_replace(':date', \Carbon\Carbon::parse($date)->translatedFormat('d F Y'), $message);
+            }
+            return str_replace(':date', $date, $message);
+        });
+
+        Validator::replacer('after', function ($message, $attribute, $rule, $parameters) {
+            $date = $parameters[0] ?? '';
+            if (! empty($date) && strtotime($date)) {
+                return str_replace(':date', \Carbon\Carbon::parse($date)->translatedFormat('d F Y'), $message);
+            }
+            return str_replace(':date', $date, $message);
+        });
+
+        Validator::replacer('before_or_equal', function ($message, $attribute, $rule, $parameters) {
+            $date = $parameters[0] ?? '';
+            if (! empty($date) && strtotime($date)) {
+                return str_replace(':date', \Carbon\Carbon::parse($date)->translatedFormat('d F Y'), $message);
+            }
+            return str_replace(':date', $date, $message);
+        });
+
+        Validator::replacer('before', function ($message, $attribute, $rule, $parameters) {
+            $date = $parameters[0] ?? '';
+            if (! empty($date) && strtotime($date)) {
+                return str_replace(':date', \Carbon\Carbon::parse($date)->translatedFormat('d F Y'), $message);
+            }
+            return str_replace(':date', $date, $message);
+        });
 
         // Super Admin bypasses all permissions via Gate::before (SPEC §4.2)
         Gate::before(function (User $user, string $ability) {
