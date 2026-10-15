@@ -45,6 +45,7 @@ class NotificationDispatcher
             if ($audience === 'partner') {
                 $audienceContext['partner_name'] ??= ($recipientData['user']?->name ?? 'Mitra Pengelola');
                 $audienceContext['organization_name'] ??= ($recipientData['user']?->partnerProfile?->organization_name ?? $recipientData['user']?->name ?? 'Mitra Pengelola');
+                $audienceContext['user_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
             } elseif ($audience === 'buyer') {
                 $audienceContext['pic_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
                 $audienceContext['user_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
@@ -84,10 +85,23 @@ class NotificationDispatcher
                     }
                     $alertEmails = array_filter((array) $alertEmails);
                     if (empty($alertEmails)) {
-                        $defaultAdmin = User::where('account_type', 'internal')->first();
-                        if ($defaultAdmin?->email) {
-                            $alertEmails = [$defaultAdmin->email];
-                        }
+                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                        $renderedBody = $this->renderer->render($template->body, $audienceContext);
+
+                        $log = NotificationLog::create([
+                            'notifiable_type' => null,
+                            'notifiable_id' => null,
+                            'event_key' => $eventKey,
+                            'channel' => $template->channel,
+                            'recipient' => '-',
+                            'subject' => $renderedSubject,
+                            'body' => $renderedBody,
+                            'status' => NotificationStatus::FAILED,
+                            'error' => 'Penerima tidak ditemukan',
+                        ]);
+
+                        $createdLogs[] = $log;
+                        continue;
                     }
 
                     foreach ($alertEmails as $email) {
@@ -126,6 +140,26 @@ class NotificationDispatcher
                         }
                     }
 
+                    if (empty($alertPhones)) {
+                        $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                        $renderedBody = $this->renderer->render($template->body, $audienceContext);
+
+                        $log = NotificationLog::create([
+                            'notifiable_type' => null,
+                            'notifiable_id' => null,
+                            'event_key' => $eventKey,
+                            'channel' => $template->channel,
+                            'recipient' => '-',
+                            'subject' => $renderedSubject,
+                            'body' => $renderedBody,
+                            'status' => NotificationStatus::FAILED,
+                            'error' => 'Penerima tidak ditemukan',
+                        ]);
+
+                        $createdLogs[] = $log;
+                        continue;
+                    }
+
                     foreach ($alertPhones as $phone) {
                         $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
                         $renderedBody = $this->renderer->render($template->body, $audienceContext);
@@ -155,6 +189,22 @@ class NotificationDispatcher
                 };
 
                 if (empty($recipient)) {
+                    $renderedSubject = $template->subject ? $this->renderer->render($template->subject, $audienceContext) : null;
+                    $renderedBody = $this->renderer->render($template->body, $audienceContext);
+
+                    $log = NotificationLog::create([
+                        'notifiable_type' => isset($recipientData['user']) ? User::class : null,
+                        'notifiable_id' => $recipientData['user']?->id,
+                        'event_key' => $eventKey,
+                        'channel' => $template->channel,
+                        'recipient' => '-',
+                        'subject' => $renderedSubject,
+                        'body' => $renderedBody,
+                        'status' => NotificationStatus::FAILED,
+                        'error' => 'Penerima tidak ditemukan',
+                    ]);
+
+                    $createdLogs[] = $log;
                     continue;
                 }
 
@@ -187,19 +237,23 @@ class NotificationDispatcher
     {
         $user = $context['user'] ?? null;
         $booking = $context['booking'] ?? null;
+        $partnerUser = $context['partner_user'] ?? null;
+
+        $effectivePartner = $booking?->destination?->partner ?: $partnerUser ?: $user;
+        $effectiveBuyer = $user ?: $booking?->user;
 
         return match ($audience) {
             'buyer' => [
-                'user' => $user ?: $booking?->user,
-                'user_id' => $user?->id ?: $booking?->user_id,
-                'email' => $context['buyer_email'] ?? $user?->email ?? $booking?->institution?->pic_email ?? $booking?->user?->email,
-                'phone' => $context['buyer_phone'] ?? $user?->phone ?? $booking?->institution?->pic_phone ?? $booking?->user?->phone,
+                'user' => $effectiveBuyer,
+                'user_id' => $effectiveBuyer?->id ?: $booking?->user_id,
+                'email' => $context['buyer_email'] ?? $effectiveBuyer?->email ?? $booking?->institution?->pic_email ?? $context['email'] ?? null,
+                'phone' => $context['buyer_phone'] ?? $effectiveBuyer?->phone ?? $booking?->institution?->pic_phone ?? $context['phone'] ?? null,
             ],
             'partner' => [
-                'user' => $booking?->destination?->partner ?: ($context['partner_user'] ?? null),
-                'user_id' => $booking?->destination?->partner_id ?: (($context['partner_user'] ?? null)?->id),
-                'email' => $context['partner_email'] ?? $booking?->destination?->partner?->email ?? (($context['partner_user'] ?? null)?->email),
-                'phone' => $context['partner_phone'] ?? $booking?->destination?->partner?->phone ?? $booking?->destination?->partner?->partnerProfile?->pic_phone ?? (($context['partner_user'] ?? null)?->phone) ?? (($context['partner_user'] ?? null)?->partnerProfile?->pic_phone),
+                'user' => $effectivePartner,
+                'user_id' => $booking?->destination?->partner_id ?: $partnerUser?->id ?: $effectivePartner?->id,
+                'email' => $context['partner_email'] ?? $booking?->destination?->partner?->email ?? $partnerUser?->email ?? $effectivePartner?->email ?? $context['email'] ?? null,
+                'phone' => $context['partner_phone'] ?? $booking?->destination?->partner?->phone ?? $booking?->destination?->partner?->partnerProfile?->pic_phone ?? $partnerUser?->phone ?? $partnerUser?->partnerProfile?->pic_phone ?? $effectivePartner?->phone ?? $effectivePartner?->partnerProfile?->pic_phone ?? $context['phone'] ?? null,
             ],
             'admin' => [
                 'user' => User::where('account_type', 'internal')->first(),
@@ -210,8 +264,8 @@ class NotificationDispatcher
             default => [
                 'user' => $user,
                 'user_id' => $user?->id,
-                'email' => $user?->email,
-                'phone' => $user?->phone,
+                'email' => $context['email'] ?? $user?->email,
+                'phone' => $context['phone'] ?? $user?->phone,
             ],
         };
     }

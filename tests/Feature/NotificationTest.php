@@ -366,4 +366,19 @@ class NotificationTest extends TestCase
             'audience' => 'buyer',
         ]);
     }
+
+    public function test_missing_recipient_creates_failed_notification_log_with_reason(): void
+    {
+        $dispatcher = app(NotificationDispatcher::class);
+
+        // Send an event with empty context where neither user, booking, nor recipient is provided
+        $logs = $dispatcher->send('auth.verify_email', [], ['buyer']);
+
+        $this->assertNotEmpty($logs);
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.verify_email',
+            'status' => 'failed',
+            'error' => 'Penerima tidak ditemukan',
+        ]);
+    }
 }

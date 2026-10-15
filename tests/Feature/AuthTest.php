@@ -189,4 +189,48 @@ class AuthTest extends TestCase
             'recipient' => 'user_notify@destinara.test',
         ]);
     }
+
+    public function test_partner_registration_via_form_payload_and_password_reset_creates_notification_logs(): void
+    {
+        $payload = [
+            'name' => 'Pak Wayan Pengelola',
+            'org_name' => 'Koperasi Wisata Penglipuran',
+            'email' => 'wayan@penglipuran.test',
+            'phone' => '081234567899',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'account_type' => 'partner',
+            'terms' => '1',
+        ];
+
+        $response = $this->post('/daftar', $payload);
+        $response->assertRedirect(route('verification.notice'));
+
+        // Notification log for auth.verify_email to partner email
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.verify_email',
+            'channel' => 'mail',
+            'recipient' => 'wayan@penglipuran.test',
+        ]);
+
+        // Notification log for auth.welcome to partner
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.welcome',
+            'recipient' => 'wayan@penglipuran.test',
+        ]);
+
+        $partner = User::where('email', 'wayan@penglipuran.test')->firstOrFail();
+        $this->assertTrue($partner->isPartner());
+
+        // Password reset for partner
+        $this->post(route('password.email'), [
+            'email' => 'wayan@penglipuran.test',
+        ])->assertSessionHas('status');
+
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.reset_password',
+            'channel' => 'mail',
+            'recipient' => 'wayan@penglipuran.test',
+        ]);
+    }
 }
