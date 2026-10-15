@@ -133,6 +133,14 @@ class PartnerPortalTest extends TestCase
         $response->assertOk();
         $response->assertSee('Panel Pengelola Tapak Adat');
         $response->assertSee('Koperasi Tani Wanagama');
+        $categoryName = strtoupper($this->destination->category->name);
+        $response->assertSee($categoryName);
+        $response->assertDontSee('{"id":');
+
+        $destResponse = $this->actingAs($this->partner)->get(route('mitra.destinations'));
+        $destResponse->assertOk();
+        $destResponse->assertSee($categoryName);
+        $destResponse->assertDontSee('{"id":');
     }
 
     public function test_partner_can_access_income_report(): void

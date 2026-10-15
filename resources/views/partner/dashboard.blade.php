@@ -253,7 +253,7 @@
                 <div class="aspect-16/9 bg-gray-100 overflow-hidden relative">
                     <img src="{{ asset($primaryDest->cover_image) }}" alt="{{ $primaryDest->name }}" class="w-full h-full object-cover">
                     <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold uppercase">
-                        {{ strtoupper(str_replace('_', ' ', $primaryDest->category)) }}
+                        {{ strtoupper(str_replace('_', ' ', $primaryDest->category?->name ?? 'Wisata Edukasi')) }}
                     </div>
                 </div>
                 <div class="p-5 space-y-2 text-xs">

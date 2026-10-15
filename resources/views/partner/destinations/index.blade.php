@@ -37,7 +37,7 @@
 
                 <div class="absolute top-3 left-3 flex items-center gap-2">
                     <span class="px-2.5 py-1 bg-[#2B211E]/80 text-white text-[10px] font-bold uppercase tracking-wider">
-                        {{ strtoupper(str_replace('_', ' ', $dest->category)) }}
+                        {{ strtoupper(str_replace('_', ' ', $dest->category?->name ?? 'Wisata Edukasi')) }}
                     </span>
                 </div>
 
