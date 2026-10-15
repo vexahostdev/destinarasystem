@@ -100,6 +100,8 @@ class PublicController extends Controller
                     'is_revealed' => $canRevealContacts,
                 ];
             }),
+            'has_permit' => (bool) $destination->has_permit_document,
+            'is_partner_verified' => (bool) $destination->partner?->partnerProfile?->isVerified(),
         ];
 
         return view('destinasi.show', [

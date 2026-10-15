@@ -16,7 +16,7 @@
         </div>
 
         <div class="flex items-center gap-3 text-xs font-semibold text-gray-500 shrink-0">
-          <span class="flex items-center gap-1 text-[#51634b]"><span class="material-symbols-outlined text-[16px]">verified</span> FPIC Sah</span>
+          <span class="flex items-center gap-1 text-[#51634b]"><span class="material-symbols-outlined text-[16px]">verified</span> Mitra Terkurasi</span>
           <span>•</span>
           <span class="flex items-center gap-1 text-[#703A3A]"><span class="material-symbols-outlined text-[16px]">receipt_long</span> Akuntabilitas SPK</span>
         </div>

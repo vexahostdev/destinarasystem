@@ -553,7 +553,7 @@ class AdminController extends Controller
     {
         $status = $request->query('status', 'pending_review');
 
-        $query = Destination::with(['partner.partnerProfile', 'category', 'moderations.admin']);
+        $query = Destination::with(['partner.partnerProfile.documents', 'category', 'moderations.admin', 'facilities', 'media', 'contacts']);
         if ($status !== 'all') {
             $query->where('status', $status);
         }

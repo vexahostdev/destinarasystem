@@ -234,7 +234,7 @@
                 <div class="flex items-center gap-4 text-[11px]">
                     <span>Pusat Bantuan Akademik: {{ setting('support_whatsapp', setting('company_phone', 'Hubungi Admin')) }}</span>
                     <span>•</span>
-                    <span>SOP Keselamatan & FPIC Terverifikasi</span>
+                    <span>SOP Keselamatan & Kemitraan Terkurasi</span>
                 </div>
             </div>
         </footer>

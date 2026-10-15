@@ -396,4 +396,56 @@ class AdminPortalTest extends TestCase
         $booking->refresh();
         $this->assertEquals($targetDate, $booking->planned_date_start->toDateString());
     }
+
+    public function test_clean_static_claims_and_verify_real_data_b5(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        $category = DestinationCategory::first() ?? DestinationCategory::factory()->create();
+        $policy = CancellationPolicy::first() ?? CancellationPolicy::factory()->create();
+        $province = Province::first() ?? Province::factory()->create();
+
+        $destination = Destination::create([
+            'partner_id' => $this->partner->id,
+            'category_id' => $category->id,
+            'name' => 'Kampung Adat Sinar Resmi',
+            'slug' => 'kampung-adat-sinar-resmi',
+            'province_id' => $province->id,
+            'city' => 'Sukabumi',
+            'address' => 'Jl. Kasepuhan No. 1',
+            'short_description' => 'Eksplorasi budaya kasepuhan adat',
+            'description' => 'Deskripsi nyata tapak adat mandiri yang spesifik.',
+            'status' => DestinationStatus::PENDING_REVIEW,
+            'cancellation_policy_id' => $policy->id,
+            'default_daily_capacity' => 80,
+        ]);
+
+        // 1. Admin Destination Verification page
+        $verifyRes = $this->get(route('admin.destinations.verify', ['status' => 'pending_review']));
+        $verifyRes->assertOk();
+        $verifyRes->assertDontSee('Protokol FPIC Adat Sah');
+        $verifyRes->assertDontSee('Akses Bus Besar Terverifikasi');
+        $verifyRes->assertDontSee('Surat Penetapan Pengelola');
+        $verifyRes->assertSee('Foto');
+        $verifyRes->assertSee('Fasilitas');
+        $verifyRes->assertSee('Dokumen Legalitas');
+        $verifyRes->assertSee('PIC:');
+
+        // 2. Public destination show page (published)
+        $destination->update(['status' => DestinationStatus::PUBLISHED]);
+        $showRes = $this->get(route('destinasi.show', $destination->slug));
+        $showRes->assertOk();
+        $showRes->assertDontSee('Protokol FPIC Sah');
+        $showRes->assertDontSee('Tapak Baru Terverifikasi');
+        $showRes->assertDontSee('Dokumentasi Lapangan Terverifikasi');
+        $showRes->assertDontSee('merupakan ruang hidup komunal');
+        $showRes->assertSee('Deskripsi nyata tapak adat mandiri yang spesifik.');
+
+        // 3. Cara Kerja public page
+        $caraKerjaRes = $this->get(route('cara-kerja'));
+        $caraKerjaRes->assertOk();
+        $caraKerjaRes->assertDontSee('tapak terakreditasi');
+        $caraKerjaRes->assertSee('destinasi terkurasi');
+    }
 }
+

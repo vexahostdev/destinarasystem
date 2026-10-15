@@ -116,19 +116,23 @@
                             </div>
                         </div>
 
-                        <!-- Kriteria Mutu Destinara -->
+                        <!-- Data Kelengkapan Lapangan & Legalitas -->
                         <div class="flex flex-wrap items-center gap-4 text-[11px] font-mono text-[#2B211E]/70 pt-2 border-t border-[#2B211E]/08">
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Protokol FPIC Adat Sah
+                                <span class="material-symbols-outlined text-[14px]">photo_camera</span>
+                                {{ $d->media->count() }} Foto
                             </span>
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Akses Bus Besar Terverifikasi
+                                <span class="material-symbols-outlined text-[14px]">checklist</span>
+                                {{ $d->facilities->count() }} Fasilitas
                             </span>
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Surat Penetapan Pengelola
+                                <span class="material-symbols-outlined text-[14px]">description</span>
+                                {{ $d->partner?->partnerProfile?->documents?->count() ?? 0 }} Dokumen Legalitas
+                            </span>
+                            <span class="flex items-center gap-1 text-[#703A3A]">
+                                <span class="material-symbols-outlined text-[14px]">person</span>
+                                PIC: {{ $d->partner?->name ?? 'Belum ada PIC' }} ({{ $d->partner?->phone ?? ($d->contacts->first()?->phone ?? '-') }})
                             </span>
                         </div>
                     </div>

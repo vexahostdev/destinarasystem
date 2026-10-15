@@ -26,18 +26,10 @@
       </a>
 
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#51634b]/10 text-[#51634b] text-xs font-bold">
-          <span class="material-symbols-outlined text-[16px]">verified</span>
-          <span>Protokol FPIC Sah</span>
-        </span>
         @if(!empty($destination['rating']))
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200/50">
           <span class="material-symbols-outlined text-[15px] fill-current text-amber-500">star</span>
           <span>{{ $destination['rating'] }} ({{ $destination['reviews_count'] }} ulasan)</span>
-        </span>
-        @else
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
-          <span>Tapak Baru Terverifikasi</span>
         </span>
         @endif
       </div>
@@ -73,10 +65,12 @@
           <div class="relative w-full aspect-[16/9] overflow-hidden rounded-3xl bg-[#231917] shadow-md border border-gray-100">
             <img :src="activePhoto" alt="{{ $destination['name'] }}" class="w-full h-full object-cover transition-all duration-300">
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+            @if(!empty($destination['gallery']) && count($destination['gallery']) > 0)
             <div class="absolute bottom-4 left-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium">
               <span class="material-symbols-outlined text-[16px] text-[#D4E9CA]">photo_camera</span>
-              <span>Dokumentasi Lapangan Terverifikasi</span>
+              <span>{{ count($destination['gallery']) }} Dokumentasi Foto</span>
             </div>
+            @endif
           </div>
 
           <!-- Sub Photo Thumbnails -->
@@ -99,9 +93,9 @@
             </div>
             <h3 class="text-xl sm:text-2xl font-bold text-[#1E1B1B]">Konteks & Narasi Hidup Tapak</h3>
           </div>
-          <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
-            {{ $destination['name'] }} merupakan ruang hidup komunal yang merawat keharmonisan antara kosmologi tradisi, tata kelola lingkungan lokal, dan kedaulatan warga. Destinara telah memfasilitasi integrasi pengetahuan tak benda ini agar dapat dipelajari langsung oleh peserta didik dan peneliti formal dengan menghormati martabat tetua adat.
-          </p>
+          <div class="text-gray-600 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+            {{ $destination['description'] ?? $destination['highlights'] }}
+          </div>
         </div>
 
         <!-- Focus Riset Box -->
@@ -300,10 +294,17 @@
               <span class="text-gray-500">Daya Tampung</span>
               <span class="font-bold text-[#51634b]">{{ $destination['capacity'] }} Orang / Rombongan</span>
             </div>
+            @if(!empty($destination['has_permit']))
             <div class="flex justify-between items-center">
               <span class="text-gray-500">Legalitas</span>
-              <span class="font-bold text-emerald-600">✓ 100% FPIC Terverifikasi</span>
+              <span class="font-bold text-emerald-600">Dokumen Izin Lengkap</span>
             </div>
+            @elseif(!empty($destination['is_partner_verified']))
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Legalitas</span>
+              <span class="font-bold text-emerald-600">Mitra Terverifikasi</span>
+            </div>
+            @endif
           </div>
 
           <!-- Booking Simulator Form Inputs -->

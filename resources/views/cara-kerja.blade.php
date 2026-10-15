@@ -41,7 +41,7 @@
             <span class="text-[10px] font-bold uppercase tracking-wider text-[#51634b] block">Tahap Eksplorasi</span>
             <h3 class="text-lg font-bold text-[#1E1B1B]">Reservasi Jadwal & Kuota</h3>
             <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
-              Institusi memilih tapak terakreditasi, mencocokkan kalender slot akademik, dan menentukan estimasi rombongan.
+              Institusi memilih destinasi terkurasi, mencocokkan kalender slot akademik, dan menentukan estimasi rombongan.
             </p>
           </div>
           <div class="pt-3 border-t border-gray-100 text-xs font-semibold text-[#51634b] flex items-center gap-1.5">

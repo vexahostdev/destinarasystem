@@ -219,7 +219,7 @@
                     <span class="material-symbols-outlined text-[16px] text-[#703A3A]">mail</span>
                     <a href="mailto:halo@destinara.id" class="hover:text-[#703A3A]">halo@destinara.id</a>
                 </div>
-                <p class="text-[11px] text-gray-400 pt-2">&copy; {{ date('Y') }} Destinara. Inisiatif Tapak Terverifikasi FPIC.</p>
+                <p class="text-[11px] text-gray-400 pt-2">&copy; {{ date('Y') }} Destinara. Inisiatif Ruang Belajar Tapak Nusantara.</p>
             </div>
         </div>
     </header>
@@ -248,7 +248,7 @@
                 </a>
                 <div class="flex items-center gap-3 text-xs text-gray-500">
                     <span class="w-2 h-2 rounded-full bg-[#51634b]"></span>
-                    <span>Inisiatif Pendidikan Lapangan &amp; Riset Komunitas Terverifikasi FPIC Adat</span>
+                    <span>Inisiatif Pendidikan Lapangan &amp; Riset Komunitas Terkurasi</span>
                 </div>
             </div>
 
