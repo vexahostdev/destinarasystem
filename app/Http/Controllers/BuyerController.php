@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Catalog\Services\ReviewService;
+use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Domain\Payment\Services\PaymentService;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
@@ -202,26 +204,39 @@ class BuyerController extends Controller
                 ->with('info', 'Pesanan ini tidak sedang menunggu pembayaran.');
         }
 
+        $availableGateways = app(PaymentGatewayManager::class)->getAvailableGateways();
+
+        if (empty($availableGateways)) {
+            Log::error('No payment gateway is configured or enabled for booking.', [
+                'booking_code' => $booking->booking_code,
+            ]);
+
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => 'none',
+                'booking_code' => $booking->booking_code,
+                'message' => 'Tidak ada gateway pembayaran yang aktif dan terkonfigurasi lengkap.',
+            ], ['admin']);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Pembayaran belum tersedia, hubungi admin.');
+        }
+
         $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
 
         // If no pending payment exists but booking is unpaid, create a new attempt
-        if (! $payment) {
+        if (! $payment || ($payment->expires_at && $payment->expires_at->isPast())) {
             try {
-                $payment = $paymentService->retryPayment($booking);
+                $defaultGw = in_array(setting('default_gateway', 'xendit'), $availableGateways, true)
+                    ? setting('default_gateway', 'xendit')
+                    : $availableGateways[0];
+                $payment = $paymentService->retryPayment($booking, $defaultGw);
             } catch (\Throwable $e) {
-                try {
-                    $payment = $paymentService->retryPayment($booking, 'manual_transfer');
-                } catch (\Throwable) {
-                    $payment = null;
-                }
+                $payment = null;
             }
         }
 
         $banks = Bank::where('is_active', true)->get();
-        $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
-        if (! is_array($enabledGateways)) {
-            $enabledGateways = json_decode((string) $enabledGateways, true) ?? [];
-        }
+        $enabledGateways = $availableGateways;
 
         $manualAccounts = setting('manual_transfer_accounts', []);
         if (! is_array($manualAccounts)) {
@@ -249,12 +264,20 @@ class BuyerController extends Controller
             'proof_file' => 'required_if:gateway,manual_transfer|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        $enabledGateways = setting('enabled_gateways', ['xendit', 'midtrans', 'manual_transfer']);
-        if (! is_array($enabledGateways)) {
-            $enabledGateways = json_decode((string) $enabledGateways, true) ?? [];
+        $availableGateways = app(PaymentGatewayManager::class)->getAvailableGateways();
+
+        if (empty($availableGateways)) {
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => 'none',
+                'booking_code' => $booking->booking_code,
+                'message' => 'Tidak ada gateway pembayaran yang aktif dan terkonfigurasi lengkap saat checkout.',
+            ], ['admin']);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Pembayaran belum tersedia, hubungi admin.');
         }
 
-        if (! in_array($request->gateway, $enabledGateways, true)) {
+        if (! in_array($request->gateway, $availableGateways, true)) {
             return back()->with('error', 'Metode pembayaran yang dipilih sedang tidak tersedia atau dinonaktifkan.');
         }
 
@@ -280,20 +303,42 @@ class BuyerController extends Controller
                 $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
 
                 return redirect()->route('buyer.booking.show', $booking->booking_code)
-                    ->with('success', 'Bukti transfer manual berhasil diunggah! Tim Destinara akan memverifikasi dalam waktu 1x24 jam.');
+                    ->with('success', 'Bukti transfer manual berhasil diunggah! Tim Destinara akan segera memverifikasi pembayaran Anda.');
             }
 
-            if ($payment->checkout_url) {
-                return redirect()->away($payment->checkout_url);
+            // Online Gateway: ensure payment has checkout_url
+            if (! $payment->checkout_url || ($payment->expires_at && $payment->expires_at->isPast())) {
+                $payment = $paymentService->initiatePayment($payment);
             }
 
-            return redirect()->route('buyer.booking.payment', $booking->booking_code)
-                ->with('info', 'Tagihan pembayaran telah disiapkan. Silakan selesaikan transaksi sesuai instruksi gateway.');
+            if (! $payment->checkout_url) {
+                Log::error('Gateway did not return checkout_url', [
+                    'booking_code' => $booking->booking_code,
+                    'gateway' => $gateway,
+                    'payment_id' => $payment->id,
+                ]);
+
+                app(NotificationDispatcher::class)->send('system.gateway_error', [
+                    'gateway' => $gateway,
+                    'booking_code' => $booking->booking_code,
+                    'message' => 'Gateway '.$gateway.' tidak mengembalikan tautan pembayaran (checkout_url kosong).',
+                ], ['admin']);
+
+                return back()->with('error', 'Gagal memproses pembayaran online melalui '.ucfirst($gateway).': tautan pembayaran tidak dapat dibuat. Silakan gunakan metode transfer manual atau hubungi admin.');
+            }
+
+            return redirect()->away($payment->checkout_url);
         } catch (\Throwable $e) {
             Log::error('Gateway payment initiation failed: '.$e->getMessage(), [
                 'booking_code' => $booking->booking_code,
                 'gateway' => $gateway,
             ]);
+
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => $gateway,
+                'booking_code' => $booking->booking_code,
+                'message' => 'Terjadi kesalahan gateway saat inisiasi pembayaran: '.$e->getMessage(),
+            ], ['admin']);
 
             return back()->with('error', 'Jalur pembayaran online sementara tidak dapat dihubungi. Silakan pilih metode transfer manual atau hubungi admin.');
         }

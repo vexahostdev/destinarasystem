@@ -1322,6 +1322,20 @@ class NotificationTemplateSeeder extends Seeder
                 'subject' => 'Layanan WhatsApp Terputus',
                 'body' => 'Koneksi gateway WhatsApp terputus. Harap cek pengaturan kredensial VexaHost.',
             ],
+            [
+                'event_key' => 'system.gateway_error',
+                'channel' => 'mail',
+                'audience' => 'admin',
+                'subject' => '[ALERT SISTEM] Gangguan Gateway Pembayaran {{gateway}}',
+                'body' => 'Terjadi gangguan atau ketiadaan konfigurasi pada gateway pembayaran {{gateway}} untuk booking {{booking_code}}: {{message}}',
+            ],
+            [
+                'event_key' => 'system.gateway_error',
+                'channel' => 'database',
+                'audience' => 'admin',
+                'subject' => 'Gangguan Gateway Pembayaran',
+                'body' => 'Gateway {{gateway}} mengalami kendala pada booking {{booking_code}}: {{message}}',
+            ],
         ];
 
         foreach ($templates as $tmpl) {

@@ -734,6 +734,7 @@ return [
         'payment.late_received' => ['admin'],
         'payment.amount_mismatch' => ['admin'],
         'system.wa_disconnected' => ['admin'],
+        'system.gateway_error' => ['admin'],
     ],
 
     'superadmin' => [
