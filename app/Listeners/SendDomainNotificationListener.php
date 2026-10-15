@@ -21,6 +21,7 @@ use App\Events\LatePaymentReceived;
 use App\Events\PartnerRejected;
 use App\Events\PartnerVerified;
 use App\Events\PaymentAmountMismatch;
+use App\Events\PaymentProofRejected;
 use App\Events\PayoutCreated;
 use App\Events\PayoutTransferred;
 use App\Events\RefundCompleted;
@@ -271,6 +272,20 @@ class SendDomainNotificationListener
                 'received_amount' => number_format($event->receivedAmount, 0, ',', '.'),
                 'booking_code' => $event->payment->booking?->booking_code ?? '-',
             ], ['admin']);
+        } elseif ($event instanceof PaymentProofRejected) {
+            $p = $event->payment;
+            $b = $event->booking;
+            $this->dispatcher->send('payment.proof_rejected', [
+                'payment' => $p,
+                'booking' => $b,
+                'user' => $b->user,
+                'booking_code' => $b->booking_code,
+                'destination_name' => $b->destination?->name,
+                'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
+                'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                'rejection_reason' => $event->reason,
+                'upload_url' => route('buyer.booking.show', $b->booking_code),
+            ], ['buyer']);
         } elseif ($event instanceof UserRegistered) {
             $u = $event->user;
             $this->dispatcher->send('auth.welcome', [

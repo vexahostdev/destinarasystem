@@ -1336,6 +1336,27 @@ class NotificationTemplateSeeder extends Seeder
                 'subject' => 'Gangguan Gateway Pembayaran',
                 'body' => 'Gateway {{gateway}} mengalami kendala pada booking {{booking_code}}: {{message}}',
             ],
+            [
+                'event_key' => 'payment.proof_rejected',
+                'channel' => 'mail',
+                'audience' => 'buyer',
+                'subject' => 'Pemberitahuan: Bukti Transfer Reservasi {{booking_code}} Ditolak',
+                'body' => "Halo {{pic_name}},\n\nBukti transfer manual untuk reservasi {{booking_code}} di {{destination_name}} belum dapat diverifikasi oleh tim keuangan kami dengan alasan:\n\"{{rejection_reason}}\"\n\nSilakan unggah kembali bukti transfer yang jelas dan valid melalui tautan berikut:\n{{upload_url}}\n\nJika membutuhkan bantuan, silakan hubungi tim dukungan Destinara.\n\nSalam,\nTim Keuangan Destinara",
+            ],
+            [
+                'event_key' => 'payment.proof_rejected',
+                'channel' => 'whatsapp',
+                'audience' => 'buyer',
+                'subject' => null,
+                'body' => "Halo *{{pic_name}}*,\n\nBukti transfer pembayaran untuk reservasi *{{booking_code}}* di {{destination_name}} belum dapat disetujui.\n*Alasan:* {{rejection_reason}}\n\nSilakan unggah ulang bukti transfer melalui tautan berikut:\n{{upload_url}}\n\n- Tim Keuangan Destinara",
+            ],
+            [
+                'event_key' => 'payment.proof_rejected',
+                'channel' => 'database',
+                'audience' => 'buyer',
+                'subject' => 'Bukti Transfer Pembayaran Ditolak: {{booking_code}}',
+                'body' => 'Bukti transfer untuk reservasi {{booking_code}} ditolak: {{rejection_reason}}. Silakan unggah ulang bukti transfer melalui tautan {{upload_url}}.',
+            ],
         ];
 
         foreach ($templates as $tmpl) {

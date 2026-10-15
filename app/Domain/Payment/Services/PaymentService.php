@@ -10,6 +10,7 @@ use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RefundStatus;
 use App\Events\BookingPaid;
+use App\Events\PaymentProofRejected;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Refund;
@@ -213,6 +214,10 @@ class PaymentService
         $fileName = 'proof_'.$payment->external_id.'_'.uniqid().'.'.$file->getClientOriginalExtension();
         $path = $file->storeAs($dir, $fileName, 'local');
 
+        $raw = $payment->raw_response ?? [];
+        unset($raw['rejection_reason']);
+
+        $payment->raw_response = $raw;
         $payment->proof_path = $path;
         $payment->save();
 
@@ -253,19 +258,39 @@ class PaymentService
 
             $this->processPaymentSuccess($payment, $result);
         } else {
-            $payment->raw_response = array_merge($payment->raw_response ?? [], [
-                'rejection_reason' => $rejectionReason ?? 'Bukti transfer tidak valid atau tidak terbaca.',
+            $reason = $rejectionReason ?? 'Bukti transfer tidak valid atau tidak terbaca.';
+            $raw = $payment->raw_response ?? [];
+            $previousProofs = $raw['proof_history'] ?? [];
+            if ($payment->proof_path) {
+                $previousProofs[] = [
+                    'proof_path' => $payment->proof_path,
+                    'rejected_at' => now()->toIso8601String(),
+                    'reason' => $reason,
+                ];
+            }
+
+            $payment->raw_response = array_merge($raw, [
+                'rejection_reason' => $reason,
                 'rejected_by' => $admin->id,
                 'rejected_at' => now()->toIso8601String(),
+                'last_rejected_proof' => $payment->proof_path,
+                'proof_history' => $previousProofs,
             ]);
+            $payment->proof_path = null;
             $payment->save();
 
             AuditLogger::log(
                 action: 'payment_proof_rejected',
                 target: $payment,
-                description: "Bukti transfer ditolak oleh admin {$admin->name}. Alasan: {$rejectionReason}",
+                description: "Bukti transfer ditolak oleh admin {$admin->name}. Alasan: {$reason}",
                 userId: $admin->id
             );
+
+            event(new PaymentProofRejected(
+                payment: $payment,
+                booking: $payment->booking,
+                reason: $reason
+            ));
         }
     }
 

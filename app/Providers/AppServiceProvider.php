@@ -19,6 +19,7 @@ use App\Events\LatePaymentReceived;
 use App\Events\PartnerRejected;
 use App\Events\PartnerVerified;
 use App\Events\PaymentAmountMismatch;
+use App\Events\PaymentProofRejected;
 use App\Events\PayoutCreated;
 use App\Events\PayoutTransferred;
 use App\Events\RefundCompleted;
@@ -88,6 +89,7 @@ class AppServiceProvider extends ServiceProvider
             InstitutionRejected::class,
             LatePaymentReceived::class,
             PaymentAmountMismatch::class,
+            PaymentProofRejected::class,
             UserRegistered::class,
         ], SendDomainNotificationListener::class);
     }

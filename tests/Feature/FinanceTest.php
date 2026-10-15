@@ -26,9 +26,11 @@ use App\Models\Payment;
 use App\Models\Province;
 use App\Models\Refund;
 use App\Models\User;
+use App\Events\PaymentProofRejected;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -363,5 +365,103 @@ class FinanceTest extends TestCase
         $this->assertNotNull($refund->proof_path);
         $this->assertEquals('Transfer selesai via Mandiri Corporate', $refund->note);
         $this->assertEquals($this->adminUser->id, $refund->processed_by);
+    }
+
+    public function test_admin_rejects_manual_payment_proof_clears_path_dispatches_notification_and_updates_admin_view(): void
+    {
+        Event::fake([PaymentProofRejected::class]);
+
+        $payment = Payment::create([
+            'booking_id' => $this->booking->id,
+            'external_id' => 'PAY-REJECT-TEST-001',
+            'amount' => 1000000,
+            'gateway' => 'manual_transfer',
+            'status' => PaymentStatus::PENDING,
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $paymentService = app(PaymentService::class);
+        $file = UploadedFile::fake()->create('bukti_buram.jpg', 300, 'image/jpeg');
+        $paymentService->processManualProofUpload($payment, $file, $this->buyer);
+        $payment->refresh();
+        $this->assertNotNull($payment->proof_path);
+
+        // 1. Admin visits payments page -> Verifikasi and Tolak buttons are visible
+        $resBefore = $this->actingAs($this->adminUser)->get(route('admin.finance.payments'));
+        $resBefore->assertStatus(200);
+        $resBefore->assertSee('Verifikasi');
+        $resBefore->assertSee('Tolak');
+
+        // 2. Admin rejects manual payment with exact modal payload
+        $rejectReason = 'Bukti transfer buram dan tidak mencantumkan nomor referensi';
+        $resReject = $this->actingAs($this->adminUser)->post(
+            route('admin.finance.rejectManual', $payment->id),
+            ['reason' => $rejectReason]
+        );
+        $resReject->assertRedirect();
+        $resReject->assertSessionHas('warning');
+
+        $payment->refresh();
+        // Proof path cleared, history preserved in raw_response
+        $this->assertNull($payment->proof_path);
+        $this->assertEquals($rejectReason, $payment->raw_response['rejection_reason']);
+        $this->assertCount(1, $payment->raw_response['proof_history']);
+
+        // Event dispatched
+        Event::assertDispatched(PaymentProofRejected::class, function ($event) use ($payment, $rejectReason) {
+            return $event->payment->id === $payment->id && $event->reason === $rejectReason;
+        });
+
+        // 3. Admin visits payments page -> shows "Ditolak — menunggu upload ulang" and buttons are hidden
+        $resAfter = $this->actingAs($this->adminUser)->get(route('admin.finance.payments'));
+        $resAfter->assertStatus(200);
+        $resAfter->assertSee('Ditolak — menunggu upload ulang');
+        $resAfter->assertDontSee('Unduh Bukti');
+        $resAfter->assertDontSee('Verifikasi pembayaran manual ini', false);
+
+        // 4. Test notification dispatching to buyer via real listener
+        $listener = app(\App\Listeners\SendDomainNotificationListener::class);
+        $listener->handle(new PaymentProofRejected($payment, $this->booking, $rejectReason));
+
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'payment.proof_rejected',
+            'channel' => 'database',
+            'recipient' => (string) $this->buyer->id,
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'payment.proof_rejected',
+            'channel' => 'mail',
+            'recipient' => $this->buyer->email,
+        ]);
+
+        $dbLog = \App\Models\NotificationLog::where('event_key', 'payment.proof_rejected')
+            ->where('channel', 'database')
+            ->first();
+        $this->assertStringContainsString($rejectReason, $dbLog->body);
+        $this->assertStringContainsString($this->booking->booking_code, $dbLog->body);
+
+        // 5. Buyer visits booking page -> shows rejection alert and re-upload form
+        $resBuyer = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $this->booking->booking_code));
+        $resBuyer->assertStatus(200);
+        $resBuyer->assertSee('Bukti Transfer Pembayaran Ditolak Admin');
+        $resBuyer->assertSee($rejectReason);
+        $resBuyer->assertSee('name="proof_file"', false);
+
+        // 6. Buyer re-uploads new proof
+        $newFile = UploadedFile::fake()->create('bukti_baru_jelas.png', 450, 'image/png');
+        $resReupload = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.reuploadProof', $this->booking->booking_code),
+            ['proof_file' => $newFile]
+        );
+        $resReupload->assertRedirect(route('buyer.booking.show', $this->booking->booking_code));
+
+        $payment->refresh();
+        $this->assertNotNull($payment->proof_path);
+
+        // 7. Admin visits payments page again -> Verifikasi and Tolak buttons are back
+        $resAdminNew = $this->actingAs($this->adminUser)->get(route('admin.finance.payments'));
+        $resAdminNew->assertStatus(200);
+        $resAdminNew->assertSee('Verifikasi');
+        $resAdminNew->assertSee('Tolak');
     }
 }

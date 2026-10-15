@@ -118,7 +118,11 @@
                                             Tolak
                                         </button>
                                     @else
-                                        <span class="text-[10px] text-gray-400 italic">Menunggu bukti diunggah</span>
+                                        @if(!empty($p->raw_response['rejection_reason']) || !empty($p->raw_response['last_rejected_proof']))
+                                            <span class="text-[10px] text-rose-700 font-semibold italic">Ditolak — menunggu upload ulang</span>
+                                        @else
+                                            <span class="text-[10px] text-gray-400 italic">Menunggu bukti diunggah</span>
+                                        @endif
                                     @endif
                                 @endcan
                             @endif
