@@ -34,7 +34,7 @@ class PricingService
             [
                 'type' => 'package',
                 'reference_id' => $package->id,
-                'name' => "Paket {$package->name} ({$durationDays} Hari)",
+                'name' => "{$package->name} ({$durationDays} Hari)",
                 'quantity' => $pax,
                 'unit_price' => $packagePricePerPax,
                 'total' => $packageTotal,
