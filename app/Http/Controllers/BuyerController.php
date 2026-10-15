@@ -706,7 +706,7 @@ class BuyerController extends Controller
             $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
 
             return redirect()->route('buyer.booking.show', $booking->booking_code)
-                ->with('success', 'Bukti transfer pembayaran berhasil diunggah ulang. Tim Destinara akan memverifikasi dalam waktu 1x24 jam.');
+                ->with('success', 'Bukti transfer pembayaran berhasil diunggah ulang! Tim Destinara akan segera memverifikasi pembayaran Anda.');
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
