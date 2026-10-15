@@ -6,6 +6,7 @@ use App\Enums\AccountType;
 use App\Enums\VerificationStatus;
 use App\Models\Bank;
 use App\Models\Institution;
+use App\Models\NotificationLog;
 use App\Models\OrganizationType;
 use App\Models\PartnerProfile;
 use App\Models\Province;
@@ -272,5 +273,101 @@ class PartnerVerificationFlowTest extends TestCase
         ])->assertRedirect();
 
         $this->assertEquals(VerificationStatus::VERIFIED, $institution->fresh()->verification_status);
+    }
+
+    public function test_rejection_requires_reason_saves_note_and_displays_on_profiles_and_notifications(): void
+    {
+        // 1. Partner rejection without note fails validation
+        $failPartner = $this->actingAs($this->admin)->post(route('admin.users.updateVerification', [
+            'type' => 'partner',
+            'id' => $this->partnerProfile->id,
+        ]), [
+            'action' => 'reject',
+            'note' => '',
+        ]);
+        $failPartner->assertSessionHasErrors(['note']);
+
+        // 2. Partner rejection with note succeeds, saves verification_note, dispatches notification
+        $partnerRejectNote = 'Dokumen SK Pengurus Pokdarwis tidak memiliki stempel basah';
+        $okPartner = $this->actingAs($this->admin)->post(route('admin.users.updateVerification', [
+            'type' => 'partner',
+            'id' => $this->partnerProfile->id,
+        ]), [
+            'action' => 'reject',
+            'note' => $partnerRejectNote,
+        ]);
+        $okPartner->assertRedirect();
+
+        $this->partnerProfile->refresh();
+        $this->assertEquals(VerificationStatus::REJECTED, $this->partnerProfile->verification_status);
+        $this->assertEquals($partnerRejectNote, $this->partnerProfile->verification_note);
+
+        // Partner sees note on profile
+        $resPartnerProfile = $this->actingAs($this->partnerUser)->get(route('mitra.profile'));
+        $resPartnerProfile->assertStatus(200);
+        $resPartnerProfile->assertSee($partnerRejectNote);
+
+        // Notification logged for partner
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'partner.rejected',
+            'recipient' => (string) $this->partnerUser->id,
+        ]);
+        $partnerLog = NotificationLog::where('event_key', 'partner.rejected')->latest('id')->first();
+        $this->assertStringContainsString($partnerRejectNote, $partnerLog->body);
+
+        // 3. Institution setup
+        $buyer = User::factory()->create([
+            'account_type' => AccountType::BUYER,
+            'status' => 'active',
+            'name' => 'Drs. Handoko',
+            'email' => 'handoko@sman2bantul.sch.id',
+        ]);
+        $institution = Institution::create([
+            'user_id' => $buyer->id,
+            'institution_name' => 'SMA Negeri 2 Bantul',
+            'npsn' => '20403199',
+            'pic_name' => 'Drs. Handoko',
+            'pic_phone' => '628111222333',
+            'pic_email' => 'handoko@sman2bantul.sch.id',
+            'verification_status' => VerificationStatus::PENDING,
+        ]);
+
+        // Institution rejection without note fails validation
+        $failInst = $this->actingAs($this->admin)->post(route('admin.users.updateVerification', [
+            'type' => 'institution',
+            'id' => $institution->id,
+        ]), [
+            'action' => 'reject',
+            'note' => '',
+        ]);
+        $failInst->assertSessionHasErrors(['note']);
+
+        // Institution rejection with note succeeds
+        $instRejectNote = 'NPSN tidak sesuai dengan nama lembaga di pangkalan data Kemendikbud';
+        $okInst = $this->actingAs($this->admin)->post(route('admin.users.updateVerification', [
+            'type' => 'institution',
+            'id' => $institution->id,
+        ]), [
+            'action' => 'reject',
+            'note' => $instRejectNote,
+        ]);
+        $okInst->assertRedirect();
+
+        $institution->refresh();
+        $this->assertEquals(VerificationStatus::REJECTED, $institution->verification_status);
+        $this->assertEquals($instRejectNote, $institution->verification_note);
+
+        // Buyer sees note on profile
+        $resBuyerProfile = $this->actingAs($buyer)->get(route('buyer.profile'));
+        $resBuyerProfile->assertStatus(200);
+        $resBuyerProfile->assertSee($instRejectNote);
+
+        // Notification logged for buyer
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'institution.rejected',
+            'recipient' => (string) $buyer->id,
+        ]);
+        $instLog = NotificationLog::where('event_key', 'institution.rejected')->latest('id')->first();
+        $this->assertStringContainsString($instRejectNote, $instLog->body);
     }
 }

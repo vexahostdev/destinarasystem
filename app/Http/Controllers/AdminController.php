@@ -629,6 +629,16 @@ class AdminController extends Controller
     public function updateUserVerification(Request $request, $type, $id)
     {
         $action = $request->input('action', 'verify'); // verify or reject
+
+        if ($action === 'reject') {
+            $request->validate([
+                'note' => 'required|string|min:5|max:1000',
+            ], [
+                'note.required' => 'Alasan penolakan verifikasi wajib diisi.',
+                'note.min' => 'Alasan penolakan minimal 5 karakter.',
+            ]);
+        }
+
         $status = ($action === 'verify') ? VerificationStatus::VERIFIED : VerificationStatus::REJECTED;
         $note = $request->input('note');
 

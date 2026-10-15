@@ -3,7 +3,7 @@
 @section('title', 'Verifikasi Akun Institusi & Mitra')
 
 @section('content')
-<div class="space-y-8" x-data="{ activeTab: '{{ $tab }}', docModal: false, docTitle: '', docUrl: '' }">
+<div class="space-y-8" x-data="{ activeTab: '{{ $tab }}', docModal: false, docTitle: '', docUrl: '', rejectModal: false, rejectAction: '', rejectTargetName: '' }">
 
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2B211E]/12 pb-6">
@@ -171,14 +171,12 @@
                         @endif
 
                         @if($isVerified || $isPending)
-                        <form action="{{ route('admin.users.updateVerification', ['type' => 'institution', 'id' => $inst->id]) }}" method="POST" class="w-full">
-                            @csrf
-                            <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 text-red-700 hover:bg-red-50 border-red-200">
-                                <span class="material-symbols-outlined text-[16px]">cancel</span>
-                                <span>Tolak / Cabut</span>
-                            </button>
-                        </form>
+                        <button type="button" 
+                                @click="rejectAction = '{{ route('admin.users.updateVerification', ['type' => 'institution', 'id' => $inst->id]) }}'; rejectTargetName = '{{ addslashes($inst->institution_name) }}'; rejectModal = true"
+                                class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 text-red-700 hover:bg-red-50 border-red-200">
+                            <span class="material-symbols-outlined text-[16px]">cancel</span>
+                            <span>Tolak / Cabut</span>
+                        </button>
                         @endif
                     </div>
 
@@ -299,14 +297,12 @@
                         @endif
 
                         @if($isVerified || $isPending)
-                        <form action="{{ route('admin.users.updateVerification', ['type' => 'partner', 'id' => $p->id]) }}" method="POST" class="w-full">
-                            @csrf
-                            <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 text-red-700 hover:bg-red-50 border-red-200">
-                                <span class="material-symbols-outlined text-[16px]">cancel</span>
-                                <span>Tolak / Cabut</span>
-                            </button>
-                        </form>
+                        <button type="button" 
+                                @click="rejectAction = '{{ route('admin.users.updateVerification', ['type' => 'partner', 'id' => $p->id]) }}'; rejectTargetName = '{{ addslashes($p->organization_name) }}'; rejectModal = true"
+                                class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 text-red-700 hover:bg-red-50 border-red-200">
+                            <span class="material-symbols-outlined text-[16px]">cancel</span>
+                            <span>Tolak / Cabut</span>
+                        </button>
                         @endif
                     </div>
 
@@ -324,6 +320,38 @@
         </div>
     </div>
     @endif
+
+    <!-- Modal Tolak Verifikasi -->
+    <div x-show="rejectModal" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h3 class="text-base font-bold text-gray-900">Tolak Verifikasi Akun</h3>
+            <p class="text-xs text-gray-500">Berikan catatan alasan penolakan verifikasi untuk <strong x-text="rejectTargetName"></strong> agar pengguna dapat memperbarui dokumen legalitasnya.</p>
+            <form :action="rejectAction" method="POST" class="space-y-4">
+                @csrf
+                <input type="hidden" name="action" value="reject">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Alasan Penolakan <span class="text-rose-500">*</span></label>
+                    <textarea name="note" rows="3" required minlength="5" maxlength="1000"
+                              placeholder="Contoh: Dokumen legalitas kedaluwarsa atau NPSN tidak terdaftar di pangkalan data Kemendikbud."
+                              class="w-full text-xs rounded-xl border-gray-300 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                    @error('note')
+                        <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="rejectModal = false"
+                            class="px-4 py-2 border border-gray-200 rounded-full text-xs font-bold text-gray-700 hover:bg-gray-50">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                        Tolak Verifikasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </div>
 @endsection
