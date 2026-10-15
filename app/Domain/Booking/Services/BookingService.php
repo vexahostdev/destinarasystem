@@ -5,6 +5,7 @@ namespace App\Domain\Booking\Services;
 use App\Domain\Audit\AuditLogger;
 use App\Domain\Booking\StateMachine\BookingStateMachine;
 use App\Domain\Finance\Services\RefundService;
+use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Events\BookingCancelled;
@@ -43,6 +44,12 @@ class BookingService
      */
     public function create(array $data, User $buyer): Booking
     {
+        // 0. Verify Payment Gateway Availability (SPEC / V7-4)
+        $availableGateways = app(PaymentGatewayManager::class)->getAvailableGateways();
+        if (empty($availableGateways)) {
+            throw new InvalidArgumentException('Pembayaran belum tersedia, hubungi admin.');
+        }
+
         // 1. Verify Buyer Profile minimum data (SPEC §8.1 Poin 6)
         $institution = $buyer->institution;
         if (! $institution || empty($institution->institution_name) || empty($institution->pic_name) || empty($institution->pic_phone)) {

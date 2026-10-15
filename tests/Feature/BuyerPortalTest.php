@@ -569,5 +569,37 @@ class BuyerPortalTest extends TestCase
         $adminRes->assertSee('1.050.000');
         $adminRes->assertSee('3.385.000');
     }
+
+    public function test_booking_form_shows_warning_and_disables_submit_when_no_payment_gateway_available_v7_4(): void
+    {
+        // Explicitly clear all payment gateways
+        setting([
+            'xendit_secret_key' => '',
+            'midtrans_server_key' => '',
+            'manual_transfer_accounts' => [],
+        ]);
+
+        $this->actingAs($this->buyer);
+
+        $test = Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', now()->addDays(14)->format('Y-m-d'))
+            ->call('recalculate');
+
+        $test->assertSet('isPaymentAvailable', false);
+        $test->assertSee('Pembayaran belum tersedia');
+        $test->assertSeeHtml('disabled');
+
+        // Attempt submit -> should be rejected and not create booking
+        $test->call('submit');
+        $test->assertHasErrors(['form' => 'Pembayaran belum tersedia, hubungi admin.']);
+
+        $this->assertDatabaseMissing('bookings', [
+            'user_id' => $this->buyer->id,
+            'destination_id' => $this->destination->id,
+        ]);
+    }
 }
+
 

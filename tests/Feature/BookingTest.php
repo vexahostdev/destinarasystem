@@ -692,4 +692,28 @@ class BookingTest extends TestCase
             'booking_id' => $booking->id,
         ]);
     }
+
+    public function test_booking_creation_rejected_when_no_payment_gateway_available_v7_4(): void
+    {
+        // Explicitly clear all payment gateways
+        setting([
+            'xendit_secret_key' => '',
+            'midtrans_server_key' => '',
+            'manual_transfer_accounts' => [],
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pembayaran belum tersedia, hubungi admin.');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(14)->toDateString(),
+            'participant_count' => 20,
+        ], $this->buyer);
+    }
 }
+

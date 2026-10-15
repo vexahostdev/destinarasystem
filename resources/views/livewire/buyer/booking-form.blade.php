@@ -6,6 +6,13 @@
         </div>
     @endif
 
+    @if(! $isPaymentAvailable)
+        <div class="lg:col-span-12 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-sm flex items-center gap-3">
+            <span class="material-symbols-outlined text-amber-600">warning</span>
+            <span class="font-medium">Pembayaran belum tersedia, hubungi admin.</span>
+        </div>
+    @endif
+
     <!-- Form Controls Column (Kiri 8) -->
     <div class="lg:col-span-8 space-y-6">
         
@@ -242,10 +249,17 @@
                 <span class="text-[11px] text-slate-400">Total Resmi</span>
             </div>
 
+            @if(! $isPaymentAvailable)
+                <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-600 text-[18px]">warning</span>
+                    <span class="font-medium">Pembayaran belum tersedia, hubungi admin.</span>
+                </div>
+            @endif
+
             <!-- Submit Button -->
             <button type="submit" 
                     wire:loading.attr="disabled"
-                    {{ ! $isSlotAvailable ? 'disabled' : '' }}
+                    {{ (! $isSlotAvailable || ! $isPaymentAvailable) ? 'disabled' : '' }}
                     class="w-full bg-[#8C5151] hover:bg-[#734040] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition">
                 <span wire:loading.remove>Lanjut ke Pembayaran</span>
                 <span wire:loading class="inline-flex items-center gap-2">

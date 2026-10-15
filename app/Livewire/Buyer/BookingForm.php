@@ -5,6 +5,7 @@ namespace App\Livewire\Buyer;
 use App\Domain\Booking\Services\AvailabilityService;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Booking\Services\PricingService;
+use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Models\AvailabilitySlot;
 use App\Models\Destination;
 use App\Models\Package;
@@ -19,6 +20,8 @@ use Livewire\Component;
 class BookingForm extends Component
 {
     public Destination $destination;
+
+    public bool $isPaymentAvailable = true;
 
     public ?int $packageId = null;
 
@@ -157,6 +160,8 @@ class BookingForm extends Component
 
     public function recalculate(): void
     {
+        $this->isPaymentAvailable = ! empty(app(PaymentGatewayManager::class)->getAvailableGateways());
+
         $package = Package::find($this->packageId);
         if (! $package) {
             return;
@@ -296,6 +301,14 @@ class BookingForm extends Component
 
     public function submit(BookingService $bookingService)
     {
+        $this->isPaymentAvailable = ! empty(app(PaymentGatewayManager::class)->getAvailableGateways());
+
+        if (! $this->isPaymentAvailable) {
+            $this->addError('form', 'Pembayaran belum tersedia, hubungi admin.');
+
+            return;
+        }
+
         $package = Package::findOrFail($this->packageId);
 
         if ($this->getErrorBag()->has('participantCount')) {
@@ -347,6 +360,8 @@ class BookingForm extends Component
 
     public function render(): View
     {
+        $this->isPaymentAvailable = ! empty(app(PaymentGatewayManager::class)->getAvailableGateways());
+
         return view('livewire.buyer.booking-form', [
             'packages' => $this->destination->packages,
             'addons' => $this->destination->addons,
