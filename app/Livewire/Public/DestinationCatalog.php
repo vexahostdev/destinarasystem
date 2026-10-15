@@ -20,12 +20,15 @@ class DestinationCatalog extends Component
 
     public string $province = '';
 
+    public string $inquiry_type = '';
+
     public string $sort = 'popular';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'category' => ['except' => ''],
         'province' => ['except' => ''],
+        'inquiry_type' => ['except' => ''],
         'sort' => ['except' => 'popular'],
         'page' => ['except' => 1],
     ];
@@ -45,6 +48,11 @@ class DestinationCatalog extends Component
         $this->resetPage();
     }
 
+    public function updatingInquiryType(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingSort(): void
     {
         $this->resetPage();
@@ -52,7 +60,7 @@ class DestinationCatalog extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'category', 'province', 'sort']);
+        $this->reset(['search', 'category', 'province', 'inquiry_type', 'sort']);
         $this->resetPage();
     }
 
@@ -80,6 +88,16 @@ class DestinationCatalog extends Component
         if (! empty($this->province)) {
             $query->whereHas('province', function ($sub) {
                 $sub->where('name', $this->province);
+            });
+        }
+
+        if (! empty($this->inquiry_type)) {
+            $inquiry = $this->inquiry_type;
+            $query->where(function ($sub) use ($inquiry) {
+                $sub->whereJsonContains('suitable_for', $inquiry)
+                    ->orWhereHas('packages', function ($p) use ($inquiry) {
+                        $p->where('is_active', true)->whereJsonContains('inquiry_types', $inquiry);
+                    });
             });
         }
 

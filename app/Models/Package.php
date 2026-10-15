@@ -72,4 +72,48 @@ class Package extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Package $package) {
+            $package->syncDestinationSuitableFor();
+        });
+
+        static::deleted(function (Package $package) {
+            $package->syncDestinationSuitableFor();
+        });
+    }
+
+    public function syncDestinationSuitableFor(): void
+    {
+        if (! $this->destination_id) {
+            return;
+        }
+
+        $destination = $this->destination ?? Destination::find($this->destination_id);
+        if (! $destination) {
+            return;
+        }
+
+        $activePackages = $destination->packages()->where('is_active', true)->get();
+        $allInquiryTypes = [];
+        foreach ($activePackages as $pkg) {
+            $types = is_array($pkg->inquiry_types)
+                ? $pkg->inquiry_types
+                : (json_decode($pkg->inquiry_types ?? '[]', true) ?: []);
+            foreach ($types as $t) {
+                if (! empty($t)) {
+                    $allInquiryTypes[] = $t;
+                }
+            }
+        }
+
+        $allInquiryTypes = array_values(array_unique($allInquiryTypes));
+        if (empty($allInquiryTypes)) {
+            $allInquiryTypes = ['study_tour'];
+        }
+
+        $destination->suitable_for = $allInquiryTypes;
+        $destination->saveQuietly();
+    }
 }

@@ -62,11 +62,14 @@ class PublicApiController extends Controller
                 $query->where('is_featured', true);
             }
 
-            // Filter Inquiry Type (dari paket)
+            // Filter Inquiry Type (dari suitable_for destinasi dan paket)
             if ($request->filled('inquiry_type')) {
                 $inquiry = $request->query('inquiry_type');
-                $query->whereHas('packages', function ($q) use ($inquiry) {
-                    $q->whereJsonContains('inquiry_types', $inquiry);
+                $query->where(function ($sub) use ($inquiry) {
+                    $sub->whereJsonContains('suitable_for', $inquiry)
+                        ->orWhereHas('packages', function ($q) use ($inquiry) {
+                            $q->where('is_active', true)->whereJsonContains('inquiry_types', $inquiry);
+                        });
                 });
             }
 

@@ -55,7 +55,7 @@
               <option value="highest_capacity">Kapasitas Terbesar</option>
             </select>
 
-            @if($search || $category || $province || $sort !== 'popular')
+            @if($search || $category || $province || $inquiry_type || $sort !== 'popular')
               <button wire:click="resetFilters" class="text-xs text-[#703A3A] hover:underline font-semibold px-2 shrink-0" title="Reset Filter">
                 Reset
               </button>
@@ -75,6 +75,23 @@
               {{ $label }}
             </button>
           @endforeach
+        </div>
+
+        <!-- Tipe Kunjungan Pills -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full flex-nowrap pt-2 border-t border-gray-100 text-xs">
+          <span class="text-gray-400 font-semibold uppercase tracking-wider text-[10px] shrink-0">Tipe Kunjungan:</span>
+          <button wire:click="$set('inquiry_type', '')" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ empty($inquiry_type) ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+            Semua Tipe
+          </button>
+          <button wire:click="$set('inquiry_type', 'study_tour')" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'study_tour' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+            Study Tour
+          </button>
+          <button wire:click="$set('inquiry_type', 'penelitian')" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'penelitian' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+            Penelitian / Riset
+          </button>
         </div>
 
       </div>
