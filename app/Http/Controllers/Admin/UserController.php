@@ -116,7 +116,7 @@ class UserController extends Controller
             'commission_rate' => 'required|numeric|min:0|max:100',
         ]);
 
-        $user->partnerProfile->commission_rate = $validated['commission_rate'];
+        $user->partnerProfile->commission_percent_override = $validated['commission_rate'];
         $user->partnerProfile->save();
 
         AuditLogger::log(

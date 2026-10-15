@@ -123,7 +123,7 @@
 
                             <!-- Partner Commission -->
                             @if($u->isPartner() && $u->partnerProfile)
-                            <button type="button" @click="activeUser = {{ $u->id }}; activeCommission = {{ $u->partnerProfile->commission_rate ?? 10 }}; openCommissionModal = true"
+                            <button type="button" @click="activeUser = {{ $u->id }}; activeCommission = {{ $u->partnerProfile->commission_percent_override ?? 10 }}; openCommissionModal = true"
                                     class="p-1 text-[#703A3A] hover:text-[#561D1E]" title="Ubah Tarif Komisi Khusus">
                                 <span class="material-symbols-outlined text-[16px]">percent</span>
                             </button>
