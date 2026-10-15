@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use App\Enums\VerificationStatus;
 use App\Events\DestinationModerated;
 use App\Events\UserRegistered;
@@ -21,10 +23,13 @@ use App\Models\Package;
 use App\Models\PartnerProfile;
 use App\Models\Payment;
 use App\Models\Province;
+use App\Models\Refund;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
@@ -60,6 +65,14 @@ class UiFlowTest extends TestCase
         // Create standard entities
         $this->province = Province::first() ?? Province::create(['code' => '34', 'name' => 'DI Yogyakarta']);
         $this->bank = Bank::first() ?? Bank::create(['code' => 'BCA', 'name' => 'Bank Central Asia', 'is_active' => true]);
+
+        app(\App\Domain\Settings\SettingsRepository::class)->set('manual_transfer_accounts', [
+            [
+                'bank' => 'BCA',
+                'number' => '8880001122',
+                'holder' => 'PT DESTINARA EDUKASI NUSANTARA',
+            ],
+        ]);
 
         // Create Admin
         $this->admin = User::factory()->create([
@@ -461,7 +474,21 @@ class UiFlowTest extends TestCase
         $rejectResponse->assertRedirect();
 
         $payment->refresh();
+        $this->assertNull($payment->proof_path);
         $this->assertStringContainsString('kurang Rp 50.000', $payment->raw_response['rejection_reason'] ?? '');
+        $this->assertNotEmpty($payment->raw_response['proof_history'] ?? []);
+
+        // Assert notification payment.proof_rejected dispatched to buyer
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'payment.proof_rejected',
+            'channel' => 'mail',
+            'recipient' => $this->buyer->email,
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'payment.proof_rejected',
+            'channel' => 'database',
+            'recipient' => (string) $this->buyer->id,
+        ]);
 
         // 5. Buyer visits booking show page and sees rejection reason and re-upload button
         $this->actingAs($this->buyer);
@@ -543,5 +570,250 @@ class UiFlowTest extends TestCase
         $this->actingAs($staffUser);
         $staffForbidden = $this->get(route('admin.settings.index'));
         $staffForbidden->assertStatus(403);
+    }
+
+    public function test_partner_registration_via_form_payload_dispatches_email_verification_log(): void
+    {
+        $partnerPayload = [
+            'name' => 'Bambang Sutrisno',
+            'org_name' => 'Pokdarwis Watu Ireng',
+            'email' => 'bambang.mitra@watuireng.id',
+            'phone' => '081234567811',
+            'password' => 'Rahasia123!@#',
+            'password_confirmation' => 'Rahasia123!@#',
+            'account_type' => 'partner',
+            'terms' => '1',
+        ];
+
+        $response = $this->post(route('register'), $partnerPayload);
+        $response->assertRedirect(route('verification.notice'));
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'bambang.mitra@watuireng.id',
+            'account_type' => AccountType::PARTNER->value,
+            'status' => 'active',
+        ]);
+
+        $this->assertDatabaseHas('partner_profiles', [
+            'organization_name' => 'Pokdarwis Watu Ireng',
+            'verification_status' => VerificationStatus::UNVERIFIED->value,
+        ]);
+
+        // Assert notification log auth.verify_email to partner
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'auth.verify_email',
+            'channel' => 'mail',
+            'recipient' => 'bambang.mitra@watuireng.id',
+        ]);
+    }
+
+    public function test_xendit_online_payment_flow_redirects_to_invoice_url(): void
+    {
+        $repo = app(SettingsRepository::class);
+        $repo->set('xendit_secret_key', 'xnd_development_fake_secret_key');
+        $repo->set('xendit_callback_token', 'fake_callback_token_123');
+        $repo->set('enabled_gateways', ['xendit', 'manual_transfer']);
+
+        $booking = Booking::create([
+            'booking_code' => 'DST-261014-XENDIT',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(14)->toDateString(),
+            'planned_date_end' => now()->addDays(14)->toDateString(),
+            'participant_count' => 10,
+            'companion_count' => 1,
+            'package_price_per_pax' => 100000,
+            'package_total' => 1000000,
+            'addons_total' => 0,
+            'subtotal_amount' => 1000000,
+            'discount_amount' => 0,
+            'insurance_amount' => 30000,
+            'platform_fee_amount' => 25000,
+            'total_amount' => 1055000,
+            'commission_percent' => 10.00,
+            'commission_amount' => 100000,
+            'partner_net_amount' => 900000,
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        Http::fake([
+            'https://api.xendit.co/v2/invoices' => Http::response([
+                'id' => 'xnd_inv_uiflow_789',
+                'external_id' => $booking->booking_code . '-P1',
+                'invoice_url' => 'https://checkout.xendit.co/web/xnd_inv_uiflow_789',
+                'status' => 'PENDING',
+                'expiry_date' => now()->addHours(24)->toIso8601String(),
+            ], 200),
+        ]);
+
+        $this->actingAs($this->buyer);
+
+        $payResponse = $this->post(route('buyer.booking.pay', $booking->booking_code), [
+            'gateway' => 'xendit',
+        ]);
+
+        $payResponse->assertRedirect('https://checkout.xendit.co/web/xnd_inv_uiflow_789');
+
+        $this->assertDatabaseHas('payments', [
+            'booking_id' => $booking->id,
+            'gateway' => 'xendit',
+            'checkout_url' => 'https://checkout.xendit.co/web/xnd_inv_uiflow_789',
+            'status' => PaymentStatus::PENDING->value,
+        ]);
+    }
+
+    public function test_completed_booking_review_submission_via_form_payload(): void
+    {
+        $completedBooking = Booking::create([
+            'booking_code' => 'DST-261014-REV01',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'status' => BookingStatus::SELESAI,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->subDays(5)->toDateString(),
+            'planned_date_end' => now()->subDays(4)->toDateString(),
+            'completed_at' => now()->subDays(4),
+            'participant_count' => 20,
+            'companion_count' => 2,
+            'package_price_per_pax' => 100000,
+            'package_total' => 2000000,
+            'addons_total' => 0,
+            'subtotal_amount' => 2000000,
+            'discount_amount' => 0,
+            'insurance_amount' => 60000,
+            'platform_fee_amount' => 25000,
+            'total_amount' => 2085000,
+            'commission_percent' => 10.00,
+            'commission_amount' => 200000,
+            'partner_net_amount' => 1800000,
+        ]);
+
+        $this->actingAs($this->buyer);
+
+        $reviewPayload = [
+            'rating' => 5,
+            'comment' => 'Program kunjungan edukasi budaya sangat inspiratif dan terkelola secara profesional.',
+        ];
+
+        $reviewResponse = $this->post(route('buyer.booking.review', $completedBooking->booking_code), $reviewPayload);
+        $reviewResponse->assertRedirect(route('buyer.booking.show', $completedBooking->booking_code));
+        $reviewResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reviews', [
+            'booking_id' => $completedBooking->id,
+            'destination_id' => $this->destination->id,
+            'institution_id' => $this->institution->id,
+            'rating' => 5,
+            'comment' => 'Program kunjungan edukasi budaya sangat inspiratif dan terkelola secara profesional.',
+            'status' => 'published',
+        ]);
+    }
+
+    public function test_admin_refund_modal_processing_flow(): void
+    {
+        $cancelledBooking = Booking::create([
+            'booking_code' => 'DST-261014-REF01',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'status' => BookingStatus::BATAL,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 15,
+            'companion_count' => 2,
+            'package_price_per_pax' => 100000,
+            'package_total' => 1500000,
+            'addons_total' => 0,
+            'subtotal_amount' => 1500000,
+            'discount_amount' => 0,
+            'insurance_amount' => 45000,
+            'platform_fee_amount' => 25000,
+            'total_amount' => 1570000,
+            'commission_percent' => 10.00,
+            'commission_amount' => 150000,
+            'partner_net_amount' => 1350000,
+        ]);
+
+        $refund = Refund::create([
+            'refund_number' => 'REF-UIFLOW-01',
+            'booking_id' => $cancelledBooking->id,
+            'user_id' => $this->buyer->id,
+            'amount' => 1200000,
+            'percent' => 80,
+            'reason' => 'Pembatalan sebelum H-7 sesuai kebijakan fleksibel tapak',
+            'status' => RefundStatus::PENDING,
+            'buyer_bank_id' => $this->bank->id,
+            'buyer_account_number' => '1234567890',
+            'buyer_account_holder' => 'SMA NEGERI 1 EDUKASI',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $proofFile = UploadedFile::fake()->create('bukti_transfer_refund.pdf', 250, 'application/pdf');
+        $processPayload = [
+            'proof_file' => $proofFile,
+            'note' => 'Refund 80% berhasil ditransfer ke rekening sekolah BCA.',
+        ];
+
+        $response = $this->post(route('admin.finance.processRefund', $refund->id), $processPayload);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $refund->refresh();
+        $this->assertEquals(RefundStatus::COMPLETED, $refund->status);
+        $this->assertNotNull($refund->proof_path);
+        $this->assertEquals('Refund 80% berhasil ditransfer ke rekening sekolah BCA.', $refund->note);
+    }
+
+    public function test_admin_booking_reschedule_modal_flow(): void
+    {
+        $booking = Booking::create([
+            'booking_code' => 'DST-261014-RESCH01',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'status' => BookingStatus::DIKONFIRMASI,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 20,
+            'companion_count' => 2,
+            'package_price_per_pax' => 100000,
+            'package_total' => 2000000,
+            'addons_total' => 0,
+            'subtotal_amount' => 2000000,
+            'discount_amount' => 0,
+            'insurance_amount' => 60000,
+            'platform_fee_amount' => 25000,
+            'total_amount' => 2085000,
+            'commission_percent' => 10.00,
+            'commission_amount' => 200000,
+            'partner_net_amount' => 1800000,
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $newDate = now()->addDays(25)->toDateString();
+        $reschedulePayload = [
+            'action' => 'reschedule',
+            'new_date' => $newDate,
+            'reschedule_reason' => 'Penyesuaian kalender pendidikan dari Dinas Pendidikan.',
+        ];
+
+        $response = $this->post(route('admin.bookings.updateStatus', $booking->id), $reschedulePayload);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals($newDate, $booking->planned_date_start->toDateString());
     }
 }
