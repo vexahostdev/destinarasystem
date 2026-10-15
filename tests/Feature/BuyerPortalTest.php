@@ -148,7 +148,7 @@ class BuyerPortalTest extends TestCase
 
         $futureDate = now()->addDays(15)->format('Y-m-d');
 
-        // 1. Participant count < min_pax (5 < 10)
+        // 1. Participant count < min_pax (5 < 10): no slot check, no slot message displayed
         Livewire::test(BookingForm::class, ['destination' => $this->destination])
             ->set('packageId', $this->package->id)
             ->set('plannedDateStart', $futureDate)
@@ -157,11 +157,14 @@ class BuyerPortalTest extends TestCase
             ->assertHasErrors(['participantCount' => 'Paket ini untuk 10–100 peserta'])
             ->assertSet('grandTotal', 0)
             ->assertSet('subtotal', 0)
+            ->assertSet('availabilityMessage', '')
+            ->assertDontSee('Slot penuh')
+            ->assertDontSee('Slot ditutup')
             ->call('submit')
             ->assertHasErrors(['participantCount'])
             ->assertNoRedirect();
 
-        // 2. Participant count > max_pax (150 > 100)
+        // 2. Participant count > max_pax (150 > 100): no slot check, no slot message displayed
         Livewire::test(BookingForm::class, ['destination' => $this->destination])
             ->set('packageId', $this->package->id)
             ->set('plannedDateStart', $futureDate)
@@ -169,6 +172,9 @@ class BuyerPortalTest extends TestCase
             ->call('recalculate')
             ->assertHasErrors(['participantCount' => 'Paket ini untuk 10–100 peserta'])
             ->assertSet('grandTotal', 0)
+            ->assertSet('availabilityMessage', '')
+            ->assertDontSee('Slot penuh')
+            ->assertDontSee('Slot ditutup')
             ->call('submit')
             ->assertHasErrors(['participantCount'])
             ->assertNoRedirect();

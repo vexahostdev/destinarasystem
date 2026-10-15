@@ -180,6 +180,12 @@ class BookingForm extends Component
             $this->discount = 0;
             $this->grandTotal = 0;
             $this->pricingItems = [];
+
+            // V7-3: jika jumlah peserta di luar min/max paket, jangan jalankan cek slot dan jangan tampilkan pesan slot
+            $this->isSlotAvailable = false;
+            $this->availabilityMessage = '';
+
+            return;
         } else {
             $this->resetErrorBag('participantCount');
 

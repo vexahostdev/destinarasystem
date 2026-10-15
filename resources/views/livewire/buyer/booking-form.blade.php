@@ -70,11 +70,13 @@
             </div>
 
             <!-- Slot Status Alert -->
+            @if (! empty($availabilityMessage))
             <div class="p-3.5 rounded-2xl text-xs flex items-center gap-2.5 border 
                 {{ $isSlotAvailable ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200' }}">
                 <span class="material-symbols-outlined text-[18px]">{{ $isSlotAvailable ? 'check_circle' : 'cancel' }}</span>
                 <span class="font-medium">{{ $availabilityMessage }}</span>
             </div>
+            @endif
         </div>
 
         <!-- Jumlah Rombongan -->
