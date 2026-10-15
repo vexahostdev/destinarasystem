@@ -45,6 +45,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdminController extends Controller
@@ -819,8 +820,21 @@ class AdminController extends Controller
                 if (! Auth::user()->can('bookings.reschedule')) {
                     abort(403, 'Anda tidak memiliki hak akses untuk melakukan reschedule booking.');
                 }
+
+                if (! $request->has('new_date') && $request->has('visit_date')) {
+                    $request->merge(['new_date' => $request->input('visit_date')]);
+                }
+
+                $minLeadDays = (int) setting('min_lead_days', 3);
+                $minDate = now()->addDays($minLeadDays)->startOfDay()->format('Y-m-d');
+
+                $request->validate([
+                    'new_date' => "required|date|after_or_equal:{$minDate}",
+                    'reschedule_reason' => 'required|string|min:5|max:500',
+                ]);
+
                 $newDate = Carbon::parse($request->input('new_date'));
-                $reason = $request->input('reschedule_reason', 'Perubahan jadwal oleh admin');
+                $reason = $request->input('reschedule_reason');
                 $this->bookingService->reschedule($booking, $newDate, Auth::user(), $reason);
 
                 return back()->with('success', "Jadwal kunjungan reservasi {$booking->booking_code} berhasil diperbarui.");
@@ -828,6 +842,8 @@ class AdminController extends Controller
 
             return back()->with('error', 'Aksi tidak dikenali.');
         } catch (HttpException $e) {
+            throw $e;
+        } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
             return back()->with('error', $e->getMessage());

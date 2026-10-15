@@ -236,10 +236,24 @@
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
-                        Tanggal Kunjungan Baru
+                        Tanggal Kunjungan Baru *
                     </label>
-                    <input type="date" name="visit_date" :value="currentDate" required class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none">
+                    <input type="date" name="new_date" :value="currentDate" required min="{{ now()->addDays((int) setting('min_lead_days', 3))->format('Y-m-d') }}" class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none">
+                    @error('new_date')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
                     <p class="text-[10px] text-[#2B211E]/60">Sistem akan otomatis menyesuaikan slot ketersediaan pada tapak tujuan.</p>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
+                        Alasan Penjadwalan Ulang *
+                    </label>
+                    <textarea name="reschedule_reason" required rows="2" placeholder="Catatan alasan perubahan tanggal kunjungan..."
+                              class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none"></textarea>
+                    @error('reschedule_reason')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#2B211E]/10">

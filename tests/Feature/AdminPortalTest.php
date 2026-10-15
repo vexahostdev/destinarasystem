@@ -309,4 +309,91 @@ class AdminPortalTest extends TestCase
         $this->assertEquals('smtp', config('mail.default'));
         $this->assertEquals('smtp.brevo.com', config('mail.mailers.smtp.host'));
     }
+
+    public function test_admin_booking_reschedule_modal_payload_and_validation(): void
+    {
+        $category = DestinationCategory::firstOrCreate(['slug' => 'alam'], ['name' => 'Wisata Alam', 'is_active' => true]);
+        $province = Province::firstOrCreate(['code' => '32'], ['name' => 'Jawa Barat']);
+
+        $destination = Destination::create([
+            'partner_id' => $this->partner->id,
+            'category_id' => $category->id,
+            'province_id' => $province->id,
+            'name' => 'Kawasan Edukasi Geologi',
+            'slug' => 'kawasan-edukasi-geologi',
+            'status' => DestinationStatus::PUBLISHED,
+            'city' => 'Bandung',
+            'address' => 'Jl. Geologi No. 1',
+            'default_daily_capacity' => 100,
+        ]);
+
+        $package = Package::create([
+            'destination_id' => $destination->id,
+            'name' => 'Paket Vulkanologi',
+            'slug' => 'paket-vulkanologi',
+            'price_per_pax' => 60000,
+            'min_pax' => 10,
+            'max_pax' => 50,
+            'inquiry_types' => ['study_tour'],
+            'is_active' => true,
+        ]);
+
+        $institution = \App\Models\Institution::create([
+            'user_id' => $this->buyer->id,
+            'institution_name' => 'SMA Negeri 3 Bandung',
+            'pic_name' => 'Dra. Ratna',
+            'pic_phone' => '081234567890',
+            'pic_email' => 'ratna@sman3bdg.sch.id',
+        ]);
+
+        $booking = \App\Models\Booking::create([
+            'booking_code' => 'DST-RESCHED-001',
+            'user_id' => $this->buyer->id,
+            'institution_id' => $institution->id,
+            'destination_id' => $destination->id,
+            'package_id' => $package->id,
+            'inquiry_type' => 'study_tour',
+            'status' => \App\Enums\BookingStatus::DIKONFIRMASI,
+            'participant_count' => 20,
+            'total_amount' => 1200000,
+            'subtotal_amount' => 1200000,
+            'insurance_amount' => 40000,
+            'platform_fee_amount' => 25000,
+            'commission_percent' => 10,
+            'commission_amount' => 120000,
+            'partner_net_amount' => 1080000,
+            'planned_date_start' => now()->addDays(7)->toDateString(),
+            'planned_date_end' => now()->addDays(7)->toDateString(),
+        ]);
+
+        // 1. Validation error when new_date is before min_lead_days (e.g. tomorrow when min lead is 3 days)
+        setting(['min_lead_days' => 3]);
+        $response = $this->actingAs($this->superAdmin)->post("/admin/booking/{$booking->id}/status", [
+            'action' => 'reschedule',
+            'new_date' => now()->addDays(1)->toDateString(),
+            'reschedule_reason' => 'Pergeseran jadwal sekolah',
+        ]);
+        $response->assertSessionHasErrors(['new_date']);
+
+        // 2. Validation error when reschedule_reason is missing
+        $responseMissingReason = $this->actingAs($this->superAdmin)->post("/admin/booking/{$booking->id}/status", [
+            'action' => 'reschedule',
+            'new_date' => now()->addDays(10)->toDateString(),
+        ]);
+        $responseMissingReason->assertSessionHasErrors(['reschedule_reason']);
+
+        // 3. Valid modal payload successfully updates planned_date_start
+        $targetDate = now()->addDays(14)->toDateString();
+        $successResponse = $this->actingAs($this->superAdmin)->post("/admin/booking/{$booking->id}/status", [
+            'action' => 'reschedule',
+            'new_date' => $targetDate,
+            'reschedule_reason' => 'Permintaan komite sekolah pergeseran hari jumat',
+        ]);
+
+        $successResponse->assertRedirect();
+        $successResponse->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals($targetDate, $booking->planned_date_start->toDateString());
+    }
 }
