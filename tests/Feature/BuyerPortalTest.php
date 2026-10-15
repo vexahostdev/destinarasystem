@@ -476,4 +476,92 @@ class BuyerPortalTest extends TestCase
         $this->post('/buyer/notifikasi/read-all')->assertRedirect();
         $this->assertNotNull($notif2->fresh()->read_at);
     }
+
+    public function test_buyer_and_admin_booking_detail_cost_breakdown_not_double_counting_b7(): void
+    {
+        $code = app(BookingCodeGenerator::class)->generate();
+
+        $booking = Booking::create([
+            'booking_code' => $code,
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'participant_count' => 25,
+            'companion_count' => 2,
+            'subtotal_amount' => 3300000,
+            'addons_amount' => 1050000,
+            'insurance_amount' => 50000,
+            'platform_fee_amount' => 35000,
+            'discount_amount' => 0,
+            'total_amount' => 3385000,
+            'commission_percent' => 10,
+            'commission_amount' => 330000,
+            'partner_net_amount' => 2970000,
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
+        ]);
+
+        \App\Models\BookingItem::create([
+            'booking_id' => $booking->id,
+            'type' => 'package',
+            'reference_id' => $this->package->id,
+            'name' => 'Paket Study Tour Konservasi (1 Hari)',
+            'quantity' => 25,
+            'unit_price' => 90000,
+            'total' => 2250000,
+        ]);
+
+        \App\Models\BookingItem::create([
+            'booking_id' => $booking->id,
+            'type' => 'addon',
+            'reference_id' => 1,
+            'name' => 'Add-on: Workshop Etnobotani',
+            'quantity' => 25,
+            'unit_price' => 42000,
+            'total' => 1050000,
+        ]);
+
+        \App\Models\BookingItem::create([
+            'booking_id' => $booking->id,
+            'type' => 'insurance',
+            'name' => 'Premi Asuransi Siswa',
+            'quantity' => 25,
+            'unit_price' => 2000,
+            'total' => 50000,
+        ]);
+
+        \App\Models\BookingItem::create([
+            'booking_id' => $booking->id,
+            'type' => 'platform_fee',
+            'name' => 'Administrasi & Verifikasi Dokumen',
+            'quantity' => 1,
+            'unit_price' => 35000,
+            'total' => 35000,
+        ]);
+
+        // 1. Buyer Booking Detail
+        $buyerRes = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $code));
+        $buyerRes->assertOk();
+        $buyerRes->assertSee('Paket Study Tour Konservasi (1 Hari)');
+        $buyerRes->assertSee('2.250.000');
+        $buyerRes->assertSee('Add-on: Workshop Etnobotani');
+        $buyerRes->assertSee('1.050.000');
+        $buyerRes->assertSee('Total: Rp 3.385.000');
+        $buyerRes->assertDontSee('Biaya Tapak (25 Siswa)');
+
+        // 2. Admin Booking Detail
+        $admin = User::factory()->create(['account_type' => AccountType::INTERNAL, 'status' => 'active']);
+        $admin->assignRole('super_admin');
+        $adminRes = $this->actingAs($admin)->get(route('admin.bookings.show', $code));
+        $adminRes->assertOk();
+        $adminRes->assertSee('Paket Study Tour Konservasi (1 Hari)');
+        $adminRes->assertSee('2.250.000');
+        $adminRes->assertSee('Add-on: Workshop Etnobotani');
+        $adminRes->assertSee('1.050.000');
+        $adminRes->assertSee('3.385.000');
+    }
 }
+

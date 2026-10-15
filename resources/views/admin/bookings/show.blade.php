@@ -106,14 +106,53 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
-                        @foreach($booking->items as $item)
+                        @forelse($booking->items as $item)
                         <tr>
                             <td class="py-2.5 font-medium text-gray-800">{{ $item->name }}</td>
                             <td class="py-2.5 text-center font-mono">{{ $item->quantity }}</td>
                             <td class="py-2.5 text-right font-mono">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                            <td class="py-2.5 text-right font-mono font-bold">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">{{ $item->total < 0 ? '-' : '' }}Rp {{ number_format(abs($item->total), 0, ',', '.') }}</td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td class="py-2.5 font-medium text-gray-800">Paket Tapak ({{ $booking->package?->name ?? 'Wisata Edukasi' }})</td>
+                            <td class="py-2.5 text-center font-mono">{{ $booking->participant_count }}</td>
+                            <td class="py-2.5 text-right font-mono">Rp {{ number_format($booking->participant_count > 0 ? (int)(max(0, $booking->subtotal_amount - $booking->addons_amount) / $booking->participant_count) : 0, 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">Rp {{ number_format(max(0, $booking->subtotal_amount - $booking->addons_amount), 0, ',', '.') }}</td>
+                        </tr>
+                        @if($booking->addons_amount > 0)
+                        <tr>
+                            <td class="py-2.5 font-medium text-gray-800">Layanan Tambahan (Add-ons)</td>
+                            <td class="py-2.5 text-center font-mono">1</td>
+                            <td class="py-2.5 text-right font-mono">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        @if($booking->insurance_amount > 0)
+                        <tr>
+                            <td class="py-2.5 font-medium text-gray-800">Premi Asuransi Siswa</td>
+                            <td class="py-2.5 text-center font-mono">{{ $booking->participant_count }}</td>
+                            <td class="py-2.5 text-right font-mono">Rp {{ number_format(setting('insurance_per_pax', 2000), 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        @if($booking->platform_fee_amount > 0)
+                        <tr>
+                            <td class="py-2.5 font-medium text-gray-800">Administrasi & Verifikasi Dokumen</td>
+                            <td class="py-2.5 text-center font-mono">1</td>
+                            <td class="py-2.5 text-right font-mono">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        @if($booking->discount_amount > 0)
+                        <tr class="text-emerald-700">
+                            <td class="py-2.5 font-medium">Diskon Voucher</td>
+                            <td class="py-2.5 text-center font-mono">1</td>
+                            <td class="py-2.5 text-right font-mono">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</td>
+                            <td class="py-2.5 text-right font-mono font-bold">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</td>
+                        </tr>
+                        @endif
+                        @endforelse
                         <tr class="font-bold text-gray-900 border-t border-gray-200">
                             <td colspan="3" class="pt-3 text-right">Total Transaksi:</td>
                             <td class="pt-3 text-right font-mono text-[#703A3A] text-sm">Rp {{ number_format($booking->total_amount, 0, ',', '.') }}</td>

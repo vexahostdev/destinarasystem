@@ -444,33 +444,49 @@
                 </div>
 
                 <div class="p-5 space-y-3 text-xs">
-                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                        <span class="text-[#2B211E]/70">Biaya Tapak ({{ $booking->participant_count }} Siswa)</span>
-                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->subtotal_amount, 0, ',', '.') }}</span>
-                    </div>
+                    @if($booking->items->isNotEmpty())
+                        @foreach($booking->items as $item)
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                            <div>
+                                <span class="text-[#2B211E]/80 font-medium block">{{ $item->name }}</span>
+                                @if($item->quantity > 1 && $item->unit_price > 0)
+                                <span class="text-[10px] text-[#2B211E]/50 font-mono">{{ $item->quantity }} x Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
+                                @endif
+                            </div>
+                            <span class="font-bold {{ $item->total < 0 ? 'text-emerald-800' : 'text-[#2B211E]' }} font-mono">
+                                {{ $item->total < 0 ? '-' : '' }}Rp {{ number_format(abs($item->total), 0, ',', '.') }}
+                            </span>
+                        </div>
+                        @endforeach
+                    @else
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                            <span class="text-[#2B211E]/70">Biaya Paket Tapak ({{ $booking->participant_count }} Siswa)</span>
+                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format(max(0, $booking->subtotal_amount - $booking->addons_amount), 0, ',', '.') }}</span>
+                        </div>
 
-                    @if($booking->addons_amount > 0)
-                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                        <span class="text-[#2B211E]/70">Layanan Tambahan (Add-ons)</span>
-                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</span>
-                    </div>
-                    @endif
+                        @if($booking->addons_amount > 0)
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                            <span class="text-[#2B211E]/70">Layanan Tambahan (Add-ons)</span>
+                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
 
-                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                        <span class="text-[#2B211E]/70">Premi Asuransi Siswa (Rp {{ number_format(setting('insurance_per_pax', 2000), 0, ',', '.') }}/pax)</span>
-                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
-                    </div>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                            <span class="text-[#2B211E]/70">Premi Asuransi Siswa</span>
+                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
+                        </div>
 
-                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                        <span class="text-[#2B211E]/70">Administrasi & Verifikasi Dokumen</span>
-                        <span class="font-bold text-[#2B211E]">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
-                    </div>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                            <span class="text-[#2B211E]/70">Administrasi & Verifikasi Dokumen</span>
+                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
+                        </div>
 
-                    @if($booking->discount_amount > 0)
-                    <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10 text-emerald-800">
-                        <span>Diskon Voucher</span>
-                        <span class="font-bold">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</span>
-                    </div>
+                        @if($booking->discount_amount > 0)
+                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10 text-emerald-800">
+                            <span>Diskon Voucher</span>
+                            <span class="font-bold font-mono">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
                     @endif
 
                     <!-- Status Pembayaran Plinth -->
