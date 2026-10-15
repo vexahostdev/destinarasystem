@@ -330,4 +330,38 @@ class FinanceTest extends TestCase
         $this->get(route('admin.finance.downloadProof', $payment->id))
             ->assertRedirect();
     }
+
+    public function test_admin_can_process_refund_with_exact_modal_payload_and_validation(): void
+    {
+        $refund = Refund::create([
+            'booking_id' => $this->booking->id,
+            'payment_id' => $this->payment->id,
+            'amount' => 500000,
+            'percent' => 50,
+            'reason' => 'Pembatalan rombongan H-7',
+            'status' => RefundStatus::PENDING,
+            'buyer_account_number' => '1234567890',
+            'buyer_account_holder' => 'Guru Buyer Test',
+        ]);
+
+        // 1. Validation error when proof_file is missing
+        $response = $this->actingAs($this->adminUser)->post("/admin/keuangan/refund/{$refund->id}/proses", []);
+        $response->assertSessionHasErrors(['proof_file']);
+
+        // 2. Submit exact modal payload with proof_file and optional note
+        $file = UploadedFile::fake()->create('bukti_refund.png', 400, 'image/png');
+        $successResponse = $this->actingAs($this->adminUser)->post("/admin/keuangan/refund/{$refund->id}/proses", [
+            'proof_file' => $file,
+            'note' => 'Transfer selesai via Mandiri Corporate',
+        ]);
+
+        $successResponse->assertRedirect();
+        $successResponse->assertSessionHas('success');
+
+        $refund->refresh();
+        $this->assertEquals(RefundStatus::COMPLETED, $refund->status);
+        $this->assertNotNull($refund->proof_path);
+        $this->assertEquals('Transfer selesai via Mandiri Corporate', $refund->note);
+        $this->assertEquals($this->adminUser->id, $refund->processed_by);
+    }
 }

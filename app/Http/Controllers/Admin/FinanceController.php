@@ -181,15 +181,21 @@ class FinanceController extends Controller
     public function processRefund(Request $request, $id, RefundService $refundService)
     {
         $request->validate([
-            'proof_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'proof_file' => 'required_without:proof|nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'note' => 'nullable|string|max:500',
         ]);
+
+        $proof = $request->file('proof_file') ?? $request->file('proof');
+        if (! $proof) {
+            return back()->withErrors(['proof_file' => 'Bukti transfer refund wajib diunggah.']);
+        }
 
         $refund = Refund::findOrFail($id);
         $user = Auth::user();
 
         try {
-            $refundService->process($refund, $user, $request->file('proof_file'), $request->note);
+            $refundService->process($refund, $user, $proof, $request->note);
 
             return back()->with('success', "Refund #{$refund->id} berhasil diproses!");
         } catch (\Throwable $e) {

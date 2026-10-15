@@ -93,8 +93,20 @@
                     @csrf
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Bukti Transfer (JPG/PNG/PDF) *</label>
-                        <input type="file" name="proof" required accept="image/*,application/pdf"
+                        <input type="file" name="proof_file" required accept="image/*,application/pdf"
                                class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200">
+                        @error('proof_file')
+                            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
+                        <textarea name="note" rows="2" placeholder="Catatan internal penyelesaian refund..."
+                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                        @error('note')
+                            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
