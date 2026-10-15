@@ -602,14 +602,29 @@ class BuyerController extends Controller
         $bankDetails = null;
 
         if ($calc['percent'] > 0) {
-            $validated = $request->validate([
+            $rules = [
                 'reason' => 'required|string|min:5|max:500',
-                'bank_name' => 'required|string|max:100',
                 'bank_account_number' => 'required|string|max:50',
                 'bank_account_holder' => 'required|string|max:255',
-            ]);
+            ];
+            if ($request->has('bank_id')) {
+                $rules['bank_id'] = 'required|exists:banks,id';
+            } else {
+                $rules['bank_name'] = 'required|string|max:100';
+            }
+
+            $validated = $request->validate($rules);
+            $bankId = $validated['bank_id'] ?? null;
+            $bankName = $validated['bank_name'] ?? null;
+            if ($bankId && ! $bankName) {
+                $bankName = Bank::find($bankId)?->name;
+            } elseif ($bankName && ! $bankId) {
+                $bankId = Bank::where('name', $bankName)->value('id');
+            }
+
             $bankDetails = [
-                'bank_name' => $validated['bank_name'],
+                'bank_id' => $bankId,
+                'bank_name' => $bankName,
                 'account_number' => $validated['bank_account_number'],
                 'account_holder' => $validated['bank_account_holder'],
             ];

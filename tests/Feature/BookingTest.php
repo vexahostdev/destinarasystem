@@ -11,15 +11,18 @@ use App\Enums\AccountType;
 use App\Enums\AddonPricingType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\VerificationStatus;
 use App\Models\Addon;
 use App\Models\AvailabilitySlot;
+use App\Models\Bank;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerProfile;
+use App\Models\Payment;
 use App\Models\Province;
 use App\Models\User;
 use App\Models\Voucher;
@@ -546,5 +549,147 @@ class BookingTest extends TestCase
         $voucher->refresh();
         $this->assertEquals(0, $voucher->used_count);
         $this->assertDatabaseMissing('voucher_redemptions', ['booking_id' => $booking2->id]);
+    }
+
+    public function test_buyer_cancellation_with_refund_submits_bank_id_and_shows_on_admin_refunds_page(): void
+    {
+        $bank = Bank::firstOrCreate(
+            ['code' => 'BCA'],
+            ['name' => 'Bank Central Asia', 'is_active' => true]
+        );
+
+        $bookingService = app(BookingService::class);
+        $visitDate = Carbon::now()->addDays(30)->toDateString();
+
+        AvailabilitySlot::firstOrCreate(
+            ['destination_id' => $this->destination->id, 'date' => $visitDate],
+            ['capacity' => 50, 'booked_count' => 0, 'held_count' => 0, 'status' => 'open']
+        );
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $visitDate,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        Payment::create([
+            'booking_id' => $booking->id,
+            'external_id' => 'INV-TEST-PAID-001',
+            'gateway' => 'manual_transfer',
+            'amount' => $booking->total_amount,
+            'currency' => 'IDR',
+            'status' => PaymentStatus::PAID,
+            'paid_at' => now(),
+            'account_number' => '1234567890',
+            'account_holder' => 'Destinara Finance',
+        ]);
+        $booking->update([
+            'status' => BookingStatus::DIBAYAR,
+            'paid_amount' => $booking->total_amount,
+            'paid_at' => now(),
+        ]);
+
+        // 1. Visit booking detail as buyer -> modal displays refund estimate (> 0%) and bank input
+        $resShow = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $booking->booking_code));
+        $resShow->assertStatus(200);
+        $resShow->assertSee('Estimasi Pengembalian Dana');
+        $resShow->assertSee('name="bank_id"', false);
+
+        // 2. Submit cancellation with exact modal payload
+        $cancelPayload = [
+            'reason' => 'Perubahan kalender akademik yayasan mendadak',
+            'bank_id' => $bank->id,
+            'bank_account_number' => '8880192837',
+            'bank_account_holder' => 'Yayasan Pendidikan Destinara',
+        ];
+
+        $resCancel = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.cancel', $booking->booking_code),
+            $cancelPayload
+        );
+        $resCancel->assertRedirect(route('buyer.booking.show', $booking->booking_code));
+
+        $booking->refresh();
+        $this->assertEquals(BookingStatus::BATAL, $booking->status);
+
+        $this->assertDatabaseHas('refunds', [
+            'booking_id' => $booking->id,
+            'buyer_bank_id' => $bank->id,
+            'buyer_account_number' => '8880192837',
+            'buyer_account_holder' => 'Yayasan Pendidikan Destinara',
+        ]);
+
+        // 3. Admin visits refunds page -> displays bank name, account number, and account holder
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $admin->givePermissionTo('refunds.view');
+
+        $resAdmin = $this->actingAs($admin)->get(route('admin.finance.refunds'));
+        $resAdmin->assertStatus(200);
+        $resAdmin->assertSee($bank->name);
+        $resAdmin->assertSee('8880192837');
+        $resAdmin->assertSee('Yayasan Pendidikan Destinara');
+    }
+
+    public function test_buyer_cancellation_with_zero_refund_hides_bank_form_and_shows_no_refund(): void
+    {
+        $bookingService = app(BookingService::class);
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        // Simulate time advancing to H-2 before visit (falls into 0% refund tier < 7 days)
+        $booking->update([
+            'planned_date_start' => Carbon::now()->addDays(2)->toDateString(),
+        ]);
+
+        Payment::create([
+            'booking_id' => $booking->id,
+            'external_id' => 'INV-TEST-PAID-002',
+            'gateway' => 'manual_transfer',
+            'amount' => $booking->total_amount,
+            'currency' => 'IDR',
+            'status' => PaymentStatus::PAID,
+            'paid_at' => now(),
+            'account_number' => '1234567890',
+            'account_holder' => 'Destinara Finance',
+        ]);
+        $booking->update([
+            'status' => BookingStatus::DIBAYAR,
+            'paid_amount' => $booking->total_amount,
+            'paid_at' => now(),
+        ]);
+
+        // Visit booking detail -> shows "Tidak ada refund (0%)" and hides bank input
+        $resShow = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $booking->booking_code));
+        $resShow->assertStatus(200);
+        $resShow->assertSee('Tidak ada refund (0%)');
+        $resShow->assertDontSee('name="bank_id"', false);
+
+        // Cancel with reason only (no bank details required)
+        $cancelPayload = [
+            'reason' => 'Pembatalan H-1 oleh pihak sekolah',
+        ];
+
+        $resCancel = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.cancel', $booking->booking_code),
+            $cancelPayload
+        );
+        $resCancel->assertRedirect(route('buyer.booking.show', $booking->booking_code));
+
+        $booking->refresh();
+        $this->assertEquals(BookingStatus::BATAL, $booking->status);
+        $this->assertDatabaseMissing('refunds', [
+            'booking_id' => $booking->id,
+        ]);
     }
 }

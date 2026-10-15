@@ -537,7 +537,11 @@
             <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl text-xs space-y-2">
                 <div class="flex items-center justify-between font-bold text-amber-900">
                     <span>Estimasi Pengembalian Dana (Refund):</span>
-                    <span class="text-sm font-black text-[#703A3A]">{{ $refundCalc['percent'] }}% (Rp {{ number_format($refundCalc['amount'], 0, ',', '.') }})</span>
+                    @if($refundCalc['percent'] > 0)
+                        <span class="text-sm font-black text-[#703A3A]">{{ $refundCalc['percent'] }}% (Rp {{ number_format($refundCalc['amount'], 0, ',', '.') }})</span>
+                    @else
+                        <span class="text-sm font-black text-rose-700">Tidak ada refund (0%)</span>
+                    @endif
                 </div>
                 <p class="text-[11px] text-amber-800 leading-relaxed">
                     {{ $refundCalc['tier_note'] ?? 'Sesuai dengan ketentuan kebijakan pembatalan destinasi dan jangka waktu pelaksanaan.' }}
@@ -561,12 +565,11 @@
                         <span class="text-xs font-bold text-slate-900 block">Informasi Rekening Pengembalian Dana</span>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Bank Tujuan <span class="text-rose-500">*</span></label>
-                            <select name="bank_name" required class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-[#703A3A]">
+                            <select name="bank_id" required class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-[#703A3A]">
                                 <option value="">-- Pilih Bank --</option>
                                 @foreach($banks as $b)
-                                    <option value="{{ $b->name }}">{{ $b->name }} ({{ $b->code }})</option>
+                                    <option value="{{ $b->id }}">{{ $b->name }} ({{ $b->code }})</option>
                                 @endforeach
-                                <option value="Bank Lainnya">Bank Lainnya</option>
                             </select>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
