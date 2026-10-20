@@ -700,7 +700,7 @@ class PartnerController extends Controller
         $this->authorize('uploadPermit', $booking);
 
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf', 'max:'.(int) setting('max_upload_size_kb', 5120)],
+            'file' => ['required', 'file', 'mimes:pdf', 'max:5120'],
         ]);
 
         $uploadedFile = $request->file('file');
