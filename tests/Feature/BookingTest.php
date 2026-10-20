@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Domain\Booking\Exceptions\InvalidBookingTransitionException;
+use App\Domain\Booking\Services\AvailabilityService;
 use App\Domain\Booking\Services\BookingCodeGenerator;
 use App\Domain\Booking\Services\BookingService;
 use App\Domain\Booking\Services\PricingService;
@@ -16,6 +17,7 @@ use App\Enums\VerificationStatus;
 use App\Models\Addon;
 use App\Models\AvailabilitySlot;
 use App\Models\Bank;
+use App\Models\BookingSlotAllocation;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
@@ -724,7 +726,7 @@ class BookingTest extends TestCase
         ]);
 
         $bookingService = app(BookingService::class);
-        $availService = app(\App\Domain\Booking\Services\AvailabilityService::class);
+        $availService = app(AvailabilityService::class);
 
         $booking = $bookingService->create([
             'destination_id' => $this->destination->id,
@@ -767,7 +769,7 @@ class BookingTest extends TestCase
         $newSlot->refresh();
         $booking->refresh();
 
-        $allocations = \App\Models\BookingSlotAllocation::where('booking_id', $booking->id)->get();
+        $allocations = BookingSlotAllocation::where('booking_id', $booking->id)->get();
         $this->assertNotEmpty($allocations);
         foreach ($allocations as $allocation) {
             $this->assertEquals('booked', $allocation->type);
@@ -816,7 +818,7 @@ class BookingTest extends TestCase
             $newDateTarget = Carbon::now()->addDays(15);
             $bookingService->reschedule($booking, $newDateTarget, $admin, 'Ganti tanggal mepet');
             $this->fail('Expected cutoff RuntimeException was not thrown');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->assertStringContainsString('maksimal H-3 sebelum tanggal kunjungan', $e->getMessage());
         }
 
@@ -854,7 +856,7 @@ class BookingTest extends TestCase
         try {
             $bookingService->reschedule($booking, $date2, $admin, 'Reschedule kedua');
             $this->fail('Expected quota RuntimeException was not thrown');
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->assertStringContainsString('Batas maksimal penjadwalan ulang (1 kali)', $e->getMessage());
         }
 
@@ -885,4 +887,3 @@ class BookingTest extends TestCase
         $this->assertNull($rescheduledConfirmed->partner_sla_reminded_at);
     }
 }
-

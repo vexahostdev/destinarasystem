@@ -7,9 +7,11 @@ use App\Domain\Notification\Clients\VexaHostClient;
 use App\Domain\Payment\Services\PaymentGatewayManager;
 use App\Domain\Settings\SettingsRepository;
 use App\Http\Controllers\Controller;
+use App\Models\Bank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class SettingsController extends Controller
 {
@@ -72,7 +74,7 @@ class SettingsController extends Controller
             $activeGroup = array_key_first($availableGroups);
         }
 
-        $banks = \App\Models\Bank::where('is_active', true)->orderBy('name')->get();
+        $banks = Bank::where('is_active', true)->orderBy('name')->get();
 
         return view('admin.settings.index', [
             'groupedSettings' => $groupedSettings,
@@ -128,7 +130,7 @@ class SettingsController extends Controller
 
             $underscoreKey = str_replace('.', '_', $key);
             $hasField = $request->has($underscoreKey) || $request->has($key);
-            $deleteSecretKey = 'delete_secret_' . $key;
+            $deleteSecretKey = 'delete_secret_'.$key;
             $hasDeleteSecret = $request->boolean($deleteSecretKey);
 
             if (($item['type'] ?? '') === 'secret') {
@@ -143,6 +145,7 @@ class SettingsController extends Controller
                         'type' => 'secret',
                         'forced_value' => '',
                     ];
+
                     continue;
                 }
 
@@ -160,6 +163,7 @@ class SettingsController extends Controller
                     'input_key' => $inputKey,
                     'type' => 'secret',
                 ];
+
                 continue;
             }
 
@@ -222,7 +226,7 @@ class SettingsController extends Controller
         if (! empty($validationRules)) {
             try {
                 $request->validate($validationRules);
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 $redirectUrl = route('admin.settings.index', ['group' => $targetGroup ?: 'general']);
                 throw $e->redirectTo($redirectUrl);
             }
@@ -231,6 +235,7 @@ class SettingsController extends Controller
         foreach ($keysToUpdate as $key => $meta) {
             if (array_key_exists('forced_value', $meta)) {
                 $this->settings->set($key, $meta['forced_value']);
+
                 continue;
             }
 

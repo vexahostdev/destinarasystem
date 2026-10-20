@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Booking\Services\BookingService;
 use App\Domain\Document\Services\DocumentNumberGenerator;
 use App\Domain\Document\Services\DocumentService;
 use App\Enums\AccountType;
@@ -10,6 +11,8 @@ use App\Enums\DestinationStatus;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Enums\VerificationStatus;
+use App\Livewire\Buyer\BookingForm;
+use App\Models\AvailabilitySlot;
 use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
@@ -22,7 +25,9 @@ use App\Models\Province;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class DocumentTest extends TestCase
@@ -229,7 +234,7 @@ class DocumentTest extends TestCase
 
     public function test_reschedule_documents_lifecycle_v7_1(): void
     {
-        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $bookingService = app(BookingService::class);
         $docService = app(DocumentService::class);
 
         // Test ini me-reschedule booking yang sama dua kali; kuota reschedule dibuat tanpa batas
@@ -292,7 +297,7 @@ class DocumentTest extends TestCase
 
     public function test_reschedule_voids_active_permit_signed_and_notifies_buyer_v8_4(): void
     {
-        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $bookingService = app(BookingService::class);
 
         $this->booking->status = BookingStatus::DIBAYAR;
         $this->booking->save();
@@ -335,7 +340,7 @@ class DocumentTest extends TestCase
 
         // Notifikasi in-app khusus event ini (bukan notifikasi booking.rescheduled yang juga terkirim)
         foreach ([$this->buyer, $this->partnerUser] as $recipient) {
-            $permitNotifications = \Illuminate\Support\Facades\DB::table('notifications')
+            $permitNotifications = DB::table('notifications')
                 ->where('notifiable_type', User::class)
                 ->where('notifiable_id', $recipient->id)
                 ->get()
@@ -353,13 +358,13 @@ class DocumentTest extends TestCase
 
     public function test_permit_draft_lifecycle_and_validation_v9_2(): void
     {
-        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+        $bookingService = app(BookingService::class);
 
         // Case 1: Destination does NOT have permit document -> needs_permit_letter=true rejected on create
         $this->destination->has_permit_document = false;
         $this->destination->save();
 
-        $slot = \App\Models\AvailabilitySlot::create([
+        $slot = AvailabilitySlot::create([
             'destination_id' => $this->destination->id,
             'date' => Carbon::now()->addDays(15)->toDateString(),
             'capacity' => 100,
@@ -428,12 +433,12 @@ class DocumentTest extends TestCase
         // Case 3: Livewire BookingForm checkbox visibility
         $this->destination->has_permit_document = false;
         $this->destination->save();
-        $lw1 = \Livewire\Livewire::test(\App\Livewire\Buyer\BookingForm::class, ['destination' => $this->destination->fresh()]);
+        $lw1 = Livewire::test(BookingForm::class, ['destination' => $this->destination->fresh()]);
         $lw1->assertDontSee('Butuh draf Surat Izin');
 
         $this->destination->has_permit_document = true;
         $this->destination->save();
-        $lw2 = \Livewire\Livewire::test(\App\Livewire\Buyer\BookingForm::class, ['destination' => $this->destination->fresh()]);
+        $lw2 = Livewire::test(BookingForm::class, ['destination' => $this->destination->fresh()]);
         $lw2->assertSee('Butuh draf Surat Izin');
     }
 }

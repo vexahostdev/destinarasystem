@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -262,7 +263,7 @@ class SettingsManagementFlowTest extends TestCase
         $updateRes2->assertRedirect();
         $this->assertEquals('xnd_new_key_abcd_9999', $repo->get('xendit_secret_key'));
 
-        $dbRow = \App\Models\Setting::where('key', 'xendit_secret_key')->first();
+        $dbRow = Setting::where('key', 'xendit_secret_key')->first();
         $this->assertNotNull($dbRow);
         $this->assertTrue((bool) $dbRow->is_encrypted);
         $this->assertNotEquals('xnd_new_key_abcd_9999', $dbRow->getRawOriginal('value'));
@@ -282,4 +283,3 @@ class SettingsManagementFlowTest extends TestCase
         $viewResEmpty->assertSee('Belum diisi');
     }
 }
-

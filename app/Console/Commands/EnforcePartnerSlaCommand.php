@@ -6,7 +6,6 @@ use App\Domain\Booking\Services\BookingService;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
-use App\Models\NotificationLog;
 use Illuminate\Console\Command;
 
 class EnforcePartnerSlaCommand extends Command

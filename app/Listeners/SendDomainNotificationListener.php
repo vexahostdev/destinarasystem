@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Enums\BookingStatus;
 use App\Enums\PayoutStatus;
 use App\Events\BookingCancelled;
 use App\Events\BookingCheckedIn;
@@ -121,12 +122,12 @@ class SendDomainNotificationListener
             ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingRescheduled) {
             $b = $event->booking;
-            $isConfirmed = $b->status === \App\Enums\BookingStatus::DIKONFIRMASI;
+            $isConfirmed = $b->status === BookingStatus::DIKONFIRMASI;
             $documentsNote = $isConfirmed
                 ? 'Surat Konfirmasi dan E-Voucher baru telah diterbitkan.'
                 : 'Jadwal menunggu konfirmasi pengelola.';
             $deadlineStr = $b->partner_confirm_deadline
-                ? $b->partner_confirm_deadline->format('d/m/Y H:i') . ' WIB'
+                ? $b->partner_confirm_deadline->format('d/m/Y H:i').' WIB'
                 : 'tenggat SLA';
             $partnerNote = $isConfirmed
                 ? 'Dokumen baru telah diterbitkan.'

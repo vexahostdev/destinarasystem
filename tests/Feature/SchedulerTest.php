@@ -13,7 +13,9 @@ use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\Institution;
+use App\Models\NotificationLog;
 use App\Models\Package;
+use App\Models\PartnerProfile;
 use App\Models\Province;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -132,14 +134,14 @@ class SchedulerTest extends TestCase
     public function test_partner_sla_command_auto_cancels_and_reminds_with_deduplication(): void
     {
         $this->seed();
-        \Illuminate\Support\Facades\Http::fake();
+        Http::fake();
 
         $partner = User::factory()->create([
             'account_type' => AccountType::PARTNER,
             'status' => 'active',
             'phone' => '6281234567890',
         ]);
-        \App\Models\PartnerProfile::create([
+        PartnerProfile::create([
             'user_id' => $partner->id,
             'organization_name' => 'Pokdarwis SLA Test',
             'status' => 'approved',
@@ -229,13 +231,13 @@ class SchedulerTest extends TestCase
         $this->assertEquals(BookingStatus::BATAL, $bookingOverdue->fresh()->status);
         $this->assertNotNull($bookingApproaching->fresh()->partner_sla_reminded_at);
 
-        $initialReminderCount = \App\Models\NotificationLog::where('event_key', 'partner.confirm_reminder')
+        $initialReminderCount = NotificationLog::where('event_key', 'partner.confirm_reminder')
             ->where('recipient', '6281234567890')
             ->count();
         $this->assertGreaterThan(0, $initialReminderCount);
 
         // Run command second time: dedupe prevents sending second reminder
         Artisan::call('bookings:partner-sla');
-        $this->assertEquals($initialReminderCount, \App\Models\NotificationLog::where('event_key', 'partner.confirm_reminder')->where('recipient', '6281234567890')->count());
+        $this->assertEquals($initialReminderCount, NotificationLog::where('event_key', 'partner.confirm_reminder')->where('recipient', '6281234567890')->count());
     }
 }

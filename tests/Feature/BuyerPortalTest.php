@@ -11,6 +11,7 @@ use App\Enums\VerificationStatus;
 use App\Livewire\Buyer\BookingForm;
 use App\Models\AvailabilitySlot;
 use App\Models\Booking;
+use App\Models\BookingItem;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
@@ -25,6 +26,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -536,7 +538,7 @@ class BuyerPortalTest extends TestCase
             'status' => BookingStatus::MENUNGGU_PEMBAYARAN,
         ]);
 
-        \App\Models\BookingItem::create([
+        BookingItem::create([
             'booking_id' => $booking->id,
             'type' => 'package',
             'reference_id' => $this->package->id,
@@ -546,7 +548,7 @@ class BuyerPortalTest extends TestCase
             'total' => 2250000,
         ]);
 
-        \App\Models\BookingItem::create([
+        BookingItem::create([
             'booking_id' => $booking->id,
             'type' => 'addon',
             'reference_id' => 1,
@@ -556,7 +558,7 @@ class BuyerPortalTest extends TestCase
             'total' => 1050000,
         ]);
 
-        \App\Models\BookingItem::create([
+        BookingItem::create([
             'booking_id' => $booking->id,
             'type' => 'insurance',
             'name' => 'Premi Asuransi Siswa',
@@ -565,7 +567,7 @@ class BuyerPortalTest extends TestCase
             'total' => 50000,
         ]);
 
-        \App\Models\BookingItem::create([
+        BookingItem::create([
             'booking_id' => $booking->id,
             'type' => 'platform_fee',
             'name' => 'Administrasi & Verifikasi Dokumen',
@@ -631,7 +633,7 @@ class BuyerPortalTest extends TestCase
             'xendit_secret_key' => 'xnd_development_dummy_key_123',
             'xendit_callback_token' => 'xnd_webhook_token_123',
         ]);
-        \App\Models\AvailabilitySlot::create([
+        AvailabilitySlot::create([
             'destination_id' => $this->destination->id,
             'date' => now()->addDays(14)->format('Y-m-d'),
             'capacity' => 100,
@@ -667,7 +669,7 @@ class BuyerPortalTest extends TestCase
     }
 
     /** Kirim submit lewat endpoint /livewire/update (middleware persisten hanya berlaku di sini, bukan di Livewire::test). */
-    private function submitBookingFormOverHttp(string $snapshot): \Illuminate\Testing\TestResponse
+    private function submitBookingFormOverHttp(string $snapshot): TestResponse
     {
         return $this->withHeaders(['X-Livewire' => 'true'])->postJson('/livewire/update', [
             'components' => [[
@@ -688,7 +690,7 @@ class BuyerPortalTest extends TestCase
 
         // Kontrol: buyer aktif berhasil membuat booking lewat jalur HTTP yang sama
         $this->submitBookingFormOverHttp($this->bookingFormSnapshot())->assertOk();
-        $this->assertSame(1, \App\Models\Booking::where('user_id', $this->buyer->id)->count());
+        $this->assertSame(1, Booking::where('user_id', $this->buyer->id)->count());
 
         // Form masih terbuka di browser, lalu buyer ditangguhkan admin
         $openForm = $this->bookingFormSnapshot();
@@ -697,6 +699,6 @@ class BuyerPortalTest extends TestCase
         $response = $this->submitBookingFormOverHttp($openForm);
 
         $this->assertNotSame(200, $response->status(), 'Request Livewire dari akun suspended harus ditolak.');
-        $this->assertSame(1, \App\Models\Booking::where('user_id', $this->buyer->id)->count());
+        $this->assertSame(1, Booking::where('user_id', $this->buyer->id)->count());
     }
 }

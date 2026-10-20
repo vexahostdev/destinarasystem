@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Domain\Settings\SettingsRepository;
 use App\Enums\AccountType;
+use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
+use App\Models\Institution;
 use App\Models\Package;
 use App\Models\Province;
 use App\Models\Setting;
@@ -16,6 +19,8 @@ use App\Providers\RuntimeConfigServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AdminPortalTest extends TestCase
@@ -338,7 +343,7 @@ class AdminPortalTest extends TestCase
             'is_active' => true,
         ]);
 
-        $institution = \App\Models\Institution::create([
+        $institution = Institution::create([
             'user_id' => $this->buyer->id,
             'institution_name' => 'SMA Negeri 3 Bandung',
             'pic_name' => 'Dra. Ratna',
@@ -346,14 +351,14 @@ class AdminPortalTest extends TestCase
             'pic_email' => 'ratna@sman3bdg.sch.id',
         ]);
 
-        $booking = \App\Models\Booking::create([
+        $booking = Booking::create([
             'booking_code' => 'DST-RESCHED-001',
             'user_id' => $this->buyer->id,
             'institution_id' => $institution->id,
             'destination_id' => $destination->id,
             'package_id' => $package->id,
             'inquiry_type' => 'study_tour',
-            'status' => \App\Enums\BookingStatus::DIKONFIRMASI,
+            'status' => BookingStatus::DIKONFIRMASI,
             'participant_count' => 20,
             'total_amount' => 1200000,
             'subtotal_amount' => 1200000,
@@ -452,7 +457,7 @@ class AdminPortalTest extends TestCase
 
     public function test_date_validation_rule_replacers_v8_3(): void
     {
-        $v1 = \Illuminate\Support\Facades\Validator::make(
+        $v1 = Validator::make(
             ['start_date' => '2026-10-20', 'end_date' => '2026-10-10'],
             ['end_date' => 'after_or_equal:start_date']
         );
@@ -461,7 +466,7 @@ class AdminPortalTest extends TestCase
             $v1->errors()->first('end_date')
         );
 
-        $v2 = \Illuminate\Support\Facades\Validator::make(
+        $v2 = Validator::make(
             ['starts_at' => '2026-10-20', 'ends_at' => '2026-10-10'],
             ['ends_at' => 'after_or_equal:starts_at']
         );
@@ -470,7 +475,7 @@ class AdminPortalTest extends TestCase
             $v2->errors()->first('ends_at')
         );
 
-        $v3 = \Illuminate\Support\Facades\Validator::make(
+        $v3 = Validator::make(
             ['new_date' => '2026-10-10'],
             ['new_date' => 'after_or_equal:2026-10-22']
         );
@@ -483,7 +488,7 @@ class AdminPortalTest extends TestCase
     public function test_super_admin_privilege_escalation_and_protection_rules_k_1(): void
     {
         // 1. Setup a custom staff role with internal_users.manage and roles.manage permissions
-        $customRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'hr_manager', 'guard_name' => 'web']);
+        $customRole = Role::firstOrCreate(['name' => 'hr_manager', 'guard_name' => 'web']);
         $customRole->givePermissionTo(['internal_users.manage', 'roles.manage']);
 
         $staffUser = User::factory()->create([
@@ -537,7 +542,7 @@ class AdminPortalTest extends TestCase
         $deleteSaResponse->assertStatus(403);
 
         // F. Role super_admin cannot be updated via updateRole -> must 403
-        $saRole = \Spatie\Permission\Models\Role::where('name', 'super_admin')->firstOrFail();
+        $saRole = Role::where('name', 'super_admin')->firstOrFail();
         $updateSaRoleRes = $this->actingAs($superAdmin)->post(route('admin.team.role.update', $saRole->id), [
             'permissions' => [],
         ]);
@@ -629,7 +634,7 @@ class AdminPortalTest extends TestCase
             'account_type' => AccountType::INTERNAL,
             'status' => 'active',
         ]);
-        $roleWithoutPartnerSuspend = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'buyer_manager', 'guard_name' => 'web']);
+        $roleWithoutPartnerSuspend = Role::firstOrCreate(['name' => 'buyer_manager', 'guard_name' => 'web']);
         $roleWithoutPartnerSuspend->syncPermissions(['users.manage', 'users.view']);
         $staffWithoutPartnerSuspend->assignRole($roleWithoutPartnerSuspend);
 

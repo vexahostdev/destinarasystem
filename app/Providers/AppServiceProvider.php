@@ -25,12 +25,13 @@ use App\Events\PayoutTransferred;
 use App\Events\RefundCompleted;
 use App\Events\RefundCreated;
 use App\Events\UserRegistered;
-use App\Listeners\GenerateBookingDocumentsListener;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\EnsureAccountType;
 use App\Http\Middleware\EnsurePartnerVerified;
+use App\Listeners\GenerateBookingDocumentsListener;
 use App\Listeners\SendDomainNotificationListener;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -68,14 +69,14 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Set locale Indonesia untuk Carbon dan format tanggal (C4)
-        \Carbon\Carbon::setLocale('id');
+        Carbon::setLocale('id');
         @setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'id', 'indonesian');
 
         // Format tanggal berbahasa Indonesia pada pesan validasi tanggal (V7-2, V8-3)
         $dateReplacer = function ($message, $attribute, $rule, $parameters, $validator) {
             $param = $parameters[0] ?? '';
             if (! empty($param) && strtotime($param)) {
-                return str_replace(':date', \Carbon\Carbon::parse($param)->translatedFormat('d F Y'), $message);
+                return str_replace(':date', Carbon::parse($param)->translatedFormat('d F Y'), $message);
             }
 
             return str_replace(':date', $validator->getDisplayableAttribute($param), $message);

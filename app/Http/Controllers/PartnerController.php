@@ -291,7 +291,7 @@ class PartnerController extends Controller
             DestinationSubmitted::dispatch($destination, Auth::user());
 
             return back()->with('success', "Destinasi '{$destination->name}' berhasil diajukan untuk kurasi tim Destinara.");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -305,7 +305,7 @@ class PartnerController extends Controller
             $statusLabel = $destination->status === DestinationStatus::PUBLISHED ? 'diaktifkan kembali' : 'dinonaktifkan sementara';
 
             return back()->with('success', "Status destinasi '{$destination->name}' berhasil {$statusLabel}.");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -323,7 +323,7 @@ class PartnerController extends Controller
             $this->destinationService->addMedia($destination, $request->file('image'), $request->caption);
 
             return back()->with('success', 'Foto galeri berhasil ditambahkan.');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -457,7 +457,7 @@ class PartnerController extends Controller
             $this->destinationService->deletePackage($pkg);
 
             return back()->with('success', 'Paket berhasil dihapus.');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return back()->with('error', $e->getMessage());
         }
     }
@@ -629,7 +629,7 @@ class PartnerController extends Controller
             $this->bookingService->confirm($booking, $user);
 
             return redirect()->back()->with('success', "Pesanan #{$booking->booking_code} berhasil dikonfirmasi! Dokumen e-Pass dan surat izin diterbitkan.");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -654,7 +654,7 @@ class PartnerController extends Controller
             $this->bookingService->reject($booking, $user, $request->reason);
 
             return redirect()->back()->with('error', "Pesanan #{$booking->booking_code} telah ditolak. Pengembalian dana 100% telah dijadwalkan.");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -834,7 +834,7 @@ class PartnerController extends Controller
             );
 
             return redirect()->back()->with('success', "Check-in rombongan {$booking->booking_code} berhasil dicatat!");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }

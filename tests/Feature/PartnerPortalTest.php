@@ -6,6 +6,8 @@ use App\Domain\Booking\Services\BookingCodeGenerator;
 use App\Enums\AccountType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Enums\PaymentStatus;
 use App\Enums\VerificationStatus;
 use App\Jobs\GenerateDocumentJob;
@@ -15,6 +17,7 @@ use App\Models\Booking;
 use App\Models\CancellationPolicy;
 use App\Models\Destination;
 use App\Models\DestinationCategory;
+use App\Models\Document;
 use App\Models\Institution;
 use App\Models\Package;
 use App\Models\PartnerProfile;
@@ -24,8 +27,11 @@ use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -426,8 +432,8 @@ class PartnerPortalTest extends TestCase
 
     public function test_partner_upload_signed_permit_flow_v9_1(): void
     {
-        \Illuminate\Support\Facades\Http::fake([
-            '*' => \Illuminate\Support\Facades\Http::response(['status' => 'success'], 200),
+        Http::fake([
+            '*' => Http::response(['status' => 'success'], 200),
         ]);
 
         $booking = Booking::create([
@@ -451,14 +457,14 @@ class PartnerPortalTest extends TestCase
         ]);
 
         // Active permit_draft
-        $draftPermit = \App\Models\Document::create([
+        $draftPermit = Document::create([
             'booking_id' => $booking->id,
-            'type' => \App\Enums\DocumentType::PERMIT_DRAFT,
+            'type' => DocumentType::PERMIT_DRAFT,
             'document_number' => 'DRAFT-IZIN/2026/10/00001',
             'title' => 'Draf Surat Izin Kegiatan',
             'file_path' => 'documents/draft_001.pdf',
             'verification_hash' => hash('sha256', 'draft-permit-test'),
-            'status' => \App\Enums\DocumentStatus::DRAFT,
+            'status' => DocumentStatus::DRAFT,
             'version' => 1,
             'generated_at' => now(),
         ]);
@@ -477,14 +483,14 @@ class PartnerPortalTest extends TestCase
             'bank_account_holder' => 'Mitra Lain',
         ]);
 
-        $pdfFile = \Illuminate\Http\UploadedFile::fake()->create('surat_izin_bertanda_tangan.pdf', 500, 'application/pdf');
+        $pdfFile = UploadedFile::fake()->create('surat_izin_bertanda_tangan.pdf', 500, 'application/pdf');
         $forbiddenRes = $this->actingAs($otherPartner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
             'file' => $pdfFile,
         ]);
         $forbiddenRes->assertStatus(403);
 
         // 2. Non-PDF file upload rejected
-        $txtFile = \Illuminate\Http\UploadedFile::fake()->create('surat_izin.txt', 200, 'text/plain');
+        $txtFile = UploadedFile::fake()->create('surat_izin.txt', 200, 'text/plain');
         $invalidRes = $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
             'file' => $txtFile,
         ]);
@@ -497,16 +503,16 @@ class PartnerPortalTest extends TestCase
         $validRes->assertRedirect();
         $validRes->assertSessionHas('success');
 
-        $signedPermit = \App\Models\Document::where('booking_id', $booking->id)
-            ->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)
-            ->where('status', \App\Enums\DocumentStatus::FINAL)
+        $signedPermit = Document::where('booking_id', $booking->id)
+            ->where('type', DocumentType::PERMIT_SIGNED)
+            ->where('status', DocumentStatus::FINAL)
             ->first();
 
         $this->assertNotNull($signedPermit);
         $this->assertEquals(1, $signedPermit->version);
         $this->assertStringStartsWith('IZIN/', $signedPermit->document_number);
         $this->assertNotEmpty($signedPermit->verification_hash);
-        $this->assertTrue(\Illuminate\Support\Facades\Storage::disk('local')->exists($signedPermit->file_path));
+        $this->assertTrue(Storage::disk('local')->exists($signedPermit->file_path));
 
         // 4. Notification sent to buyer
         $this->assertDatabaseHas('notification_logs', [
@@ -519,18 +525,18 @@ class PartnerPortalTest extends TestCase
         $downloadRes->assertOk();
 
         // 6. Partner uploads replacement version -> previous version voided, new version is 2
-        $pdfFile2 = \Illuminate\Http\UploadedFile::fake()->create('surat_izin_v2.pdf', 600, 'application/pdf');
+        $pdfFile2 = UploadedFile::fake()->create('surat_izin_v2.pdf', 600, 'application/pdf');
         $replaceRes = $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
             'file' => $pdfFile2,
         ]);
         $replaceRes->assertRedirect();
 
         $signedPermit->refresh();
-        $this->assertEquals(\App\Enums\DocumentStatus::VOID, $signedPermit->status);
+        $this->assertEquals(DocumentStatus::VOID, $signedPermit->status);
 
-        $newSignedPermit = \App\Models\Document::where('booking_id', $booking->id)
-            ->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)
-            ->where('status', \App\Enums\DocumentStatus::FINAL)
+        $newSignedPermit = Document::where('booking_id', $booking->id)
+            ->where('type', DocumentType::PERMIT_SIGNED)
+            ->where('status', DocumentStatus::FINAL)
             ->first();
 
         $this->assertNotNull($newSignedPermit);
@@ -546,7 +552,7 @@ class PartnerPortalTest extends TestCase
 
     public function test_failed_signed_permit_upload_keeps_previous_version_and_removes_orphan_file_v10_1(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
 
         $booking = Booking::create([
             'booking_code' => app(BookingCodeGenerator::class)->generate(),
@@ -567,46 +573,46 @@ class PartnerPortalTest extends TestCase
             'status' => BookingStatus::DIKONFIRMASI,
         ]);
 
-        \App\Models\Document::create([
+        Document::create([
             'booking_id' => $booking->id,
-            'type' => \App\Enums\DocumentType::PERMIT_DRAFT,
+            'type' => DocumentType::PERMIT_DRAFT,
             'document_number' => 'DSI/2026/10/09001',
             'title' => 'Draf Surat Izin',
             'file_path' => 'documents/draft_v10.pdf',
             'verification_hash' => hash('sha256', 'draft-v10'),
-            'status' => \App\Enums\DocumentStatus::DRAFT,
+            'status' => DocumentStatus::DRAFT,
             'version' => 1,
             'generated_at' => now(),
         ]);
-        $previous = \App\Models\Document::create([
+        $previous = Document::create([
             'booking_id' => $booking->id,
-            'type' => \App\Enums\DocumentType::PERMIT_SIGNED,
+            'type' => DocumentType::PERMIT_SIGNED,
             'document_number' => 'IZIN/2026/10/09001',
             'title' => 'Surat Izin Bertanda Tangan Resmi',
             'file_path' => 'documents/signed_v1.pdf',
             'verification_hash' => hash('sha256', 'signed-v10'),
-            'status' => \App\Enums\DocumentStatus::FINAL,
+            'status' => DocumentStatus::FINAL,
             'version' => 1,
             'generated_at' => now(),
         ]);
 
         // Gagal saat menyimpan dokumen baru: setelah berkas tersimpan dan versi lama di-void
-        \App\Models\Document::creating(function () {
+        Document::creating(function () {
             throw new \RuntimeException('Gagal menyimpan dokumen');
         });
 
         $this->withoutExceptionHandling();
         try {
             $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
-                'file' => \Illuminate\Http\UploadedFile::fake()->create('izin_baru.pdf', 200, 'application/pdf'),
+                'file' => UploadedFile::fake()->create('izin_baru.pdf', 200, 'application/pdf'),
             ]);
             $this->fail('Upload seharusnya gagal.');
         } catch (\RuntimeException $e) {
             $this->assertSame('Gagal menyimpan dokumen', $e->getMessage());
         }
 
-        $this->assertEquals(\App\Enums\DocumentStatus::FINAL, $previous->fresh()->status, 'Versi lama tidak boleh ikut di-void.');
-        $this->assertSame(1, \App\Models\Document::where('booking_id', $booking->id)->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)->count());
-        $this->assertSame([], \Illuminate\Support\Facades\Storage::disk('local')->allFiles('documents'), 'Berkas yatim harus dihapus.');
+        $this->assertEquals(DocumentStatus::FINAL, $previous->fresh()->status, 'Versi lama tidak boleh ikut di-void.');
+        $this->assertSame(1, Document::where('booking_id', $booking->id)->where('type', DocumentType::PERMIT_SIGNED)->count());
+        $this->assertSame([], Storage::disk('local')->allFiles('documents'), 'Berkas yatim harus dihapus.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Models\Destination;
 use App\Models\Document;
@@ -88,7 +89,7 @@ class PublicController extends Controller
                 'phone' => $canRevealContacts ? $c->phone : null,
                 'is_revealed' => $canRevealContacts,
             ]),
-            'contact_reveal_label' => strtolower(\App\Enums\BookingStatus::from(setting('contact_reveal_status', 'dikonfirmasi'))->label()),
+            'contact_reveal_label' => strtolower(BookingStatus::from(setting('contact_reveal_status', 'dikonfirmasi'))->label()),
             'has_permit' => (bool) $destination->has_permit_document,
             'is_partner_verified' => (bool) $destination->partner?->partnerProfile?->isVerified(),
         ];

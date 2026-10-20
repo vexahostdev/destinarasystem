@@ -3,6 +3,8 @@
 namespace App\Policies;
 
 use App\Enums\BookingStatus;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Models\Booking;
 use App\Models\User;
 
@@ -99,8 +101,8 @@ class BookingPolicy
         }
 
         return $booking->documents()
-            ->where('type', \App\Enums\DocumentType::PERMIT_DRAFT)
-            ->where('status', '!=', \App\Enums\DocumentStatus::VOID)
+            ->where('type', DocumentType::PERMIT_DRAFT)
+            ->where('status', '!=', DocumentStatus::VOID)
             ->exists();
     }
 

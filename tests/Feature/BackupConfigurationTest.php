@@ -9,6 +9,8 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification;
+use Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification;
 use Tests\TestCase;
 
 /**
@@ -37,8 +39,8 @@ class BackupConfigurationTest extends TestCase
         $this->assertNotContains('your@example.com', (array) config('backup.notifications.mail.to'));
 
         $notifications = config('backup.notifications.notifications');
-        $this->assertSame(['mail'], $notifications[\Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification::class]);
-        $this->assertSame([], $notifications[\Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification::class]);
+        $this->assertSame(['mail'], $notifications[BackupHasFailedNotification::class]);
+        $this->assertSame([], $notifications[BackupWasSuccessfulNotification::class]);
     }
 
     public function test_backup_alert_recipients_come_from_admin_alert_emails_setting(): void

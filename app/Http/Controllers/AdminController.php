@@ -98,7 +98,7 @@ class AdminController extends Controller
             $urgentItems[] = [
                 'type' => 'booking',
                 'title' => "{$waitingPartnerSla} Reservasi Menunggu Konfirmasi Mitra",
-                'desc' => 'Perlu pemantauan konfirmasi batas SLA ' . (int) setting('partner_confirm_sla_hours', 24) . ' jam.',
+                'desc' => 'Perlu pemantauan konfirmasi batas SLA '.(int) setting('partner_confirm_sla_hours', 24).' jam.',
                 'link' => route('admin.bookings.index', ['status' => 'dibayar']),
                 'action_label' => 'Periksa Reservasi',
                 'badge' => 'SLA Alert',
