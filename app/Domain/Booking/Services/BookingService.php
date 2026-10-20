@@ -487,18 +487,46 @@ class BookingService
                 throw new RuntimeException('Hanya booking berstatus dibayar atau dikonfirmasi yang dapat di-reschedule.');
             }
 
+            // 1. Quota check
+            $maxReschedule = (int) setting('max_reschedule_per_booking', 1);
+            if ($maxReschedule > 0 && ($locked->reschedule_count ?? 0) >= $maxReschedule) {
+                throw new RuntimeException("Batas maksimal penjadwalan ulang ({$maxReschedule} kali) untuk pesanan ini telah tercapai.");
+            }
+
+            // 2. Cutoff check: must be at or before H-cutoffDays from OLD visit date
+            $cutoffDays = (int) setting('reschedule_cutoff_days', 3);
+            $cutoffDeadline = $locked->planned_date_start->copy()->subDays($cutoffDays)->endOfDay();
+            if (now()->gt($cutoffDeadline)) {
+                throw new RuntimeException("Penjadwalan ulang hanya dapat dilakukan maksimal H-{$cutoffDays} sebelum tanggal kunjungan.");
+            }
+
+            // 3. New date lead time check
+            $minLeadDays = (int) setting('min_lead_days', 3);
+            $minAllowedDate = now()->addDays($minLeadDays)->startOfDay();
+            if ($newStartDate->lt($minAllowedDate)) {
+                throw new InvalidArgumentException("Tanggal baru minimal H-{$minLeadDays} dari hari ini.");
+            }
+
             $durationDays = $locked->package->duration_days;
             $newEndDate = $newStartDate->copy()->addDays($durationDays - 1);
 
-            // 1. Release existing slot allocations
+            // 4. Release existing slot allocations
             $this->availabilityService->releaseSlots($locked);
 
-            // 2. Temporarily update dates on model to hold new slots
+            // 5. Update dates and increment reschedule count
             $oldDates = "{$locked->planned_date_start->format('d/m/Y')} - {$locked->planned_date_end->format('d/m/Y')}";
             $locked->planned_date_start = $newStartDate->format('Y-m-d');
             $locked->planned_date_end = $newEndDate->format('Y-m-d');
+            $locked->reschedule_count = ($locked->reschedule_count ?? 0) + 1;
 
-            // 3. Hold new slots and promote if already paid or confirmed
+            // 6. Reset SLA for DIBAYAR status
+            if ($locked->status === BookingStatus::DIBAYAR) {
+                $slaHours = (int) setting('partner_confirm_sla_hours', 48);
+                $locked->partner_confirm_deadline = now()->addHours($slaHours);
+                $locked->partner_sla_reminded_at = null;
+            }
+
+            // 7. Hold new slots and promote if already paid or confirmed
             $this->availabilityService->holdSlots($locked);
             if (in_array($locked->status, [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI], true)) {
                 $this->availabilityService->promoteHeldToBooked($locked);

@@ -53,32 +53,28 @@ class EnforcePartnerSlaCommand extends Command
         $reminderThreshold = $now->copy()->addHours(2);
         $approachingBookings = Booking::where('status', BookingStatus::DIBAYAR)
             ->whereNotNull('partner_confirm_deadline')
+            ->whereNull('partner_sla_reminded_at')
             ->where('partner_confirm_deadline', '>', $now)
             ->where('partner_confirm_deadline', '<=', $reminderThreshold)
             ->get();
 
         $remindedCount = 0;
         foreach ($approachingBookings as $booking) {
-            $alreadyReminded = NotificationLog::where('event_key', 'partner.confirm_reminder')
-                ->where('body', 'like', "%{$booking->booking_code}%")
-                ->exists();
+            $hoursLeft = max(1, (int) round($now->diffInMinutes($booking->partner_confirm_deadline) / 60));
+            $notifier->send('partner.confirm_reminder', [
+                'booking' => $booking,
+                'destination_name' => $booking->destination->name,
+                'booking_code' => $booking->booking_code,
+                'institution_name' => $booking->institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
+                'organization_name' => $booking->destination?->partner?->partnerProfile?->organization_name ?? $booking->destination?->partner?->name ?? 'Mitra Pengelola',
+                'deadline' => $booking->partner_confirm_deadline->format('d/m/Y H:i').' WIB',
+                'hours_left' => (string) $hoursLeft,
+                'partner_url' => route('mitra.bookings'),
+                'partner_booking_url' => route('mitra.bookings'),
+            ], ['partner', 'admin']);
 
-            if (! $alreadyReminded) {
-                $hoursLeft = max(1, (int) round($now->diffInMinutes($booking->partner_confirm_deadline) / 60));
-                $notifier->send('partner.confirm_reminder', [
-                    'booking' => $booking,
-                    'destination_name' => $booking->destination->name,
-                    'booking_code' => $booking->booking_code,
-                    'institution_name' => $booking->institution?->institution_name ?? $booking->user?->name ?? 'Institusi Pemesan',
-                    'organization_name' => $booking->destination?->partner?->partnerProfile?->organization_name ?? $booking->destination?->partner?->name ?? 'Mitra Pengelola',
-                    'deadline' => $booking->partner_confirm_deadline->format('d/m/Y H:i').' WIB',
-                    'hours_left' => (string) $hoursLeft,
-                    'partner_url' => route('mitra.bookings'),
-                    'partner_booking_url' => route('mitra.bookings'),
-                ], ['partner', 'admin']);
-
-                $remindedCount++;
-            }
+            $booking->update(['partner_sla_reminded_at' => $now]);
+            $remindedCount++;
         }
 
         $this->info("SLA diproses: {$cancelledCount} booking dibatalkan otomatis, {$remindedCount} pengingat dikirim ke mitra.");

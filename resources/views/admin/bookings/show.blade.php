@@ -248,6 +248,23 @@
                 @csrf
                 <input type="hidden" name="action" value="reschedule">
 
+                @php
+                    $maxReschedule = (int) setting('max_reschedule_per_booking', 1);
+                    $usedReschedule = (int) ($booking->reschedule_count ?? 0);
+                    $remainingReschedule = $maxReschedule === 0 ? 'Tanpa Batas' : max(0, $maxReschedule - $usedReschedule) . ' kali';
+                    $cutoffDays = (int) setting('reschedule_cutoff_days', 3);
+                @endphp
+                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Sisa Kuota Reschedule:</span>
+                        <span class="font-bold text-gray-800">{{ $remainingReschedule }}</span>
+                    </div>
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-500">Batas Waktu:</span>
+                        <span class="text-gray-700">Maksimal H-{{ $cutoffDays }} sebelum tanggal kunjungan lama</span>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tanggal Mulai Baru *</label>
                     <input type="date" name="new_date" required min="{{ now()->format('Y-m-d') }}"

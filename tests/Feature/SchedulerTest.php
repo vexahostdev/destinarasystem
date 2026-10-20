@@ -128,4 +128,114 @@ class SchedulerTest extends TestCase
             'booking_id' => $booking->id,
         ]);
     }
+
+    public function test_partner_sla_command_auto_cancels_and_reminds_with_deduplication(): void
+    {
+        $this->seed();
+        \Illuminate\Support\Facades\Http::fake();
+
+        $partner = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+            'phone' => '6281234567890',
+        ]);
+        \App\Models\PartnerProfile::create([
+            'user_id' => $partner->id,
+            'organization_name' => 'Pokdarwis SLA Test',
+            'status' => 'approved',
+        ]);
+
+        $buyer = User::factory()->create(['account_type' => AccountType::BUYER]);
+        $province = Province::first();
+        $policy = CancellationPolicy::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'alam-sla'], ['name' => 'Alam SLA', 'is_active' => true]);
+
+        $destination = Destination::create([
+            'partner_id' => $partner->id,
+            'category_id' => $category->id,
+            'province_id' => $province->id,
+            'cancellation_policy_id' => $policy->id,
+            'name' => 'Taman Wisata SLA',
+            'slug' => 'taman-wisata-sla',
+            'city' => 'Sleman',
+            'address' => 'Kaliurang',
+            'default_daily_capacity' => 100,
+            'status' => DestinationStatus::PUBLISHED,
+        ]);
+
+        $package = Package::create([
+            'destination_id' => $destination->id,
+            'name' => 'Paket SLA',
+            'slug' => 'paket-sla',
+            'inquiry_types' => ['study_tour'],
+            'duration_days' => 1,
+            'price_per_pax' => 50000,
+            'min_pax' => 10,
+            'max_pax' => 50,
+            'is_active' => true,
+        ]);
+
+        $institution = Institution::create([
+            'user_id' => $buyer->id,
+            'institution_name' => 'SMA SLA',
+            'pic_name' => 'Pak Guru',
+            'pic_phone' => '6281234567891',
+            'pic_email' => 'guru@sla.test',
+        ]);
+
+        // Booking 1: Overdue -> should be auto-cancelled
+        $bookingOverdue = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $buyer->id,
+            'institution_id' => $institution->id,
+            'destination_id' => $destination->id,
+            'package_id' => $package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(5)->toDateString(),
+            'planned_date_end' => now()->addDays(5)->toDateString(),
+            'participant_count' => 10,
+            'status' => BookingStatus::DIBAYAR,
+            'subtotal_amount' => 500000,
+            'total_amount' => 500000,
+            'commission_percent' => 10,
+            'commission_amount' => 50000,
+            'partner_net_amount' => 450000,
+            'partner_confirm_deadline' => now()->subMinute(),
+        ]);
+
+        // Booking 2: Approaching deadline (within 2h) -> should get reminder
+        $bookingApproaching = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $buyer->id,
+            'institution_id' => $institution->id,
+            'destination_id' => $destination->id,
+            'package_id' => $package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(6)->toDateString(),
+            'planned_date_end' => now()->addDays(6)->toDateString(),
+            'participant_count' => 10,
+            'status' => BookingStatus::DIBAYAR,
+            'subtotal_amount' => 500000,
+            'total_amount' => 500000,
+            'commission_percent' => 10,
+            'commission_amount' => 50000,
+            'partner_net_amount' => 450000,
+            'partner_confirm_deadline' => now()->addHour(),
+            'partner_sla_reminded_at' => null,
+        ]);
+
+        Artisan::call('bookings:partner-sla');
+
+        $this->assertEquals(BookingStatus::BATAL, $bookingOverdue->fresh()->status);
+        $this->assertNotNull($bookingApproaching->fresh()->partner_sla_reminded_at);
+
+        $initialReminderCount = \App\Models\NotificationLog::where('event_key', 'partner.confirm_reminder')
+            ->where('recipient', '6281234567890')
+            ->count();
+        $this->assertGreaterThan(0, $initialReminderCount);
+
+        // Run command second time: dedupe prevents sending second reminder
+        Artisan::call('bookings:partner-sla');
+        $this->assertEquals($initialReminderCount, \App\Models\NotificationLog::where('event_key', 'partner.confirm_reminder')->where('recipient', '6281234567890')->count());
+    }
 }

@@ -125,9 +125,12 @@ class SendDomainNotificationListener
             $documentsNote = $isConfirmed
                 ? 'Surat Konfirmasi dan E-Voucher baru telah diterbitkan.'
                 : 'Jadwal menunggu konfirmasi pengelola.';
+            $deadlineStr = $b->partner_confirm_deadline
+                ? $b->partner_confirm_deadline->format('d/m/Y H:i') . ' WIB'
+                : 'tenggat SLA';
             $partnerNote = $isConfirmed
                 ? 'Dokumen baru telah diterbitkan.'
-                : 'Jadwal menunggu konfirmasi pengelola. Silakan segera lakukan konfirmasi penerimaan rombongan sebelum batas SLA.';
+                : "Jadwal menunggu konfirmasi pengelola. Silakan segera lakukan konfirmasi penerimaan rombongan sebelum batas SLA baru ({$deadlineStr}).";
 
             $this->dispatcher->send('booking.rescheduled', [
                 'booking' => $b,

@@ -8,6 +8,8 @@
     cancelModal: false, 
     selectedBookingId: null, 
     selectedBookingCode: '', 
+    selectedRescheduleCount: 0,
+    maxReschedule: {{ (int) setting('max_reschedule_per_booking', 1) }},
     currentDate: '' 
 }">
 
@@ -174,7 +176,7 @@
 
                                 <!-- Reschedule Button -->
                                 <button type="button" 
-                                        @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; currentDate = '{{ $b->visit_date }}'; rescheduleModal = true"
+                                        @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; selectedRescheduleCount = {{ (int) ($b->reschedule_count ?? 0) }}; currentDate = '{{ $b->visit_date }}'; rescheduleModal = true"
                                         title="Jadwalkan Ulang Tanggal Rombongan" 
                                         class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors">
                                     <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
@@ -229,9 +231,19 @@
                 @csrf
                 <input type="hidden" name="action" value="reschedule">
 
-                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 text-xs">
-                    <p class="text-[#2B211E]/70">Kode Reservasi:</p>
-                    <p class="font-mono font-bold text-[#703A3A] text-sm" x-text="selectedBookingCode"></p>
+                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[#2B211E]/70">Kode Reservasi:</span>
+                        <span class="font-mono font-bold text-[#703A3A] text-sm" x-text="selectedBookingCode"></span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80 pt-1 border-t border-[#2B211E]/10">
+                        <span>Sisa Kuota Reschedule:</span>
+                        <strong x-text="maxReschedule === 0 ? 'Tanpa Batas' : Math.max(0, maxReschedule - selectedRescheduleCount) + ' kali'"></strong>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80">
+                        <span>Batas Waktu Pengajuan:</span>
+                        <span>Maksimal H-{{ (int) setting('reschedule_cutoff_days', 3) }} sebelum jadwal lama</span>
+                    </div>
                 </div>
 
                 <div class="space-y-1">

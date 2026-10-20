@@ -777,5 +777,112 @@ class BookingTest extends TestCase
         $this->assertEquals(10, $newSlot->booked_count);
         $this->assertEquals(0, $newSlot->held_count);
     }
+
+    public function test_ota_style_reschedule_cutoff_quota_and_sla_rules(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $bookingService = app(BookingService::class);
+
+        setting([
+            'min_lead_days' => 3,
+            'reschedule_cutoff_days' => 3,
+            'max_reschedule_per_booking' => 1,
+            'partner_confirm_sla_hours' => 48,
+        ]);
+
+        // Target slots
+        $oldDate = $this->slot->date;
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $oldDate,
+            'participant_count' => 10,
+        ], $this->buyer);
+        $booking->status = BookingStatus::DIBAYAR;
+        $booking->partner_confirm_deadline = Carbon::now()->addHours(2);
+        $booking->partner_sla_reminded_at = Carbon::now()->subMinute();
+        $booking->save();
+
+        // 1. Cutoff test: booking planned_date_start set to H-2 (past H-3 cutoff) -> rejected
+        $booking->planned_date_start = Carbon::now()->addDays(2)->toDateString();
+        $booking->save();
+
+        try {
+            $newDateTarget = Carbon::now()->addDays(15);
+            $bookingService->reschedule($booking, $newDateTarget, $admin, 'Ganti tanggal mepet');
+            $this->fail('Expected cutoff RuntimeException was not thrown');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('maksimal H-3 sebelum tanggal kunjungan', $e->getMessage());
+        }
+
+        // Restore date to H-10 (valid for cutoff)
+        $booking->planned_date_start = Carbon::now()->addDays(10)->toDateString();
+        $booking->save();
+
+        // 2. First reschedule succeeds, resets SLA and SLA reminder for DIBAYAR
+        $date1 = Carbon::now()->addDays(14);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date1->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        $rescheduled = $bookingService->reschedule($booking, $date1, $admin, 'Reschedule pertama');
+        $this->assertEquals(1, $rescheduled->reschedule_count);
+        $this->assertNull($rescheduled->partner_sla_reminded_at);
+        $this->assertTrue($rescheduled->partner_confirm_deadline->gt(now()->addHours(40)));
+
+        // 3. Quota exhausted: second reschedule attempt rejected when max is 1
+        $date2 = Carbon::now()->addDays(20);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date2->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        try {
+            $bookingService->reschedule($booking, $date2, $admin, 'Reschedule kedua');
+            $this->fail('Expected quota RuntimeException was not thrown');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('Batas maksimal penjadwalan ulang (1 kali)', $e->getMessage());
+        }
+
+        // 4. Setting max = 0 (unlimited) allows reschedule
+        setting(['max_reschedule_per_booking' => 0]);
+        $rescheduledAgain = $bookingService->reschedule($booking, $date2, $admin, 'Reschedule dengan kuota unlimited');
+        $this->assertEquals(2, $rescheduledAgain->reschedule_count);
+
+        // 5. Booking DIKONFIRMASI: no SLA deadline set on reschedule
+        $booking->status = BookingStatus::DIKONFIRMASI;
+        $booking->partner_confirm_deadline = null;
+        $booking->partner_sla_reminded_at = null;
+        $booking->save();
+
+        $date3 = Carbon::now()->addDays(25);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date3->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        $rescheduledConfirmed = $bookingService->reschedule($booking, $date3, $admin, 'Reschedule booking dikonfirmasi');
+        $this->assertEquals(BookingStatus::DIKONFIRMASI, $rescheduledConfirmed->status);
+        $this->assertNull($rescheduledConfirmed->partner_confirm_deadline);
+        $this->assertNull($rescheduledConfirmed->partner_sla_reminded_at);
+    }
 }
 
