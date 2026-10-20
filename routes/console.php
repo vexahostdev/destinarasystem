@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Schedule;
 |--------------------------------------------------------------------------
 */
 
+// 0. Queue worker (PDF dokumen & notifikasi email/WA). Dijalankan scheduler tiap menit agar deployment
+//    cukup satu Scheduled Task `schedule:run` tanpa supervisor; berhenti saat antrean kosong atau 55 detik.
+Schedule::command('queue:work --queue=notifications,documents,default --stop-when-empty --max-time=55 --tries=3 --timeout=50')
+    ->everyMinute()
+    ->withoutOverlapping(5)
+    ->runInBackground();
+
 // 1. Kedaluwarsa booking unpaid melewati batas waktu
 Schedule::command('bookings:expire-unpaid')
     ->everyFiveMinutes()
