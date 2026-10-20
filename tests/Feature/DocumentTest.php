@@ -232,6 +232,9 @@ class DocumentTest extends TestCase
         $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
         $docService = app(DocumentService::class);
 
+        // Test ini me-reschedule booking yang sama dua kali; kuota reschedule dibuat tanpa batas
+        setting(['max_reschedule_per_booking' => 0]);
+
         // 1. Reschedule booking with status DIBAYAR: no confirmation letter or e-voucher generated
         $this->booking->status = BookingStatus::DIBAYAR;
         $this->booking->save();

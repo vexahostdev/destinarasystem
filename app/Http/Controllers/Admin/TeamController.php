@@ -153,10 +153,13 @@ class TeamController extends Controller
         }
 
         if ($user->hasRole('super_admin')) {
-            $superAdminCount = User::where('account_type', AccountType::INTERNAL)
+            // Hitung Super Admin aktif lain; Super Admin yang ditangguhkan tidak bisa mengambil alih
+            $otherActiveSuperAdmins = User::where('account_type', AccountType::INTERNAL)
+                ->where('status', 'active')
+                ->where('id', '!=', $user->id)
                 ->role('super_admin')
                 ->count();
-            if ($superAdminCount <= 1) {
+            if ($otherActiveSuperAdmins < 1) {
                 return back()->with('error', 'Tidak dapat menghapus Super Admin terakhir.');
             }
         }

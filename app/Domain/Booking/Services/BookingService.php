@@ -501,7 +501,7 @@ class BookingService
             }
 
             // 3. New date lead time check
-            $minLeadDays = (int) setting('min_lead_days', 3);
+            $minLeadDays = (int) setting('min_lead_days', 7);
             $minAllowedDate = now()->addDays($minLeadDays)->startOfDay();
             if ($newStartDate->lt($minAllowedDate)) {
                 throw new InvalidArgumentException("Tanggal baru minimal H-{$minLeadDays} dari hari ini.");
