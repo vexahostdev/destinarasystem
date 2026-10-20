@@ -229,7 +229,57 @@ class SettingsManagementFlowTest extends TestCase
         $response = $this->actingAs($this->admin)->post(route('admin.settings.update'), $payload);
 
         $response->assertRedirect(route('admin.settings.index', ['group' => 'payment']));
-        $response->assertSessionHasErrors('min_payment_amount');
+        $response->assertSessionHasErrors(['min_payment_amount']);
+    }
+
+    public function test_secret_settings_never_rendered_in_html_retained_on_empty_and_deleted_with_checkbox_k_3(): void
+    {
+        $repo = app(SettingsRepository::class);
+        $repo->set('xendit_secret_key', 'xnd_secret_test_value_1234');
+
+        // 1. Secret is NOT rendered in HTML, status shows masked suffix
+        $viewRes = $this->actingAs($this->admin)->get(route('admin.settings.index', ['group' => 'payment']));
+        $viewRes->assertOk();
+        $viewRes->assertDontSee('xnd_secret_test_value_1234');
+        $viewRes->assertSee('Tersimpan (••••1234)');
+        $viewRes->assertSee('name="delete_secret_xendit_secret_key"', false);
+
+        // 2. Saving with empty input retains existing secret value
+        $updateRes1 = $this->actingAs($this->admin)->post(route('admin.settings.update'), [
+            'group' => 'payment',
+            'enabled_gateways' => ['xendit'],
+            'xendit_secret_key' => '',
+        ]);
+        $updateRes1->assertRedirect();
+        $this->assertEquals('xnd_secret_test_value_1234', $repo->get('xendit_secret_key'));
+
+        // 3. Saving with new value updates and encrypts in DB
+        $updateRes2 = $this->actingAs($this->admin)->post(route('admin.settings.update'), [
+            'group' => 'payment',
+            'enabled_gateways' => ['xendit'],
+            'xendit_secret_key' => 'xnd_new_key_abcd_9999',
+        ]);
+        $updateRes2->assertRedirect();
+        $this->assertEquals('xnd_new_key_abcd_9999', $repo->get('xendit_secret_key'));
+
+        $dbRow = \App\Models\Setting::where('key', 'xendit_secret_key')->first();
+        $this->assertNotNull($dbRow);
+        $this->assertTrue((bool) $dbRow->is_encrypted);
+        $this->assertNotEquals('xnd_new_key_abcd_9999', $dbRow->getRawOriginal('value'));
+
+        // 4. Checking delete_secret_... clears the secret value
+        $updateRes3 = $this->actingAs($this->admin)->post(route('admin.settings.update'), [
+            'group' => 'payment',
+            'enabled_gateways' => ['xendit'],
+            'delete_secret_xendit_secret_key' => '1',
+        ]);
+        $updateRes3->assertRedirect();
+        $this->assertEquals('', $repo->get('xendit_secret_key'));
+
+        // 5. Viewing empty secret shows "Belum diisi"
+        $viewResEmpty = $this->actingAs($this->admin)->get(route('admin.settings.index', ['group' => 'payment']));
+        $viewResEmpty->assertOk();
+        $viewResEmpty->assertSee('Belum diisi');
     }
 }
 

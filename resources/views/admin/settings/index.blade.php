@@ -253,8 +253,31 @@
                                 <option value="1" {{ $val ? 'selected' : '' }}>Aktif / Ya</option>
                                 <option value="0" {{ !$val ? 'selected' : '' }}>Nonaktif / Tidak</option>
                             </select>
-                        @elseif(($field['type'] ?? 'text') === 'password' || ($field['type'] ?? '') === 'secret')
-                            <input type="password" name="{{ $field['key'] }}" value="{{ $val }}"
+                        @elseif(($field['type'] ?? '') === 'secret')
+                            <div class="space-y-1.5">
+                                <input type="password" name="{{ $field['key'] }}" value=""
+                                       placeholder="••••••••"
+                                       autocomplete="new-password"
+                                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <div class="flex items-center justify-between text-[11px] text-gray-500">
+                                    <span>
+                                        Status: 
+                                        @if(!empty($field['has_value']))
+                                            <strong class="text-emerald-700">Tersimpan (••••{{ $field['masked_suffix'] }})</strong>
+                                        @else
+                                            <strong class="text-gray-400">Belum diisi</strong>
+                                        @endif
+                                    </span>
+                                    @if(!empty($field['has_value']))
+                                        <label class="inline-flex items-center gap-1.5 text-rose-600 cursor-pointer">
+                                            <input type="checkbox" name="delete_secret_{{ $field['key'] }}" value="1" class="rounded border-gray-300 text-rose-600 focus:ring-rose-500">
+                                            <span>Hapus nilai</span>
+                                        </label>
+                                    @endif
+                                </div>
+                            </div>
+                        @elseif(($field['type'] ?? 'text') === 'password')
+                            <input type="password" name="{{ $field['key'] }}" value=""
                                    placeholder="••••••••"
                                    class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
                         @elseif(($field['type'] ?? '') === 'select' && !empty($field['options']))

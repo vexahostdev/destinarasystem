@@ -49,7 +49,15 @@ class SettingsController extends Controller
 
             $key = $item['key'] ?? null;
             if ($key) {
-                $item['current_value'] = $this->settings->get($key);
+                $val = $this->settings->get($key);
+                if (($item['type'] ?? '') === 'secret') {
+                    $item['has_value'] = ! empty($val);
+                    $valStr = (string) $val;
+                    $item['masked_suffix'] = ! empty($valStr) ? substr($valStr, -4) : '';
+                    $item['current_value'] = '';
+                } else {
+                    $item['current_value'] = $val;
+                }
                 $groupedSettings[$group][] = $item;
                 $availableGroups[$group] = $groupLabels[$group] ?? ucfirst($group);
             }
@@ -120,6 +128,40 @@ class SettingsController extends Controller
 
             $underscoreKey = str_replace('.', '_', $key);
             $hasField = $request->has($underscoreKey) || $request->has($key);
+            $deleteSecretKey = 'delete_secret_' . $key;
+            $hasDeleteSecret = $request->boolean($deleteSecretKey);
+
+            if (($item['type'] ?? '') === 'secret') {
+                $permission = $item['permission'] ?? ("settings.{$group}");
+                if ($user && ! $user->can($permission)) {
+                    abort(403, "Anda tidak memiliki izin untuk mengubah pengaturan grup '{$group}'.");
+                }
+
+                if ($hasDeleteSecret) {
+                    $keysToUpdate[$key] = [
+                        'input_key' => $inputKey ?? $key,
+                        'type' => 'secret',
+                        'forced_value' => '',
+                    ];
+                    continue;
+                }
+
+                $inputKey = $request->has($underscoreKey) ? $underscoreKey : $key;
+                $rawSecret = $request->input($inputKey);
+                if ($rawSecret === null || trim((string) $rawSecret) === '') {
+                    // Empty input means retain existing secret value
+                    continue;
+                }
+
+                if (! empty($item['rules'])) {
+                    $validationRules[$inputKey] = $item['rules'];
+                }
+                $keysToUpdate[$key] = [
+                    'input_key' => $inputKey,
+                    'type' => 'secret',
+                ];
+                continue;
+            }
 
             if ($hasField) {
                 $permission = $item['permission'] ?? ("settings.{$group}");
@@ -187,6 +229,11 @@ class SettingsController extends Controller
         }
 
         foreach ($keysToUpdate as $key => $meta) {
+            if (array_key_exists('forced_value', $meta)) {
+                $this->settings->set($key, $meta['forced_value']);
+                continue;
+            }
+
             $val = $request->input($meta['input_key']);
             if ($meta['type'] === 'bool' || $meta['type'] === 'boolean') {
                 $val = filter_var($val, FILTER_VALIDATE_BOOLEAN);
