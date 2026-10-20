@@ -348,6 +348,29 @@
                     <span class="text-[11px] text-[#51634b] font-bold uppercase">Sah untuk SPK & BOS</span>
                 </div>
 
+                @php
+                    $hasVoidedPermit = $booking->documents->contains(function ($d) {
+                        $isPermit = ($d->type === \App\Enums\DocumentType::PERMIT_SIGNED || (is_string($d->type) && $d->type === 'permit_signed'));
+                        $isVoid = ($d->status === \App\Enums\DocumentStatus::VOID || (is_string($d->status) && $d->status === 'void'));
+                        return $isPermit && $isVoid;
+                    });
+                    $hasActivePermit = $booking->documents->contains(function ($d) {
+                        $isPermit = ($d->type === \App\Enums\DocumentType::PERMIT_SIGNED || (is_string($d->type) && $d->type === 'permit_signed'));
+                        $isFinal = ($d->status === \App\Enums\DocumentStatus::FINAL || (is_string($d->status) && $d->status === 'final'));
+                        return $isPermit && $isFinal;
+                    });
+                @endphp
+
+                @if($hasVoidedPermit && !$hasActivePermit)
+                    <div class="p-4 bg-amber-50 border border-amber-300 rounded-lg text-amber-900 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
+                        <div class="text-xs space-y-1">
+                            <p class="font-bold">Surat Izin Bertanda Tangan Perlu Diunggah Ulang</p>
+                            <p class="text-amber-800">Jadwal kunjungan telah mengalami penjadwalan ulang. Surat izin bertanda tangan sebelumnya berstatus <strong>Tidak Berlaku (Void)</strong>. Silakan unduh draf izin terbaru dan unggah ulang surat izin yang telah ditandatangani untuk jadwal baru.</p>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="space-y-3">
                     @forelse($booking->documents as $doc)
                     <div class="p-3.5 bg-white border border-[#2B211E]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -356,7 +379,21 @@
                                 <span class="material-symbols-outlined text-[22px]">description</span>
                             </div>
                             <div>
-                                <div class="font-bold text-xs text-[#2B211E]">{{ $doc->title }}</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-xs text-[#2B211E]">{{ $doc->title }}</span>
+                                    @php
+                                        $dSt = $doc->status instanceof \App\Enums\DocumentStatus ? $doc->status->value : (string)$doc->status;
+                                    @endphp
+                                    @if($dSt === 'void')
+                                        <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold uppercase rounded border border-rose-300">
+                                            Void (Tidak Berlaku)
+                                        </span>
+                                    @elseif($dSt === 'final')
+                                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase rounded border border-emerald-300">
+                                            Sah
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="text-[11px] text-[#2B211E]/60">
                                     Diterbitkan: {{ $doc->generated_at ? $doc->generated_at->translatedFormat('d M Y, H:i') : $booking->created_at->translatedFormat('d M Y') }}
                                 </div>

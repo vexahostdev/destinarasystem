@@ -286,4 +286,50 @@ class DocumentTest extends TestCase
         $this->assertNotEquals($oldConf->id, $newConf->id);
         $this->assertNotEquals($oldVoucher->id, $newVoucher->id);
     }
+
+    public function test_reschedule_voids_active_permit_signed_and_notifies_buyer_v8_4(): void
+    {
+        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+
+        $this->booking->status = BookingStatus::DIBAYAR;
+        $this->booking->save();
+
+        $signedPermit = Document::create([
+            'booking_id' => $this->booking->id,
+            'type' => DocumentType::PERMIT_SIGNED,
+            'status' => DocumentStatus::FINAL,
+            'document_number' => 'IZIN/2026/10/00001',
+            'title' => 'Surat Izin Bertanda Tangan',
+            'file_path' => 'documents/izin-001.pdf',
+            'file_size' => 1024,
+            'version' => 1,
+            'verification_hash' => hash('sha256', 'test-permit-file'),
+            'generated_at' => now(),
+        ]);
+
+        $this->assertEquals(DocumentStatus::FINAL, $signedPermit->status);
+
+        // Reschedule
+        $bookingService->reschedule(
+            $this->booking,
+            now()->addDays(20),
+            $this->adminUser,
+            'Perubahan jadwal ekskursi sekolah'
+        );
+
+        $signedPermit->refresh();
+        $this->assertEquals(DocumentStatus::VOID, $signedPermit->status);
+
+        // Check notification to buyer
+        $this->assertDatabaseHas('notification_logs', [
+            'notifiable_id' => $this->buyer->id,
+            'event_key' => 'booking.permit_reupload_required',
+        ]);
+
+        // Check buyer detail page displays status and reupload notice
+        $response = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $this->booking->booking_code));
+        $response->assertOk();
+        $response->assertSee('Surat Izin Bertanda Tangan Perlu Diunggah Ulang');
+        $response->assertSee('Void (Tidak Berlaku)');
+    }
 }

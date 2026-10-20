@@ -35,6 +35,31 @@ class GenerateBookingDocumentsListener
                 GenerateDocumentJob::dispatch($event->booking, DocumentType::PERMIT_DRAFT, $event->actor)->afterCommit();
             }
         } elseif ($event instanceof BookingRescheduled) {
+            // Void active permit_signed documents and notify buyer to re-upload (V8-4)
+            $activePermitSigned = Document::where('booking_id', $event->booking->id)
+                ->where('type', DocumentType::PERMIT_SIGNED)
+                ->where('status', '!=', DocumentStatus::VOID)
+                ->exists();
+
+            if ($activePermitSigned) {
+                Document::where('booking_id', $event->booking->id)
+                    ->where('type', DocumentType::PERMIT_SIGNED)
+                    ->where('status', '!=', DocumentStatus::VOID)
+                    ->update(['status' => DocumentStatus::VOID]);
+
+                \App\Models\NotificationLog::create([
+                    'notifiable_type' => \App\Models\User::class,
+                    'notifiable_id' => $event->booking->user_id,
+                    'event_key' => 'booking.permit_reupload_required',
+                    'channel' => \App\Enums\NotificationChannel::DATABASE,
+                    'recipient' => (string) $event->booking->user_id,
+                    'subject' => 'Unggah Ulang Surat Izin: ' . $event->booking->booking_code,
+                    'body' => 'Jadwal kunjungan telah diubah. Surat izin bertanda tangan sebelumnya telah dinonaktifkan (void). Mohon unduh draf izin baru dan unggah ulang surat izin bertanda tangan untuk jadwal baru.',
+                    'status' => \App\Enums\NotificationStatus::SENT,
+                    'sent_at' => now(),
+                ]);
+            }
+
             // Only regenerate document types that have ALREADY been published for this booking (V7-1)
             $existingTypes = Document::where('booking_id', $event->booking->id)
                 ->whereIn('type', [DocumentType::CONFIRMATION_LETTER, DocumentType::E_VOUCHER, DocumentType::PERMIT_DRAFT])
