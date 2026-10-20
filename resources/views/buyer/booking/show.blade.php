@@ -361,8 +361,8 @@
                     <div class="p-4 bg-amber-50 border border-amber-300 rounded-lg text-amber-900 flex items-start gap-3">
                         <span class="material-symbols-outlined text-amber-600 text-xl mt-0.5">warning</span>
                         <div class="text-xs space-y-1">
-                            <p class="font-bold">Surat Izin Bertanda Tangan Perlu Diunggah Ulang</p>
-                            <p class="text-amber-800">Jadwal kunjungan telah mengalami penjadwalan ulang. Surat izin bertanda tangan sebelumnya berstatus <strong>Tidak Berlaku (Void)</strong>. Silakan unduh draf izin terbaru dan unggah ulang surat izin yang telah ditandatangani untuk jadwal baru.</p>
+                            <p class="font-bold">Surat Izin Bertanda Tangan Sedang Diproses Ulang</p>
+                            <p class="text-amber-800">Jadwal kunjungan telah mengalami penjadwalan ulang. Surat izin bertanda tangan sebelumnya berstatus <strong>Tidak Berlaku (Void)</strong>. Pengelola destinasi sedang memproses penerbitan surat izin resmi baru sesuai jadwal kunjungan yang baru.</p>
                         </div>
                     </div>
                 @endif

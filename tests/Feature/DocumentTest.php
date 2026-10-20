@@ -320,16 +320,29 @@ class DocumentTest extends TestCase
         $signedPermit->refresh();
         $this->assertEquals(DocumentStatus::VOID, $signedPermit->status);
 
-        // Check notification to buyer
+        // Check notification logs and in-app database notifications to both buyer & partner (V9-3)
         $this->assertDatabaseHas('notification_logs', [
             'notifiable_id' => $this->buyer->id,
             'event_key' => 'booking.permit_reupload_required',
         ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'notifiable_id' => $this->partnerUser->id,
+            'event_key' => 'booking.permit_reupload_required',
+        ]);
 
-        // Check buyer detail page displays status and reupload notice
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->buyer->id,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->partnerUser->id,
+        ]);
+
+        // Check buyer detail page displays status and reupload notice without asking buyer to upload
         $response = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $this->booking->booking_code));
         $response->assertOk();
-        $response->assertSee('Surat Izin Bertanda Tangan Perlu Diunggah Ulang');
+        $response->assertSee('Surat Izin Bertanda Tangan Sedang Diproses Ulang');
         $response->assertSee('Void (Tidak Berlaku)');
     }
 

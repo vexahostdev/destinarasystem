@@ -47,17 +47,19 @@ class GenerateBookingDocumentsListener
                     ->where('status', '!=', DocumentStatus::VOID)
                     ->update(['status' => DocumentStatus::VOID]);
 
-                \App\Models\NotificationLog::create([
-                    'notifiable_type' => \App\Models\User::class,
-                    'notifiable_id' => $event->booking->user_id,
-                    'event_key' => 'booking.permit_reupload_required',
-                    'channel' => \App\Enums\NotificationChannel::DATABASE,
-                    'recipient' => (string) $event->booking->user_id,
-                    'subject' => 'Unggah Ulang Surat Izin: ' . $event->booking->booking_code,
-                    'body' => 'Jadwal kunjungan telah diubah. Surat izin bertanda tangan sebelumnya telah dinonaktifkan (void). Mohon unduh draf izin baru dan unggah ulang surat izin bertanda tangan untuk jadwal baru.',
-                    'status' => \App\Enums\NotificationStatus::SENT,
-                    'sent_at' => now(),
-                ]);
+                $b = $event->booking;
+                app(\App\Domain\Notification\Services\NotificationDispatcher::class)->send('booking.permit_reupload_required', [
+                    'booking' => $b,
+                    'user' => $b->user,
+                    'booking_code' => $b->booking_code,
+                    'destination_name' => $b->destination?->name,
+                    'institution_name' => $b->institution?->institution_name ?? $b->user?->name,
+                    'pic_name' => $b->institution?->pic_name ?? $b->user?->name,
+                    'organization_name' => $b->destination?->partner?->partnerProfile?->organization_name ?? $b->destination?->partner?->name ?? 'Mitra Pengelola',
+                    'partner_name' => $b->destination?->partner?->name ?? 'Mitra Pengelola',
+                    'new_start_date' => $b->planned_date_start?->format('d/m/Y'),
+                    'new_end_date' => $b->planned_date_end?->format('d/m/Y'),
+                ], ['partner', 'buyer']);
             }
 
             // Only regenerate document types that have ALREADY been published for this booking (V7-1)

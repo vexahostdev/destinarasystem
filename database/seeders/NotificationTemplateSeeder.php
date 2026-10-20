@@ -658,6 +658,45 @@ class NotificationTemplateSeeder extends Seeder
             ],
 
             // =========================================================================
+            // 12b. booking.permit_reupload_required (partner, buyer)
+            // =========================================================================
+            [
+                'event_key' => 'booking.permit_reupload_required',
+                'channel' => 'mail',
+                'audience' => 'partner',
+                'subject' => 'Unggah Ulang Surat Izin: {{booking_code}}',
+                'body' => "Halo Mitra {{organization_name}},\n\nJadwal kunjungan pemesanan {{booking_code}} untuk rombongan {{institution_name}} telah dijadwalkan ulang ke {{new_start_date}} s.d. {{new_end_date}}.\n\nSurat izin bertanda tangan sebelumnya telah dinonaktifkan (void). Silakan unduh draf izin baru dan unggah kembali surat izin bertanda tangan untuk jadwal baru melalui portal mitra.\n\nTim Destinara",
+            ],
+            [
+                'event_key' => 'booking.permit_reupload_required',
+                'channel' => 'whatsapp',
+                'audience' => 'partner',
+                'subject' => null,
+                'body' => "Mitra *{{organization_name}}*, jadwal rombongan *{{institution_name}}* (*{{booking_code}}*) telah dialihkan ke *{{new_start_date}} s.d. {{new_end_date}}*. Surat izin lama telah divoid. Silakan unggah kembali surat izin bertanda tangan jadwal baru di portal mitra.\n\n- Destinara",
+            ],
+            [
+                'event_key' => 'booking.permit_reupload_required',
+                'channel' => 'database',
+                'audience' => 'partner',
+                'subject' => 'Unggah Ulang Surat Izin: {{booking_code}}',
+                'body' => 'Jadwal booking {{booking_code}} telah diubah. Mohon unggah ulang surat izin bertanda tangan untuk jadwal baru.',
+            ],
+            [
+                'event_key' => 'booking.permit_reupload_required',
+                'channel' => 'mail',
+                'audience' => 'buyer',
+                'subject' => 'Pembaruan Surat Izin: {{booking_code}} di {{destination_name}}',
+                'body' => "Halo {{pic_name}},\n\nJadwal kunjungan pemesanan {{booking_code}} telah berhasil diperbarui ke {{new_start_date}} s.d. {{new_end_date}}.\n\nSurat izin bertanda tangan sebelumnya telah dinonaktifkan (void) dan saat ini sedang diterbitkan ulang oleh pengelola destinasi.\n\nTim Destinara",
+            ],
+            [
+                'event_key' => 'booking.permit_reupload_required',
+                'channel' => 'database',
+                'audience' => 'buyer',
+                'subject' => 'Pembaruan Surat Izin: {{booking_code}}',
+                'body' => 'Surat izin bertanda tangan untuk pemesanan {{booking_code}} sedang diterbitkan ulang oleh pengelola destinasi sesuai jadwal baru.',
+            ],
+
+            // =========================================================================
             // 13. visit.reminder (buyer, partner)
             // =========================================================================
             [
