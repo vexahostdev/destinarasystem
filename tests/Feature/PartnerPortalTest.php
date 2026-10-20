@@ -543,4 +543,70 @@ class PartnerPortalTest extends TestCase
         $showRes->assertSee('Surat Izin Bertanda Tangan');
         $showRes->assertSee(route('mitra.booking.uploadPermit', $booking->booking_code));
     }
+
+    public function test_failed_signed_permit_upload_keeps_previous_version_and_removes_orphan_file_v10_1(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+
+        $booking = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(14)->toDateString(),
+            'planned_date_end' => Carbon::now()->addDays(14)->toDateString(),
+            'participant_count' => 20,
+            'subtotal_amount' => 1000000,
+            'total_amount' => 1000000,
+            'commission_percent' => 10,
+            'commission_amount' => 100000,
+            'partner_net_amount' => 900000,
+            'needs_permit_letter' => true,
+            'status' => BookingStatus::DIKONFIRMASI,
+        ]);
+
+        \App\Models\Document::create([
+            'booking_id' => $booking->id,
+            'type' => \App\Enums\DocumentType::PERMIT_DRAFT,
+            'document_number' => 'DSI/2026/10/09001',
+            'title' => 'Draf Surat Izin',
+            'file_path' => 'documents/draft_v10.pdf',
+            'verification_hash' => hash('sha256', 'draft-v10'),
+            'status' => \App\Enums\DocumentStatus::DRAFT,
+            'version' => 1,
+            'generated_at' => now(),
+        ]);
+        $previous = \App\Models\Document::create([
+            'booking_id' => $booking->id,
+            'type' => \App\Enums\DocumentType::PERMIT_SIGNED,
+            'document_number' => 'IZIN/2026/10/09001',
+            'title' => 'Surat Izin Bertanda Tangan Resmi',
+            'file_path' => 'documents/signed_v1.pdf',
+            'verification_hash' => hash('sha256', 'signed-v10'),
+            'status' => \App\Enums\DocumentStatus::FINAL,
+            'version' => 1,
+            'generated_at' => now(),
+        ]);
+
+        // Gagal saat menyimpan dokumen baru: setelah berkas tersimpan dan versi lama di-void
+        \App\Models\Document::creating(function () {
+            throw new \RuntimeException('Gagal menyimpan dokumen');
+        });
+
+        $this->withoutExceptionHandling();
+        try {
+            $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
+                'file' => \Illuminate\Http\UploadedFile::fake()->create('izin_baru.pdf', 200, 'application/pdf'),
+            ]);
+            $this->fail('Upload seharusnya gagal.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('Gagal menyimpan dokumen', $e->getMessage());
+        }
+
+        $this->assertEquals(\App\Enums\DocumentStatus::FINAL, $previous->fresh()->status, 'Versi lama tidak boleh ikut di-void.');
+        $this->assertSame(1, \App\Models\Document::where('booking_id', $booking->id)->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)->count());
+        $this->assertSame([], \Illuminate\Support\Facades\Storage::disk('local')->allFiles('documents'), 'Berkas yatim harus dihapus.');
+    }
 }

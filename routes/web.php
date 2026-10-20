@@ -205,10 +205,8 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
     });
 });
 
-// Route alias for partner dashboard and routes
+// Route alias for partner dashboard
 Route::get('/partner/dashboard', fn () => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
-Route::get('/partner/booking/{code}', [PartnerController::class, 'showBooking'])->middleware(['auth', 'active', 'account:partner', 'verified', 'partner.verified']);
-Route::post('/partner/booking/{code}/surat-izin', [PartnerController::class, 'uploadSignedPermit'])->middleware(['auth', 'active', 'account:partner', 'verified', 'partner.verified']);
 
 /*
 |--------------------------------------------------------------------------

@@ -38,9 +38,11 @@ use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Enum;
+use Throwable;
 
 class PartnerController extends Controller
 {
@@ -708,42 +710,53 @@ class PartnerController extends Controller
             return redirect()->back()->withErrors(['file' => 'Berkas harus berupa file PDF (.pdf).']);
         }
 
-        $docNumber = app(DocumentNumberGenerator::class)->generate(DocumentType::PERMIT_SIGNED);
         $hash = bin2hex(random_bytes(16));
-        $safeDocNum = str_replace(['/', '\\'], '_', $docNumber);
-        $fileName = "permit_signed_{$safeDocNum}_{$hash}.pdf";
-        $yearMonth = now()->format('Y/m');
-        $filePath = $uploadedFile->storeAs("documents/{$yearMonth}", $fileName, 'local');
+        $filePath = $uploadedFile->storeAs('documents/'.now()->format('Y/m'), "permit_signed_{$hash}.pdf", 'local');
 
-        // Void previous active permit_signed documents
-        Document::where('booking_id', $booking->id)
-            ->where('type', DocumentType::PERMIT_SIGNED)
-            ->where('status', '!=', DocumentStatus::VOID)
-            ->update(['status' => DocumentStatus::VOID]);
+        // Void versi lama + buat versi baru secara atomik; booking dikunci agar upload bersamaan tidak
+        // menghasilkan nomor versi ganda (Audit v10-1). Bila gagal, berkas yang telanjur tersimpan dihapus.
+        try {
+            $document = DB::transaction(function () use ($booking, $user, $hash, $filePath) {
+                Booking::whereKey($booking->id)->lockForUpdate()->first();
 
-        $latestVersion = Document::where('booking_id', $booking->id)
-            ->where('type', DocumentType::PERMIT_SIGNED)
-            ->max('version') ?? 0;
+                $docNumber = app(DocumentNumberGenerator::class)->generate(DocumentType::PERMIT_SIGNED);
 
-        $document = Document::create([
-            'booking_id' => $booking->id,
-            'type' => DocumentType::PERMIT_SIGNED,
-            'document_number' => $docNumber,
-            'title' => 'Surat Izin Bertanda Tangan Resmi',
-            'file_path' => $filePath,
-            'verification_hash' => $hash,
-            'status' => DocumentStatus::FINAL,
-            'generated_at' => now(),
-            'generated_by' => $user->id,
-            'version' => $latestVersion + 1,
-        ]);
+                Document::where('booking_id', $booking->id)
+                    ->where('type', DocumentType::PERMIT_SIGNED)
+                    ->where('status', '!=', DocumentStatus::VOID)
+                    ->update(['status' => DocumentStatus::VOID]);
 
-        AuditLogger::log(
-            action: 'upload_signed_permit',
-            target: $document,
-            description: "Mitra mengunggah surat izin bertanda tangan resmi {$docNumber} untuk booking {$booking->booking_code}.",
-            userId: $user->id
-        );
+                $latestVersion = Document::where('booking_id', $booking->id)
+                    ->where('type', DocumentType::PERMIT_SIGNED)
+                    ->max('version') ?? 0;
+
+                $document = Document::create([
+                    'booking_id' => $booking->id,
+                    'type' => DocumentType::PERMIT_SIGNED,
+                    'document_number' => $docNumber,
+                    'title' => 'Surat Izin Bertanda Tangan Resmi',
+                    'file_path' => $filePath,
+                    'verification_hash' => $hash,
+                    'status' => DocumentStatus::FINAL,
+                    'generated_at' => now(),
+                    'generated_by' => $user->id,
+                    'version' => $latestVersion + 1,
+                ]);
+
+                AuditLogger::log(
+                    action: 'upload_signed_permit',
+                    target: $document,
+                    description: "Mitra mengunggah surat izin bertanda tangan resmi {$docNumber} untuk booking {$booking->booking_code}.",
+                    userId: $user->id
+                );
+
+                return $document;
+            });
+        } catch (Throwable $e) {
+            Storage::disk('local')->delete($filePath);
+
+            throw $e;
+        }
 
         $dispatcher = app(NotificationDispatcher::class);
         $dispatcher->send('booking.permit_available', [

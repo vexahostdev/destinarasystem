@@ -333,14 +333,16 @@ class DocumentTest extends TestCase
             'event_key' => 'booking.permit_reupload_required',
         ]);
 
-        $this->assertDatabaseHas('notifications', [
-            'notifiable_type' => User::class,
-            'notifiable_id' => $this->buyer->id,
-        ]);
-        $this->assertDatabaseHas('notifications', [
-            'notifiable_type' => User::class,
-            'notifiable_id' => $this->partnerUser->id,
-        ]);
+        // Notifikasi in-app khusus event ini (bukan notifikasi booking.rescheduled yang juga terkirim)
+        foreach ([$this->buyer, $this->partnerUser] as $recipient) {
+            $permitNotifications = \Illuminate\Support\Facades\DB::table('notifications')
+                ->where('notifiable_type', User::class)
+                ->where('notifiable_id', $recipient->id)
+                ->get()
+                ->filter(fn ($n) => (json_decode($n->data, true)['event_key'] ?? null) === 'booking.permit_reupload_required');
+
+            $this->assertCount(1, $permitNotifications, "User {$recipient->id} harus menerima 1 notifikasi in-app unggah ulang surat izin.");
+        }
 
         // Check buyer detail page displays status and reupload notice without asking buyer to upload
         $response = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $this->booking->booking_code));
