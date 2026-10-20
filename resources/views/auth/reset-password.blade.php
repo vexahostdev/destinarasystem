@@ -1,94 +1,55 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FFFFFF]">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kata Sandi Baru — Destinara</title>
+@extends('layouts.auth')
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
+@section('title', 'Kata Sandi Baru')
+@section('auth_kicker', 'Ruang Belajar Tapak')
+@section('auth_title')
+    Sandi<br>Baru
+@endsection
+@section('auth_subtitle', 'Amankan kembali akun Anda.')
+@section('auth_lead', 'Gunakan kata sandi yang kuat dan belum pernah dipakai di layanan lain.')
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#1F2B45] selection:text-white bg-[#FFFFFF]">
-
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31, 43, 69,0.1)] border border-gray-100 relative z-10 space-y-6">
-        
-        <div class="text-center space-y-3">
-            <a href="{{ route('home') }}" class="inline-flex items-center justify-center gap-2 group mb-1">
-                <img src="{{ asset('assets/img/logo-mark-tight.png') }}" alt="Logo Destinara" class="w-12 h-12 object-contain group-hover:scale-105 transition-transform">
-            </a>
-            <div>
-                <span class="text-2xl font-extrabold tracking-tight text-[#16203A] block">DESTINARA</span>
-                <span class="text-[10px] tracking-widest text-[#1F2B45] uppercase font-bold">Ruang Belajar Tapak Nusantara</span>
-            </div>
-            <h2 class="text-xl font-bold text-[#111827] pt-1">Buat Kata Sandi Baru</h2>
-            <p class="text-xs text-gray-500">
-                Tentukan kata sandi baru yang aman untuk akun Anda.
-            </p>
-        </div>
-
-        @if($errors->any())
-            <div class="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-800 space-y-1">
-                @foreach($errors->all() as $error)
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-base text-red-600 shrink-0">error</span>
-                        <span>{{ $error }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-
-        <form action="{{ route('password.update') }}" method="POST" class="space-y-4">
-            @csrf
-            <input type="hidden" name="token" value="{{ $token }}">
-
-            <div>
-                <label class="block text-xs font-bold text-[#111827] mb-1.5">Alamat Email</label>
-                <div class="relative">
-                    <input type="email" name="email" value="{{ $email ?? old('email') }}" required readonly
-                           class="w-full text-xs pl-10 pr-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-600 focus:outline-none">
-                    <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">mail</span>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-[#111827] mb-1.5">Kata Sandi Baru</label>
-                <div class="relative">
-                    <input type="password" name="password" required placeholder="Minimal 8 karakter"
-                           class="w-full text-xs pl-10 pr-4 py-3 bg-[#FFFFFF] rounded-xl border border-gray-200 text-[#111827] focus:outline-none focus:border-[#1F2B45] focus:ring-1 focus:ring-[#1F2B45] transition-all">
-                    <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">lock</span>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-[#111827] mb-1.5">Konfirmasi Kata Sandi Baru</label>
-                <div class="relative">
-                    <input type="password" name="password_confirmation" required placeholder="Ulangi kata sandi baru"
-                           class="w-full text-xs pl-10 pr-4 py-3 bg-[#FFFFFF] rounded-xl border border-gray-200 text-[#111827] focus:outline-none focus:border-[#1F2B45] focus:ring-1 focus:ring-[#1F2B45] transition-all">
-                    <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">lock_reset</span>
-                </div>
-            </div>
-
-            <button type="submit" 
-                    class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-3.5 px-6 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
-                Simpan Kata Sandi Baru &rarr;
-            </button>
-        </form>
-
-        <div class="pt-2 border-t border-gray-100 text-center text-xs">
-            <a href="{{ route('login') }}" class="text-[#1F2B45] font-bold hover:underline">
-                &larr; Batal &amp; Kembali ke Halaman Masuk
-            </a>
-        </div>
-
+@section('card')
+    <div class="text-center space-y-1">
+        <h2 class="text-2xl font-extrabold tracking-tight">Buat Kata Sandi Baru</h2>
+        <p class="text-xs text-white/75">Tentukan kata sandi baru yang aman untuk akun Anda.</p>
     </div>
 
-    @livewireScriptConfig
-</body>
-</html>
+    <x-auth-alerts />
+
+    <form action="{{ route('password.update') }}" method="POST" class="space-y-4">
+        @csrf
+        <input type="hidden" name="token" value="{{ $token }}">
+
+        <div>
+            <label for="email" class="block text-xs font-semibold text-white/90 mb-1.5">Alamat Email</label>
+            <div class="relative">
+                <input type="email" id="email" name="email" value="{{ $email ?? old('email') }}" required readonly class="auth-input has-icon">
+                <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-white/70">mail</span>
+            </div>
+        </div>
+
+        <div>
+            <label for="password" class="block text-xs font-semibold text-white/90 mb-1.5">Kata Sandi Baru</label>
+            <div class="relative">
+                <input type="password" id="password" name="password" required placeholder="Minimal 8 karakter" class="auth-input has-icon">
+                <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-white/70">lock</span>
+            </div>
+        </div>
+
+        <div>
+            <label for="password_confirmation" class="block text-xs font-semibold text-white/90 mb-1.5">Konfirmasi Kata Sandi Baru</label>
+            <div class="relative">
+                <input type="password" id="password_confirmation" name="password_confirmation" required placeholder="Ulangi kata sandi baru" class="auth-input has-icon">
+                <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-white/70">lock_reset</span>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-[#1F2B45] hover:bg-[#2E3D5C] text-white py-3.5 px-6 rounded-2xl font-bold text-sm shadow-lg transition-all cursor-pointer">
+            Simpan Kata Sandi Baru &rarr;
+        </button>
+    </form>
+
+    <div class="text-center text-xs">
+        <a href="{{ route('login') }}" class="font-bold text-white hover:underline underline-offset-4">&larr; Batal &amp; Kembali ke Halaman Masuk</a>
+    </div>
+@endsection

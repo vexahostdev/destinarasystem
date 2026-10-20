@@ -1,61 +1,42 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FFFFFF]">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Verifikasi Alamat Email — Destinara</title>
+@extends('layouts.auth')
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
+@section('title', 'Verifikasi Email')
+@section('auth_kicker', 'Ruang Belajar Tapak')
+@section('auth_title')
+    Satu<br>Langkah Lagi
+@endsection
+@section('auth_subtitle', 'Konfirmasi email untuk mulai menjelajah.')
+@section('auth_lead', 'Verifikasi memastikan setiap reservasi dan kemitraan tercatat atas nama institusi yang sah.')
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @livewireStyles
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#1F2B45] selection:text-white bg-[#FFFFFF]">
-
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31, 43, 69,0.1)] border border-gray-100 relative z-10 space-y-6 text-center">
-        
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 text-amber-600 mb-2">
+@section('card')
+    <div class="text-center space-y-3">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/15 border border-white/30">
             <span class="material-symbols-outlined text-3xl">mark_email_unread</span>
         </div>
-
-        <div class="space-y-2">
-            <h2 class="text-xl font-bold text-[#111827]">Verifikasi Alamat Email</h2>
-            <p class="text-xs text-gray-500 leading-relaxed">
-                Terima kasih telah mendaftar di Destinara! Sebelum mulai menjelajah atau memesan, silakan klik tautan verifikasi yang baru saja kami kirimkan ke email Anda:
-            </p>
-            <p class="text-xs font-bold text-[#1F2B45]">{{ auth()->user()?->email }}</p>
-        </div>
-
-        @if (session('status') == 'verification-link-sent')
-            <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-                <span class="material-symbols-outlined text-base text-emerald-600 shrink-0">check_circle</span>
-                <span>Tautan verifikasi baru telah dikirimkan ke alamat email Anda.</span>
-            </div>
-        @endif
-
-        <div class="space-y-3 pt-2">
-            <form method="POST" action="{{ route('verification.send') }}">
-                @csrf
-                <button type="submit" class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-3 px-6 rounded-2xl font-bold text-xs shadow-md transition-all cursor-pointer">
-                    Kirim Ulang Tautan Verifikasi
-                </button>
-            </form>
-
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="text-xs text-gray-400 hover:text-gray-600 font-semibold transition-colors">
-                    Keluar / Ganti Akun
-                </button>
-            </form>
-        </div>
-
+        <h2 class="text-2xl font-extrabold tracking-tight">Verifikasi Alamat Email</h2>
+        <p class="text-xs text-white/75 leading-relaxed">
+            Terima kasih telah mendaftar di Destinara! Sebelum mulai menjelajah atau memesan, silakan klik tautan verifikasi yang baru saja kami kirimkan ke email Anda:
+        </p>
+        <p class="text-sm font-bold">{{ auth()->user()?->email }}</p>
     </div>
 
-    @livewireScriptConfig
-</body>
-</html>
+    @if (session('status') == 'verification-link-sent')
+        <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+            <span class="material-symbols-outlined text-base text-emerald-600 shrink-0">check_circle</span>
+            <span>Tautan verifikasi baru telah dikirimkan ke alamat email Anda.</span>
+        </div>
+    @endif
+
+    <div class="space-y-3">
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <button type="submit" class="w-full bg-[#1F2B45] hover:bg-[#2E3D5C] text-white py-3.5 px-6 rounded-2xl font-bold text-sm shadow-lg transition-all cursor-pointer">
+                Kirim Ulang Tautan Verifikasi
+            </button>
+        </form>
+        <form method="POST" action="{{ route('logout') }}" class="text-center">
+            @csrf
+            <button type="submit" class="text-xs text-white/70 hover:text-white font-semibold transition-colors">Keluar / Ganti Akun</button>
+        </form>
+    </div>
+@endsection
