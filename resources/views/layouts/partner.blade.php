@@ -166,7 +166,7 @@
                     </div>
                     <div class="flex flex-col min-w-0">
                         <span class="text-xs font-bold text-[#111827] truncate">{{ Auth::user()->name ?? 'Pengelola Tapak' }}</span>
-                        <span class="text-[10px] text-[#51634b] font-medium truncate">{{ Auth::user()->partnerProfile->organization_type ? ucwords(str_replace('_', ' ', Auth::user()->partnerProfile->organization_type)) : (Auth::user()->email ?? 'Mitra Adat') }}</span>
+                        <span class="text-[10px] text-[#51634b] font-medium truncate">{{ Auth::user()->partnerProfile?->organization_type ? ucwords(str_replace('_', ' ', Auth::user()->partnerProfile->organization_type)) : (Auth::user()->email ?? 'Mitra Adat') }}</span>
                     </div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="inline">

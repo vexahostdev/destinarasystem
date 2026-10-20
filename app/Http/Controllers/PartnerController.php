@@ -57,7 +57,13 @@ class PartnerController extends Controller
     public function dashboard(Request $request)
     {
         $user = Auth::user();
-        $profile = $user->partnerProfile;
+        // Mitra tanpa profil (mis. dibuat di luar alur registrasi) tetap bisa membuka dashboard
+        // dan diarahkan melengkapi profil, sama seperti halaman profil.
+        $profile = $user->partnerProfile ?? PartnerProfile::firstOrCreate(['user_id' => $user->id], [
+            'organization_name' => $user->name,
+            'verification_status' => VerificationStatus::UNVERIFIED,
+        ]);
+        $user->setRelation('partnerProfile', $profile);
 
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 

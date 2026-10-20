@@ -152,6 +152,25 @@ class PartnerPortalTest extends TestCase
         $destResponse->assertDontSee('{"id":');
     }
 
+    public function test_partner_without_profile_can_open_dashboard(): void
+    {
+        $partner = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+        ]);
+        $this->assertNull($partner->partnerProfile);
+
+        $response = $this->actingAs($partner)->get(route('mitra.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Panel Pengelola Tapak Adat');
+        $response->assertSee('Akun Belum Terverifikasi');
+        $this->assertDatabaseHas('partner_profiles', [
+            'user_id' => $partner->id,
+            'verification_status' => VerificationStatus::UNVERIFIED->value,
+        ]);
+    }
+
     public function test_partner_can_access_income_report(): void
     {
         $response = $this->actingAs($this->partner)->get(route('mitra.income'));
