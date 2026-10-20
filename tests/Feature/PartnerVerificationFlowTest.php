@@ -370,4 +370,44 @@ class PartnerVerificationFlowTest extends TestCase
         $instLog = NotificationLog::where('event_key', 'institution.rejected')->latest('id')->first();
         $this->assertStringContainsString($instRejectNote, $instLog->body);
     }
+
+    public function test_staff_with_only_partners_verify_can_verify_partners_but_not_institutions_k8(): void
+    {
+        $role = Role::create(['name' => 'verifikator_mitra', 'guard_name' => 'web']);
+        $role->givePermissionTo(['partners.verify', 'dashboard.view']);
+        $verifier = User::factory()->create(['account_type' => AccountType::INTERNAL, 'status' => 'active']);
+        $verifier->assignRole($role);
+
+        $institutionUser = User::factory()->create(['account_type' => AccountType::BUYER, 'status' => 'active']);
+        $institution = Institution::create([
+            'user_id' => $institutionUser->id,
+            'institution_name' => 'SMA Rahasia Institusi',
+            'pic_name' => 'Pak Kepala',
+            'pic_phone' => '6281299990000',
+            'pic_email' => 'kepala@sma-rahasia.test',
+        ]);
+
+        // Halaman terbuka, hanya tab mitra; data institusi tidak tampil walau tab dipaksa
+        $page = $this->actingAs($verifier)->get(route('admin.users.verify', ['tab' => 'institutions']));
+        $page->assertOk();
+        $page->assertSee('Pokdarwis Watu Goyang');
+        $page->assertDontSee('SMA Rahasia Institusi');
+        $page->assertDontSee('Institusi Pendidikan (Sekolah/Kampus)');
+
+        // Bisa memverifikasi mitra
+        $this->actingAs($verifier)->post(route('admin.users.updateVerification', ['type' => 'partner', 'id' => $this->partnerProfile->id]), [
+            'action' => 'verify',
+        ])->assertRedirect();
+        $this->assertEquals(VerificationStatus::VERIFIED, $this->partnerProfile->fresh()->verification_status);
+
+        // Tidak bisa memverifikasi institusi
+        $this->actingAs($verifier)->post(route('admin.users.updateVerification', ['type' => 'institution', 'id' => $institution->id]), [
+            'action' => 'verify',
+        ])->assertForbidden();
+
+        // Staf tanpa kedua izin tetap ditolak
+        $noPerm = User::factory()->create(['account_type' => AccountType::INTERNAL, 'status' => 'active']);
+        $noPerm->assignRole(Role::create(['name' => 'tanpa_verifikasi', 'guard_name' => 'web'])->givePermissionTo('dashboard.view'));
+        $this->actingAs($noPerm)->get(route('admin.users.verify'))->assertForbidden();
+    }
 }

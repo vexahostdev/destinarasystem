@@ -32,19 +32,23 @@
     <!-- Tab Switcher & Sub-filter -->
     <div class="space-y-4 border-b border-[#2B211E]/12 pb-3">
         <div class="flex items-center gap-3">
+            @if($canInstitutions)
             <a href="{{ route('admin.users.verify', ['tab' => 'institutions', 'status' => $status]) }}" 
                class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-colors {{ $tab === 'institutions' ? 'bg-[#703A3A] text-white shadow-xs' : 'text-[#2B211E]/70 hover:bg-[#2B211E]/5' }}">
                 <span class="material-symbols-outlined text-[16px]">school</span>
                 <span>Institusi Pendidikan (Sekolah/Kampus)</span>
                 <span class="px-1.5 py-0.2 bg-white/20 text-[10px] font-mono">{{ $pendingInstitutionsCount }}</span>
             </a>
+            @endif
 
+            @if($canPartners)
             <a href="{{ route('admin.users.verify', ['tab' => 'partners', 'status' => $status]) }}" 
                class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-colors {{ $tab === 'partners' ? 'bg-[#703A3A] text-white shadow-xs' : 'text-[#2B211E]/70 hover:bg-[#2B211E]/5' }}">
                 <span class="material-symbols-outlined text-[16px]">nature_people</span>
                 <span>Mitra Pengelola Tapak Adat & Riset</span>
                 <span class="px-1.5 py-0.2 bg-white/20 text-[10px] font-mono">{{ $pendingPartnersCount }}</span>
             </a>
+            @endif
         </div>
 
         <!-- Sub-filter Status -->

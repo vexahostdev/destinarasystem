@@ -153,13 +153,13 @@
                 Pengguna & Mitra
             </div>
 
-            @can('institutions.verify')
+            @canany(['institutions.verify', 'partners.verify'])
             <a href="{{ route('admin.users.verify') }}" 
                class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('admin.users.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
                 <span>Verifikasi Legalitas</span>
             </a>
-            @endcan
+            @endcanany
 
             @can('users.view')
             <a href="{{ route('admin.users.index') }}" 

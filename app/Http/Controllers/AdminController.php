@@ -595,7 +595,13 @@ class AdminController extends Controller
      */
     public function verifyUsers(Request $request)
     {
-        $tab = $request->query('tab', 'institutions');
+        // Tab hanya untuk tipe yang boleh diverifikasi staf ini (Audit v11 K-8)
+        $canInstitutions = Auth::user()->can('institutions.verify');
+        $canPartners = Auth::user()->can('partners.verify');
+        $tab = $request->query('tab', $canInstitutions ? 'institutions' : 'partners');
+        if (($tab === 'institutions' && ! $canInstitutions) || ($tab === 'partners' && ! $canPartners)) {
+            $tab = $canInstitutions ? 'institutions' : 'partners';
+        }
         $status = $request->query('status');
 
         $institutionsQuery = Institution::with(['user', 'documents'])->latest('id');
@@ -606,8 +612,12 @@ class AdminController extends Controller
             $partnersQuery->where('verification_status', $status);
         }
 
-        $institutions = $institutionsQuery->paginate(15, ['*'], 'inst_page');
-        $partners = $partnersQuery->paginate(15, ['*'], 'partner_page');
+        $institutions = $canInstitutions
+            ? $institutionsQuery->paginate(15, ['*'], 'inst_page')
+            : Institution::query()->whereRaw('1 = 0')->paginate(15, ['*'], 'inst_page');
+        $partners = $canPartners
+            ? $partnersQuery->paginate(15, ['*'], 'partner_page')
+            : PartnerProfile::query()->whereRaw('1 = 0')->paginate(15, ['*'], 'partner_page');
 
         $pendingInstitutionsCount = Institution::where('verification_status', VerificationStatus::PENDING)->count();
         $pendingPartnersCount = PartnerProfile::where('verification_status', VerificationStatus::PENDING)->count();
@@ -622,7 +632,9 @@ class AdminController extends Controller
             'pendingInstitutionsCount',
             'pendingPartnersCount',
             'unverifiedInstitutionsCount',
-            'unverifiedPartnersCount'
+            'unverifiedPartnersCount',
+            'canInstitutions',
+            'canPartners'
         ));
     }
 

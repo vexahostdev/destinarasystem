@@ -266,8 +266,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'account:i
     Route::post('/destinasi/{destination}/slots/update', [AdminController::class, 'updateDestinationSlot'])->middleware('can:availability.manage')->name('destinations.slots.update');
 
     // 4. Pengguna & Validasi Legalitas
-    Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->middleware('can:institutions.verify')->name('users.verify');
-    Route::post('/verifikasi-pengguna/{type}/{id}', [AdminController::class, 'updateUserVerification'])->middleware('can:institutions.verify')->name('users.updateVerification');
+    Route::get('/verifikasi-pengguna', [AdminController::class, 'verifyUsers'])->middleware('permission:institutions.verify|partners.verify')->name('users.verify');
+    Route::post('/verifikasi-pengguna/{type}/{id}', [AdminController::class, 'updateUserVerification'])->middleware('permission:institutions.verify|partners.verify')->name('users.updateVerification');
     Route::get('/verifikasi-pengguna/mitra/dokumen/{id}', [AdminController::class, 'downloadPartnerDocument'])->middleware('can:partners.verify')->name('users.partnerDocument.download');
     Route::get('/verifikasi-pengguna/institusi/dokumen/{id}', [AdminController::class, 'downloadInstitutionDocument'])->middleware('can:institutions.verify')->name('users.institutionDocument.download');
     Route::get('/pengguna', [UserController::class, 'index'])->middleware('can:users.view')->name('users.index');
