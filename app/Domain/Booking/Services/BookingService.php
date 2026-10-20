@@ -62,6 +62,10 @@ class BookingService
             throw new InvalidArgumentException('Destinasi ini sedang tidak aktif atau belum ditayangkan.');
         }
 
+        if (! empty($data['needs_permit_letter']) && ! $destination->has_permit_document) {
+            throw new InvalidArgumentException('Destinasi ini tidak menyediakan layanan penerbitan surat izin.');
+        }
+
         $partner = $destination->partner;
         if (! $partner || $partner->isSuspended() || ! $partner->partnerProfile?->isVerified()) {
             throw new InvalidArgumentException('Mitra pengelola destinasi ini belum terverifikasi atau sedang ditangguhkan.');

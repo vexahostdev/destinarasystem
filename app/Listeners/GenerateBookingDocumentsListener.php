@@ -31,7 +31,7 @@ class GenerateBookingDocumentsListener
             GenerateDocumentJob::dispatch($event->booking, DocumentType::CONFIRMATION_LETTER, $event->actor)->afterCommit();
             GenerateDocumentJob::dispatch($event->booking, DocumentType::E_VOUCHER, $event->actor)->afterCommit();
 
-            if ($event->booking->destination?->has_permit_document) {
+            if ($event->booking->needs_permit_letter) {
                 GenerateDocumentJob::dispatch($event->booking, DocumentType::PERMIT_DRAFT, $event->actor)->afterCommit();
             }
         } elseif ($event instanceof BookingRescheduled) {

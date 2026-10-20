@@ -353,7 +353,7 @@ class BookingForm extends Component
                 'addon_ids' => $this->selectedAddonIds,
                 'voucher_code' => $this->voucherCode,
                 'purpose_notes' => $this->purposeNotes,
-                'needs_permit_letter' => $this->needsPermitLetter,
+                'needs_permit_letter' => $this->destination->has_permit_document && (bool) $this->needsPermitLetter,
                 'permit_details' => $this->permitDetails,
             ], Auth::user());
 

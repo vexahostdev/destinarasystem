@@ -158,12 +158,14 @@
                     <textarea wire:model="purposeNotes" rows="2" class="w-full text-sm border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-[#8C5151] outline-none" placeholder="Misal: Kajian vegetasi hutan bambu, wawancara tetua adat, dsb."></textarea>
                 </div>
 
+                @if($destination->has_permit_document)
                 <label class="flex items-start gap-2.5 cursor-pointer pt-2">
                     <input type="checkbox" wire:model="needsPermitLetter" class="rounded mt-0.5 text-[#8C5151] focus:ring-[#8C5151]">
                     <span class="text-xs text-slate-700">
                         <strong>Butuh draf Surat Izin Dinas Pendidikan / Kemenag:</strong> Sistem akan membuatkan draf resmi otomatis setelah pemesanan dikonfirmasi.
                     </span>
                 </label>
+                @endif
             </div>
         </div>
 

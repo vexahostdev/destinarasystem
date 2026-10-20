@@ -332,4 +332,90 @@ class DocumentTest extends TestCase
         $response->assertSee('Surat Izin Bertanda Tangan Perlu Diunggah Ulang');
         $response->assertSee('Void (Tidak Berlaku)');
     }
+
+    public function test_permit_draft_lifecycle_and_validation_v9_2(): void
+    {
+        $bookingService = app(\App\Domain\Booking\Services\BookingService::class);
+
+        // Case 1: Destination does NOT have permit document -> needs_permit_letter=true rejected on create
+        $this->destination->has_permit_document = false;
+        $this->destination->save();
+
+        $slot = \App\Models\AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => Carbon::now()->addDays(15)->toDateString(),
+            'capacity' => 100,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        try {
+            $bookingService->create([
+                'destination_id' => $this->destination->id,
+                'package_id' => $this->booking->package_id,
+                'inquiry_type' => 'study_tour',
+                'planned_date_start' => Carbon::now()->addDays(15)->toDateString(),
+                'participant_count' => 20,
+                'needs_permit_letter' => true,
+            ], $this->buyer);
+            $this->fail('Expected InvalidArgumentException was not thrown.');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertEquals('Destinasi ini tidak menyediakan layanan penerbitan surat izin.', $e->getMessage());
+        }
+
+        // Case 2: Destination HAS permit document
+        $this->destination->has_permit_document = true;
+        $this->destination->save();
+
+        // 2a. Booking with needs_permit_letter = true -> on confirmation, permit_draft is generated
+        $bNeeds = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->booking->package_id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(15)->toDateString(),
+            'participant_count' => 20,
+            'needs_permit_letter' => true,
+        ], $this->buyer);
+        $bNeeds->status = BookingStatus::DIBAYAR;
+        $bNeeds->save();
+
+        $bookingService->confirm($bNeeds, $this->adminUser);
+
+        $this->assertDatabaseHas('documents', [
+            'booking_id' => $bNeeds->id,
+            'type' => DocumentType::PERMIT_DRAFT,
+            'status' => DocumentStatus::DRAFT,
+        ]);
+
+        // 2b. Booking with needs_permit_letter = false -> on confirmation, permit_draft is NOT generated
+        $bNotNeeds = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->booking->package_id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(15)->toDateString(),
+            'participant_count' => 20,
+            'needs_permit_letter' => false,
+        ], $this->buyer);
+        $bNotNeeds->status = BookingStatus::DIBAYAR;
+        $bNotNeeds->save();
+
+        $bookingService->confirm($bNotNeeds, $this->adminUser);
+
+        $this->assertDatabaseMissing('documents', [
+            'booking_id' => $bNotNeeds->id,
+            'type' => DocumentType::PERMIT_DRAFT,
+        ]);
+
+        // Case 3: Livewire BookingForm checkbox visibility
+        $this->destination->has_permit_document = false;
+        $this->destination->save();
+        $lw1 = \Livewire\Livewire::test(\App\Livewire\Buyer\BookingForm::class, ['destination' => $this->destination->fresh()]);
+        $lw1->assertDontSee('Butuh draf Surat Izin');
+
+        $this->destination->has_permit_document = true;
+        $this->destination->save();
+        $lw2 = \Livewire\Livewire::test(\App\Livewire\Buyer\BookingForm::class, ['destination' => $this->destination->fresh()]);
+        $lw2->assertSee('Butuh draf Surat Izin');
+    }
 }
