@@ -494,9 +494,9 @@ class BookingService
             $locked->planned_date_start = $newStartDate->format('Y-m-d');
             $locked->planned_date_end = $newEndDate->format('Y-m-d');
 
-            // 3. Hold new slots and promote if already confirmed
+            // 3. Hold new slots and promote if already paid or confirmed
             $this->availabilityService->holdSlots($locked);
-            if ($locked->status === BookingStatus::DIKONFIRMASI) {
+            if (in_array($locked->status, [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI], true)) {
                 $this->availabilityService->promoteHeldToBooked($locked);
             }
 

@@ -715,5 +715,67 @@ class BookingTest extends TestCase
             'participant_count' => 20,
         ], $this->buyer);
     }
+
+    public function test_reschedule_paid_booking_promotes_allocation_to_booked_v8_1(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $availService = app(\App\Domain\Booking\Services\AvailabilityService::class);
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        // Simulate payment completed
+        $booking->status = BookingStatus::DIBAYAR;
+        $booking->paid_at = now();
+        $booking->save();
+        $availService->promoteHeldToBooked($booking);
+
+        $this->slot->refresh();
+        $this->assertEquals(10, $this->slot->booked_count);
+        $this->assertEquals(0, $this->slot->held_count);
+
+        // Create new slot for reschedule target date
+        $newDate = Carbon::parse($this->slot->date)->addDays(10)->toDateString();
+        $newSlot = AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $newDate,
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'is_closed' => false,
+        ]);
+
+        // Reschedule
+        $bookingService->reschedule(
+            $booking,
+            Carbon::parse($newDate),
+            $admin,
+            'Reschedule rombongan berstatus dibayar'
+        );
+
+        $this->slot->refresh();
+        $newSlot->refresh();
+        $booking->refresh();
+
+        $allocations = \App\Models\BookingSlotAllocation::where('booking_id', $booking->id)->get();
+        $this->assertNotEmpty($allocations);
+        foreach ($allocations as $allocation) {
+            $this->assertEquals('booked', $allocation->type);
+        }
+
+        $this->assertEquals(0, $this->slot->booked_count);
+        $this->assertEquals(10, $newSlot->booked_count);
+        $this->assertEquals(0, $newSlot->held_count);
+    }
 }
 
