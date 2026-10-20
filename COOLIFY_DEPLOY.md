@@ -107,15 +107,39 @@ Jalankan scheduler Laravel setiap menit. Anda dapat mengkonfigurasinya melalui:
    php artisan schedule:work
    ```
 
-Tugas cron yang otomatis berjalan meliputi:
-- `booking:expire-unpaid` (setiap 5 menit)
-- `partner:check-confirmation-sla` (setiap 10 menit)
-- `booking:auto-complete` (setiap jam)
-- `payout:auto-create` (setiap jam)
-- `payout:process-pending` (setiap hari pkl 03:00)
-- `reconciliation:daily` (setiap hari pkl 01:00)
-- `destinara:audit-cleanup` (setiap hari Minggu pkl 02:00)
-- `backup:clean` & `backup:run` (setiap hari pkl 02:00)
+Tugas cron yang otomatis berjalan (cek dengan `php artisan schedule:list`):
+- `bookings:expire-unpaid` (setiap 5 menit)
+- `payments:send-reminders` (setiap 10 menit)
+- `bookings:partner-sla` (setiap 15 menit)
+- `bookings:visit-reminders` (setiap hari pkl 07:00)
+- `bookings:auto-complete` (setiap hari pkl 23:00)
+- `payouts:generate` (setiap hari pkl 01:00)
+- `notifications:retry-failed` (setiap 30 menit)
+- `whatsapp:health-check` (setiap 10 menit)
+- `system:heartbeat` (setiap menit)
+- `backup:clean` (setiap hari pkl 01:30)
+- `backup:run --only-db` (setiap hari pkl 02:00)
+- `backup:run --only-files` (setiap Minggu pkl 03:00)
+- `backup:monitor` (setiap hari pkl 09:00)
+
+### C. Backup ke Penyimpanan Terpisah (Wajib untuk Production)
+Backup database (harian) dan berkas aplikasi `storage/app/private` + `storage/app/public` (mingguan) dikirim ke disk pada `BACKUP_DISK`. Kode sumber dan `.env` tidak ikut dicadangkan. Default `local` berarti cadangan berada di server yang sama, sehingga System Health menandainya **warning**. Untuk production, gunakan bucket S3-compatible (AWS S3, Cloudflare R2, Wasabi, IDCloudHost, dll.):
+
+```env
+BACKUP_DISK=s3                      # atau "local,s3" untuk menyimpan di keduanya
+BACKUP_ARCHIVE_PASSWORD=isi-password-acak-panjang   # arsip zip terenkripsi AES-256
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_DEFAULT_REGION=auto             # R2: auto
+AWS_BUCKET=destinara-backup
+AWS_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com   # kosongkan untuk AWS S3
+AWS_USE_PATH_STYLE_ENDPOINT=false
+```
+
+- Alert kegagalan backup dan backup tidak sehat (lebih dari 1 hari tanpa backup baru) dikirim ke **Pengaturan > Notifikasi > Email Alert Admin** (`admin_alert_emails`).
+- Image Docker harus menyediakan `mysqldump` (paket `mariadb-client` / `mysql-client`) agar `backup:run --only-db` berhasil.
+- Uji setelah deploy: `php artisan backup:run --only-db`, lalu buka **/admin/system-health** dan pastikan baris backup menampilkan waktu terakhir.
+- Pemulihan: unduh zip dari bucket, buka dengan `BACKUP_ARCHIVE_PASSWORD`, impor `db-dumps/*.sql` ke MySQL, salin folder `private/` dan `public/` ke `storage/app/`.
 
 ---
 

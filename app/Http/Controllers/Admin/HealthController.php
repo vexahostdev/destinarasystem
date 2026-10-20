@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Backup\BackupDestination\BackupDestinationFactory;
+use Spatie\Backup\Config\Config as BackupConfig;
 use Throwable;
 
 class HealthController extends Controller
@@ -195,22 +197,8 @@ class HealthController extends Controller
             ];
         }
 
-        // 7. Backup Terakhir
-        $backupPath = storage_path('app/backup');
-        $lastBackupTime = '-';
-        if (is_dir($backupPath)) {
-            $files = glob($backupPath.'/*.zip');
-            if (! empty($files)) {
-                $latest = max(array_map('filemtime', $files));
-                $lastBackupTime = Carbon::createFromTimestamp($latest)->diffForHumans();
-            }
-        }
-        $checks['backup'] = [
-            'name' => 'Backup Sistem & Database',
-            'status' => $lastBackupTime !== '-' ? 'healthy' : 'info',
-            'latency' => '-',
-            'detail' => $lastBackupTime !== '-' ? "Cadangan terakhir: {$lastBackupTime}" : 'Belum ada arsip backup terdeteksi.',
-        ];
+        // 7. Backup Terakhir (dibaca dari disk tujuan spatie/laravel-backup)
+        $checks['backup'] = $this->backupCheck();
 
         // 8. Admin Alert Emails (Checklist Go-Live)
         $alertEmails = setting('admin_alert_emails', []);
@@ -228,5 +216,52 @@ class HealthController extends Controller
         ];
 
         return view('admin.health.index', compact('checks'));
+    }
+
+    /**
+     * Status backup terbaru per disk tujuan. Lebih dari 1 hari tanpa backup baru = warning.
+     */
+    protected function backupCheck(): array
+    {
+        $check = ['name' => 'Backup Sistem & Database', 'latency' => '-'];
+
+        try {
+            $destinations = BackupDestinationFactory::createFromArray(app(BackupConfig::class));
+            $details = [];
+            $status = 'healthy';
+
+            foreach ($destinations as $destination) {
+                $disk = $destination->diskName();
+
+                if (! $destination->isReachable()) {
+                    $details[] = "{$disk}: tidak dapat diakses";
+                    $status = 'unhealthy';
+
+                    continue;
+                }
+
+                $newest = $destination->newestBackup();
+                if (! $newest) {
+                    $details[] = "{$disk}: belum ada arsip backup";
+                    $status = $status === 'unhealthy' ? $status : 'warning';
+
+                    continue;
+                }
+
+                $details[] = "{$disk}: terakhir {$newest->date()->diffForHumans()} ({$newest->date()->translatedFormat('d M Y H:i')})";
+                if ($newest->date()->lt(now()->subDay())) {
+                    $status = $status === 'unhealthy' ? $status : 'warning';
+                }
+            }
+
+            if ($destinations->count() === 1 && $destinations->first()->diskName() === 'local') {
+                $details[] = 'Disimpan di server yang sama; isi BACKUP_DISK dengan disk S3/R2 untuk production.';
+                $status = $status === 'healthy' ? 'warning' : $status;
+            }
+
+            return $check + ['status' => $status, 'detail' => implode(' · ', $details)];
+        } catch (Throwable $e) {
+            return $check + ['status' => 'unhealthy', 'detail' => 'Status backup tidak dapat dibaca: '.$e->getMessage()];
+        }
     }
 }

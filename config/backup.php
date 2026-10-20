@@ -1,6 +1,6 @@
 <?php
 
-use Spatie\Backup\Notifications\Notifiable;
+use App\Notifications\BackupAlertNotifiable;
 use Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification;
 use Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification;
 use Spatie\Backup\Notifications\Notifications\CleanupHasFailedNotification;
@@ -26,7 +26,9 @@ return [
                  * The list of directories and files that will be included in the backup.
                  */
                 'include' => [
-                    base_path(),
+                    // Hanya data aplikasi (dokumen, bukti transfer, legalitas, media). Kode sumber & .env tidak ikut.
+                    storage_path('app/private'),
+                    storage_path('app/public'),
                 ],
 
                 /*
@@ -35,8 +37,9 @@ return [
                  * Directories used by the backup process will automatically be excluded.
                  */
                 'exclude' => [
-                    base_path('vendor'),
-                    base_path('node_modules'),
+                    // Arsip backup lama di disk local tidak ikut dicadangkan ulang
+                    storage_path('app/private/'.env('APP_NAME', 'laravel-backup')),
+                    storage_path('app/backup-temp'),
                 ],
 
                 /*
@@ -54,7 +57,8 @@ return [
                  * Set to `null` to include complete absolute path
                  * Example: base_path()
                  */
-                'relative_path' => null,
+                // Isi arsip berpola private/... dan public/..., mudah dipulihkan ke storage/app
+                'relative_path' => storage_path('app'),
             ],
 
             /*
@@ -161,9 +165,8 @@ return [
             /*
              * The disk names on which the backups will be stored.
              */
-            'disks' => [
-                'local',
-            ],
+            // Pisahkan dengan koma, mis. "s3" atau "local,s3". Gunakan disk di luar server (S3 / R2) di production.
+            'disks' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_DISK', 'local'))))),
         ],
 
         /*
@@ -207,22 +210,24 @@ return [
      */
     'notifications' => [
         'notifications' => [
+            // Hanya kegagalan yang dikirim agar email alert admin tidak tenggelam oleh laporan rutin
             BackupHasFailedNotification::class => ['mail'],
             UnhealthyBackupWasFoundNotification::class => ['mail'],
             CleanupHasFailedNotification::class => ['mail'],
-            BackupWasSuccessfulNotification::class => ['mail'],
-            HealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupWasSuccessfulNotification::class => ['mail'],
+            BackupWasSuccessfulNotification::class => [],
+            HealthyBackupWasFoundNotification::class => [],
+            CleanupWasSuccessfulNotification::class => [],
         ],
 
         /*
          * Here you can specify the notifiable to which the notifications should be sent. The default
          * notifiable will use the variables specified in this config file.
          */
-        'notifiable' => Notifiable::class,
+        // Penerima diambil dari setting admin_alert_emails
+        'notifiable' => BackupAlertNotifiable::class,
 
         'mail' => [
-            'to' => 'your@example.com',
+            'to' => [],
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
@@ -266,7 +271,7 @@ return [
     'monitor_backups' => [
         [
             'name' => env('APP_NAME', 'laravel-backup'),
-            'disks' => ['local'],
+            'disks' => array_values(array_filter(array_map('trim', explode(',', (string) env('BACKUP_DISK', 'local'))))),
             'health_checks' => [
                 MaximumAgeInDays::class => 1,
                 MaximumStorageInMegabytes::class => 5000,

@@ -70,6 +70,12 @@ class RuntimeConfigServiceProvider extends ServiceProvider
                 ]);
             }
 
+            // Email alert backup memakai pengirim yang sama dengan email sistem
+            config([
+                'backup.notifications.mail.from.address' => config('mail.from.address'),
+                'backup.notifications.mail.from.name' => config('mail.from.name'),
+            ]);
+
             // Apply General Company settings
             $general = $settings->group('general');
             if (! empty($general['company_name'])) {

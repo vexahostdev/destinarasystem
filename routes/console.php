@@ -62,8 +62,26 @@ Schedule::command('system:heartbeat')
     ->withoutOverlapping()
     ->runInBackground();
 
-// 10. Backup basis data otomatis
+// 10. Backup basis data otomatis (harian)
 Schedule::command('backup:run --only-db')
     ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// 11. Backup berkas aplikasi: dokumen, bukti transfer, legalitas, media (mingguan)
+Schedule::command('backup:run --only-files')
+    ->weeklyOn(0, '03:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// 12. Hapus arsip backup lama sesuai strategi retensi config/backup.php
+Schedule::command('backup:clean')
+    ->dailyAt('01:30')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// 13. Pantau kesehatan backup (umur & ukuran); kirim alert bila tidak sehat
+Schedule::command('backup:monitor')
+    ->dailyAt('09:00')
     ->withoutOverlapping()
     ->runInBackground();
