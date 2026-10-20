@@ -449,5 +449,35 @@ class AdminPortalTest extends TestCase
         $caraKerjaRes->assertDontSee('tapak terakreditasi');
         $caraKerjaRes->assertSee('destinasi terkurasi');
     }
+
+    public function test_date_validation_rule_replacers_v8_3(): void
+    {
+        $v1 = \Illuminate\Support\Facades\Validator::make(
+            ['start_date' => '2026-10-20', 'end_date' => '2026-10-10'],
+            ['end_date' => 'after_or_equal:start_date']
+        );
+        $this->assertEquals(
+            'Tanggal selesai harus berupa tanggal setelah atau sama dengan tanggal mulai.',
+            $v1->errors()->first('end_date')
+        );
+
+        $v2 = \Illuminate\Support\Facades\Validator::make(
+            ['starts_at' => '2026-10-20', 'ends_at' => '2026-10-10'],
+            ['ends_at' => 'after_or_equal:starts_at']
+        );
+        $this->assertEquals(
+            'Waktu berakhir harus berupa tanggal setelah atau sama dengan waktu berlaku mulai.',
+            $v2->errors()->first('ends_at')
+        );
+
+        $v3 = \Illuminate\Support\Facades\Validator::make(
+            ['new_date' => '2026-10-10'],
+            ['new_date' => 'after_or_equal:2026-10-22']
+        );
+        $this->assertEquals(
+            'Tanggal baru harus berupa tanggal setelah atau sama dengan 22 Oktober 2026.',
+            $v3->errors()->first('new_date')
+        );
+    }
 }
 
