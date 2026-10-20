@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
 use App\Models\Destination;
 use App\Models\User;
@@ -81,5 +82,25 @@ class DestinationPolicy
     public function feature(User $user, Destination $destination): bool
     {
         return $user->isInternal() && $user->can('destinations.feature');
+    }
+
+    /**
+     * Kontak destinasi terbuka untuk internal, partner pemilik, atau buyer yang punya booking
+     * di destinasi ini dengan status sesuai setting contact_reveal_status (SPEC §8.5).
+     */
+    public function revealContacts(User $user, Destination $destination): bool
+    {
+        if ($user->isInternal()) {
+            return true;
+        }
+
+        if ($user->isPartner()) {
+            return $destination->partner_id === $user->id;
+        }
+
+        return $user->isBuyer() && $destination->bookings()
+            ->where('user_id', $user->id)
+            ->whereIn('status', BookingStatus::contactRevealStatuses())
+            ->exists();
     }
 }

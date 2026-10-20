@@ -25,6 +25,20 @@ enum BookingStatus: string
         };
     }
 
+    /**
+     * Status booking yang membuka kontak destinasi bagi buyer, sesuai setting contact_reveal_status (SPEC §8.5).
+     *
+     * @return array<int, self>
+     */
+    public static function contactRevealStatuses(): array
+    {
+        return match (setting('contact_reveal_status', 'dikonfirmasi')) {
+            'dibayar' => [self::DIBAYAR, self::DIKONFIRMASI, self::BERLANGSUNG, self::SELESAI],
+            'berlangsung' => [self::BERLANGSUNG, self::SELESAI],
+            default => [self::DIKONFIRMASI, self::BERLANGSUNG, self::SELESAI],
+        };
+    }
+
     public function color(): string
     {
         return match ($this) {

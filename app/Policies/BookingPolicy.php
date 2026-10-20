@@ -120,14 +120,7 @@ class BookingPolicy
         }
 
         if ($user->isBuyer() && $booking->user_id === $user->id) {
-            $threshold = setting('contact_reveal_status', 'dikonfirmasi');
-            $allowedStatuses = match ($threshold) {
-                'dibayar' => [BookingStatus::DIBAYAR, BookingStatus::DIKONFIRMASI, BookingStatus::BERLANGSUNG, BookingStatus::SELESAI],
-                'berlangsung' => [BookingStatus::BERLANGSUNG, BookingStatus::SELESAI],
-                default => [BookingStatus::DIKONFIRMASI, BookingStatus::BERLANGSUNG, BookingStatus::SELESAI],
-            };
-
-            return in_array($booking->status, $allowedStatuses);
+            return in_array($booking->status, BookingStatus::contactRevealStatuses(), true);
         }
 
         return false;

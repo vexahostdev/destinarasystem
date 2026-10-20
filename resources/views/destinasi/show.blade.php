@@ -225,8 +225,9 @@
                         {{ $contact['phone'] }}
                       </a>
                     @else
-                      <span class="inline-flex items-center gap-1 text-slate-500 font-mono bg-white px-2 py-0.5 rounded border border-slate-200">
-                        {{ $contact['phone'] }}
+                      <span class="inline-flex items-center gap-1 text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        <span class="material-symbols-outlined text-[14px]">lock</span>
+                        Nomor terkunci
                       </span>
                     @endif
                   </div>
@@ -235,7 +236,7 @@
             </div>
             @if(!($destination['contacts'][0]['is_revealed'] ?? false))
               <p class="text-[11px] text-slate-500 bg-amber-50 p-3 rounded-xl border border-amber-200/50">
-                <span class="font-bold text-amber-800">Privasi Kontak:</span> Nomor kontak lengkap pengelola akan terbuka otomatis bagi akun institusi pemesan setelah reservasi berstatus dikonfirmasi atau berlangsung.
+                <span class="font-bold text-amber-800">Privasi Kontak:</span> Nomor kontak pengelola akan terbuka otomatis bagi akun institusi pemesan setelah reservasi berstatus {{ $destination['contact_reveal_label'] }}.
               </p>
             @endif
           @else

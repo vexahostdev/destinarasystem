@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
-use App\Models\Booking;
 use App\Models\Destination;
 use App\Models\Document;
 use Illuminate\Http\Request;
@@ -51,14 +49,7 @@ class PublicController extends Controller
             ->firstOrFail();
 
         // Reveal rule SPEC §8.5
-        $canRevealContacts = false;
-        if (auth()->check()) {
-            $user = auth()->user();
-            $canRevealContacts = Booking::where('user_id', $user->id)
-                ->where('destination_id', $destination->id)
-                ->whereIn('status', [BookingStatus::DIKONFIRMASI, BookingStatus::BERLANGSUNG])
-                ->exists() || $user->hasRole('admin') || $user->hasRole('super_admin');
-        }
+        $canRevealContacts = (bool) auth()->user()?->can('revealContacts', $destination);
 
         $minPrice = $destination->packages->min('price_per_pax') ?? 0;
         $gallery = $destination->media->isNotEmpty()
@@ -90,16 +81,14 @@ class PublicController extends Controller
             'cancellationPolicy' => $destination->cancellationPolicy,
             'slots' => $destination->slots,
             'reviews' => $destination->reviews,
-            'contacts' => $destination->contacts->map(function ($c) use ($canRevealContacts) {
-                return [
-                    'name' => $c->name,
-                    'role' => $c->role,
-                    'phone' => $canRevealContacts
-                        ? $c->phone
-                        : (substr($c->phone, 0, 4).'-****-'.substr($c->phone, -4)),
-                    'is_revealed' => $canRevealContacts,
-                ];
-            }),
+            // Nomor kontak tidak dikirim ke view sama sekali bila viewer belum berhak (SPEC §8.5)
+            'contacts' => $destination->contacts->map(fn ($c) => [
+                'name' => $c->contact_name,
+                'role' => $c->role,
+                'phone' => $canRevealContacts ? $c->phone : null,
+                'is_revealed' => $canRevealContacts,
+            ]),
+            'contact_reveal_label' => strtolower(\App\Enums\BookingStatus::from(setting('contact_reveal_status', 'dikonfirmasi'))->label()),
             'has_permit' => (bool) $destination->has_permit_document,
             'is_partner_verified' => (bool) $destination->partner?->partnerProfile?->isVerified(),
         ];
