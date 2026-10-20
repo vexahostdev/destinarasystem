@@ -384,6 +384,10 @@ class NotificationTest extends TestCase
 
     public function test_booking_rescheduled_notifications_for_paid_and_confirmed_status_v8_2(): void
     {
+        Http::fake([
+            '*' => Http::response(['status' => 'success'], 200),
+        ]);
+
         $partner = User::factory()->create([
             'account_type' => 'partner',
             'status' => 'active',
