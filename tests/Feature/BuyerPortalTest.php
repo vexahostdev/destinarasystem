@@ -236,6 +236,32 @@ class BuyerPortalTest extends TestCase
             ->assertSet('isSlotAvailable', false)
             ->assertSet('availabilityMessage', 'Slot penuh untuk tanggal kunjungan yang dipilih.')
             ->assertSee('Slot penuh');
+
+        // 7. Slot message: tanggal belum dibuka oleh pengelola (default_daily_capacity null) (V8-6)
+        $this->destination->update(['default_daily_capacity' => null]);
+        $unopenedDate = now()->addDays(30)->format('Y-m-d');
+
+        Livewire::test(BookingForm::class, ['destination' => $this->destination->fresh()])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', $unopenedDate)
+            ->call('recalculate')
+            ->assertSet('isSlotAvailable', false)
+            ->assertSet('availabilityMessage', 'Tanggal ini belum dibuka oleh pengelola.')
+            ->assertSee('Tanggal ini belum dibuka oleh pengelola');
+
+        // 8. Slot message: default_daily_capacity lebih kecil dari participantCount -> slot penuh (V8-6)
+        $this->destination->update(['default_daily_capacity' => 15]);
+        $lowCapDate = now()->addDays(35)->format('Y-m-d');
+
+        Livewire::test(BookingForm::class, ['destination' => $this->destination->fresh()])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', $lowCapDate)
+            ->call('recalculate')
+            ->assertSet('isSlotAvailable', false)
+            ->assertSet('availabilityMessage', 'Slot penuh untuk tanggal kunjungan yang dipilih.')
+            ->assertSee('Slot penuh');
     }
 
     public function test_destination_detail_accessible_by_buyer(): void

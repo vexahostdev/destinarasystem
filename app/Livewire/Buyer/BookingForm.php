@@ -282,7 +282,13 @@ class BookingForm extends Component
                     }
                 } else {
                     $defCap = $this->destination->default_daily_capacity;
-                    if ($defCap === null || $defCap < $paxToCheck) {
+                    if ($defCap === null) {
+                        $this->isSlotAvailable = false;
+                        $this->availabilityMessage = 'Tanggal ini belum dibuka oleh pengelola.';
+
+                        return;
+                    }
+                    if ($defCap < $paxToCheck) {
                         $this->isSlotAvailable = false;
                         $this->availabilityMessage = 'Slot penuh untuk tanggal kunjungan yang dipilih.';
 
