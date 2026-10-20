@@ -26,13 +26,18 @@ use App\Events\RefundCompleted;
 use App\Events\RefundCreated;
 use App\Events\UserRegistered;
 use App\Listeners\GenerateBookingDocumentsListener;
+use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\EnsureAccountType;
+use App\Http\Middleware\EnsurePartnerVerified;
 use App\Listeners\SendDomainNotificationListener;
 use App\Models\User;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -53,6 +58,14 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment(['production', 'staging']) || str_starts_with((string) config('app.url'), 'https')) {
             URL::forceScheme('https');
         }
+
+        // Middleware akun ikut diterapkan ulang pada request /livewire/update (Audit v11 K-10)
+        Livewire::addPersistentMiddleware([
+            EnsureAccountActive::class,
+            EnsureAccountType::class,
+            EnsureEmailIsVerified::class,
+            EnsurePartnerVerified::class,
+        ]);
 
         // Set locale Indonesia untuk Carbon dan format tanggal (C4)
         \Carbon\Carbon::setLocale('id');

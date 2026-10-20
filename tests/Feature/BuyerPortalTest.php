@@ -651,6 +651,52 @@ class BuyerPortalTest extends TestCase
         $testAvailable->assertDontSee('Pembayaran belum tersedia');
         $this->assertDoesNotMatchRegularExpression('/<button[^>]*type="submit"[^>]*\sdisabled[\s>]/', $testAvailable->html());
     }
+
+    /** Snapshot komponen BookingForm seperti yang diterima browser saat halaman dibuka. */
+    private function bookingFormSnapshot(): string
+    {
+        $html = $this->get('/buyer/booking/create?tapak='.$this->destination->slug)->assertOk()->getContent();
+
+        preg_match_all('/wire:snapshot="([^"]+)"/', $html, $matches);
+        $snapshot = collect($matches[1])
+            ->map(fn ($raw) => html_entity_decode($raw, ENT_QUOTES))
+            ->first(fn ($json) => (json_decode($json, true)['memo']['name'] ?? null) === 'buyer.booking-form');
+        $this->assertNotNull($snapshot, 'Snapshot BookingForm tidak ditemukan di halaman.');
+
+        return $snapshot;
+    }
+
+    /** Kirim submit lewat endpoint /livewire/update (middleware persisten hanya berlaku di sini, bukan di Livewire::test). */
+    private function submitBookingFormOverHttp(string $snapshot): \Illuminate\Testing\TestResponse
+    {
+        return $this->withHeaders(['X-Livewire' => 'true'])->postJson('/livewire/update', [
+            'components' => [[
+                'snapshot' => $snapshot,
+                'updates' => [
+                    'packageId' => $this->package->id,
+                    'participantCount' => 20,
+                    'plannedDateStart' => now()->addDays(14)->format('Y-m-d'),
+                ],
+                'calls' => [['path' => '', 'method' => 'submit', 'params' => []]],
+            ]],
+        ]);
+    }
+
+    public function test_suspended_buyer_cannot_submit_open_booking_form_over_livewire_k10(): void
+    {
+        $this->actingAs($this->buyer);
+
+        // Kontrol: buyer aktif berhasil membuat booking lewat jalur HTTP yang sama
+        $this->submitBookingFormOverHttp($this->bookingFormSnapshot())->assertOk();
+        $this->assertSame(1, \App\Models\Booking::where('user_id', $this->buyer->id)->count());
+
+        // Form masih terbuka di browser, lalu buyer ditangguhkan admin
+        $openForm = $this->bookingFormSnapshot();
+        $this->buyer->update(['status' => 'suspended', 'suspended_reason' => 'Uji K-10']);
+
+        $response = $this->submitBookingFormOverHttp($openForm);
+
+        $this->assertNotSame(200, $response->status(), 'Request Livewire dari akun suspended harus ditolak.');
+        $this->assertSame(1, \App\Models\Booking::where('user_id', $this->buyer->id)->count());
+    }
 }
-
-
