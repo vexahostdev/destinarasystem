@@ -106,7 +106,11 @@ class MidtransGateway implements PaymentGateway
 
     public function verifyWebhook(Request $request): bool
     {
-        $serverKey = $this->getServerKey();
+        // Midtrans belum dikonfigurasi: tolak webhook (401) alih-alih error 500
+        $serverKey = (string) setting('midtrans_server_key');
+        if ($serverKey === '') {
+            return false;
+        }
         $orderId = $request->input('order_id', '');
         $statusCode = $request->input('status_code', '');
         $grossAmount = $request->input('gross_amount', '');

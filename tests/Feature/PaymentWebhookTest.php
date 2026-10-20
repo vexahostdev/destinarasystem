@@ -288,6 +288,31 @@ class PaymentWebhookTest extends TestCase
         $this->assertEquals(PaymentStatus::PAID, $this->payment->status);
     }
 
+    public function test_midtrans_webhook_rejected_with_401_when_server_key_not_configured_k9(): void
+    {
+        setting(['midtrans_server_key' => '']);
+
+        // Signature dihitung dengan server key kosong: tetap harus ditolak, bukan 500 dan bukan diterima
+        $grossStr = number_format($this->payment->amount, 2, '.', '');
+        $payload = [
+            'order_id' => $this->payment->external_id,
+            'status_code' => '200',
+            'gross_amount' => $grossStr,
+            'transaction_status' => 'settlement',
+            'signature_key' => hash('sha512', $this->payment->external_id.'200'.$grossStr),
+            'transaction_id' => 'midtrans-tx-forged',
+        ];
+
+        $this->postJson('/webhooks/payments/midtrans', $payload)->assertStatus(401);
+
+        $this->assertDatabaseHas('payment_webhook_logs', [
+            'gateway' => 'midtrans',
+            'external_id' => $this->payment->external_id,
+            'signature_valid' => false,
+        ]);
+        $this->assertNotEquals(PaymentStatus::PAID, $this->payment->fresh()->status);
+    }
+
     public function test_manual_transfer_flow(): void
     {
         Storage::fake('local');
