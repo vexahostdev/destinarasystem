@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <form action="{{ route('mitra.destinations.store') }}" method="POST" class="space-y-8">
+    <form action="{{ route('mitra.destinations.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
         @csrf
 
         <!-- 1. Identitas & Lokasi Geografis -->
@@ -46,19 +46,17 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Nama Resmi Tapak Edukasi / Destinasi <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="name" placeholder="Contoh: Kawasan Konservasi Kebun Bambu Purba Cikole" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: Kawasan Konservasi Kebun Bambu Purba Cikole" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Kategori Tapak Pembelajaran <span class="text-red-500">*</span>
                     </label>
-                    <select name="category" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                        <option value="desa_wisata">Desa Wisata Berbasis Adat & Komunitas</option>
-                        <option value="konservasi_alam">Kawasan Konservasi Hutan & Air</option>
-                        <option value="situs_budaya">Situs Sejarah, Arkeologi & Budaya</option>
-                        <option value="pertanian_berkelanjutan">Agroekologi & Pangan Berkelanjutan</option>
-                        <option value="bahari">Konservasi Pesisir & Ekosistem Bahari</option>
+                    <select name="category_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -67,16 +65,47 @@
                         Kota / Kabupaten & Provinsi <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" name="city" placeholder="Kabupaten Bangli" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
-                        <input type="text" name="province" placeholder="Bali" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                        <input type="text" name="city" value="{{ old('city') }}" placeholder="Kabupaten / Kota" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                        <select name="province_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3 py-2 text-xs font-medium focus:outline-none focus:border-[#703A3A]">
+                            <option value="">Pilih Provinsi</option>
+                            @foreach($provinces as $prov)
+                                <option value="{{ $prov->id }}" {{ old('province_id') == $prov->id ? 'selected' : '' }}>{{ $prov->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Kebijakan Pembatalan <span class="text-red-500">*</span>
+                    </label>
+                    <select name="cancellation_policy_id" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        @foreach($policies as $pol)
+                            <option value="{{ $pol->id }}" {{ old('cancellation_policy_id') == $pol->id ? 'selected' : '' }}>{{ $pol->name }} (Refund: {{ $pol->refund_percent_before_h7 ?? 100 }}% &gt;H-7)</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2 space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Foto Sampul Utama (Cover Image) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="file" name="cover_image" accept="image/*" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A] file:mr-4 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-semibold file:bg-[#703A3A] file:text-white hover:file:bg-[#561D1E]">
+                    <span class="text-[10px] text-[#2B211E]/60">Format JPG/PNG maks 5MB. Foto ini akan menjadi identitas visual utama destinasi Anda.</span>
+                </div>
+
+                <div class="sm:col-span-2 space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Alamat Lengkap Tapak <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="address" rows="2" placeholder="Nama jalan, nomor, RT/RW, desa/kelurahan, kecamatan..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('address') }}</textarea>
                 </div>
 
                 <div class="sm:col-span-2 space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Deskripsi Naratif Tapak & Sejarah Adat <span class="text-red-500">*</span>
                     </label>
-                    <textarea name="description" rows="3" placeholder="Ceritakan latar belakang wilayah, kekayaan ekosistem, serta tata kelola kearifan lokal yang dipelihara masyarakat..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                    <textarea name="description" rows="3" placeholder="Ceritakan latar belakang wilayah, kekayaan ekosistem, serta tata kelola kearifan lokal yang dipelihara masyarakat..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('description') }}</textarea>
                 </div>
             </div>
         </div>
@@ -96,7 +125,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Fokus Modul Ilmiah & Pembelajaran Lapangan <span class="text-red-500">*</span>
                     </label>
-                    <textarea name="educational_highlights" rows="2" placeholder="Contoh: Pembelajaran zonasi hutan suci adat Palemahan, identifikasi 15 jenis vegetasi bambu endemik, dan workshop kerajinan bambu bersama pengrajin sepuh..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]"></textarea>
+                    <textarea name="educational_highlights" rows="2" placeholder="Contoh: Pembelajaran zonasi hutan suci adat Palemahan, identifikasi 15 jenis vegetasi bambu endemik, dan workshop kerajinan bambu bersama pengrajin sepuh..." required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 p-3 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">{{ old('educational_highlights') }}</textarea>
                 </div>
 
                 <!-- Fasilitas Rombongan (Checkboxes) -->
@@ -105,63 +134,36 @@
                         Fasilitas Sarana Rombongan Tersedia
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Area Parkir Bus Pariwisata Besar" checked class="accent-[#703A3A]">
-                            <span>Area Parkir Bus Pariwisata Besar</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Balai Pertemuan / Pendopo Rombongan" checked class="accent-[#703A3A]">
-                            <span>Balai Pertemuan / Pendopo Rombongan</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Toilet Bersih Standar Wisata (Min. 4 Pintu)" checked class="accent-[#703A3A]">
-                            <span>Toilet Bersih Standar Wisata (Min. 4 Pintu)</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Pemandu Lokal Adat / Fasilitator Edukasi" checked class="accent-[#703A3A]">
-                            <span>Pemandu Lokal Adat / Fasilitator Edukasi</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Akses Jaringan Komunikasi / WiFi" class="accent-[#703A3A]">
-                            <span>Akses Jaringan Komunikasi / WiFi</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
-                            <input type="checkbox" name="facilities[]" value="Penyediaan Konsumsi Tradisional Lokal" class="accent-[#703A3A]">
-                            <span>Penyediaan Konsumsi Tradisional Lokal</span>
-                        </label>
+                        @foreach($facilities as $fac)
+                            <label class="flex items-center gap-2 p-2 bg-[#faf6f0] border border-[#2B211E]/10 cursor-pointer">
+                                <input type="checkbox" name="facilities[]" value="{{ $fac->id }}"
+                                       {{ in_array($fac->id, old('facilities', [])) ? 'checked' : '' }}
+                                       class="accent-[#703A3A]">
+                                <span>{{ $fac->name }}</span>
+                            </label>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Tarif Retribusi & Kapasitas Okupansi -->
+        <!-- 3. Daya Tampung & Kapasitas Okupansi -->
         <div class="rgs-card p-6 border-t-4 border-t-[#703A3A] space-y-5">
             <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#703A3A] text-[20px]">monetization_on</span>
-                    <h2 class="font-serif text-lg font-bold text-[#2B211E]">3. Tarif Retribusi & Kuota Rombongan</h2>
+                    <span class="material-symbols-outlined text-[#703A3A] text-[20px]">groups</span>
+                    <h2 class="font-serif text-lg font-bold text-[#2B211E]">3. Daya Tampung Rombongan</h2>
                 </div>
-                <span class="text-[11px] text-[#2B211E]/60">Hak Pengelola: 90% Bersih</span>
+                <span class="text-[11px] text-[#2B211E]/60">Paket edukasi diatur setelah draf dibuat</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
-                        Tarif Retribusi Edukasi per Peserta (Rp) <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-xs font-bold text-[#2B211E]/60">Rp</span>
-                        <input type="number" name="price_per_pax" value="35000" min="10000" max="1000000" step="5000" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 pl-10 pr-3.5 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                    </div>
-                    <span class="text-[10px] text-[#2B211E]/60">Tarif masuk kawasan & modul pendampingan</span>
-                </div>
-
-                <div class="space-y-1">
+            <div>
+                <div class="space-y-1 max-w-sm">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
                         Kapasitas Maksimal Harian (Orang) <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" name="daily_capacity" value="100" min="20" max="500" class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
-                    <span class="text-[10px] text-[#2B211E]/60">Batas daya tampung kawasan per hari</span>
+                    <input type="number" name="default_daily_capacity" value="{{ old('default_daily_capacity', 100) }}" min="10" max="1000" required class="w-full bg-[#faf6f0] border border-[#2B211E]/20 px-3.5 py-2 text-xs font-bold text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                    <span class="text-[10px] text-[#2B211E]/60">Batas daya tampung kawasan per hari. Penetapan harga paket dilakukan pada tahap selanjutnya.</span>
                 </div>
             </div>
         </div>

@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @livewireStyles
 
     <style>
         body {
@@ -130,6 +130,19 @@
                 <span>Profil Institusi</span>
             </a>
 
+            <a href="{{ route('buyer.notifications') }}" 
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('buyer.notifications*') ? 'text-white bg-[#703A3A] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">notifications</span>
+                    <span>Notifikasi</span>
+                </div>
+                @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                    <span class="px-2 py-0.5 text-[10px] font-bold bg-rose-600 text-white rounded-full">
+                        {{ Auth::user()->unreadNotifications()->count() }}
+                    </span>
+                @endif
+            </a>
+
             <div class="pt-4 px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">
                 Eksplorasi Tapak
             </div>
@@ -183,12 +196,19 @@
                 </div>
             </div>
 
-            <!-- Right: Quick CTA & Live BOS Status Indicator -->
+            <!-- Right: Quick CTA & Status Indicator -->
             <div class="flex items-center gap-3">
                 <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#51634b]/10 border border-[#51634b]/20 text-[11px] font-semibold text-[#51634b]">
                     <span class="material-symbols-outlined text-[14px]">verified</span>
-                    <span>Dana BOS Siap Digunakan</span>
+                    <span>Akun Pembeli Aktif</span>
                 </div>
+
+                <a href="{{ route('buyer.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#703A3A] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">
+                    <span class="material-symbols-outlined text-[20px]">notifications</span>
+                    @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-600 rounded-full ring-2 ring-white"></span>
+                    @endif
+                </a>
 
                 <a href="{{ route('buyer.booking.create') }}" class="rgs-btn-primary px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
                     <span class="material-symbols-outlined text-[16px]">add_circle</span>
@@ -197,37 +217,10 @@
             </div>
         </header>
 
-        <!-- Flash Message Notification -->
-        @if(session('success'))
-            <div class="bg-[#51634b] text-white px-4 py-3 border-b border-[#3b4937]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">verified</span>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="bg-[#8C5151] text-white px-4 py-3 border-b border-[#703A3A]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">warning</span>
-                        <span>{{ session('error') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
         <!-- Main Content Container -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <x-flash />
+            <x-form-errors />
             @yield('content')
         </main>
 
@@ -239,13 +232,14 @@
                     <span>— Ruang Belajar Tapak Nusantara</span>
                 </div>
                 <div class="flex items-center gap-4 text-[11px]">
-                    <span>Pusat Bantuan Akademik: 0812-3456-7890</span>
+                    <span>Pusat Bantuan Akademik: {{ setting('support_whatsapp', setting('company_phone', 'Hubungi Admin')) }}</span>
                     <span>•</span>
-                    <span>SOP Keselamatan & FPIC Terverifikasi</span>
+                    <span>SOP Keselamatan & Kemitraan Terkurasi</span>
                 </div>
             </div>
         </footer>
     </div>
 
+    @livewireScriptConfig
 </body>
 </html>

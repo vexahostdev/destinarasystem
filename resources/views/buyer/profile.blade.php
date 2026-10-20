@@ -3,6 +3,13 @@
 @section('title', 'Profil Institusi & Dokumen Pendukung')
 
 @section('content')
+@php
+    $isVerified = $institution->verification_status === \App\Enums\VerificationStatus::VERIFIED;
+    $isPending = $institution->verification_status === \App\Enums\VerificationStatus::PENDING;
+    $isRejected = $institution->verification_status === \App\Enums\VerificationStatus::REJECTED;
+    $isUnverified = $institution->verification_status === \App\Enums\VerificationStatus::UNVERIFIED;
+@endphp
+
 <div class="space-y-8 max-w-5xl mx-auto">
 
     <!-- Header Breadcrumb & Judul -->
@@ -20,12 +27,42 @@
                 </p>
             </div>
 
-            <div class="px-3 py-1.5 bg-[#51634b]/10 border border-[#51634b]/30 text-[#51634b] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[18px]">verified</span>
-                <span>Akun Institusi Terverifikasi</span>
+            <div>
+                @if($isVerified)
+                    <div class="px-3 py-1.5 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                        <span>Akun Institusi Terverifikasi</span>
+                    </div>
+                @elseif($isPending)
+                    <div class="px-3 py-1.5 bg-blue-100 border border-blue-300 text-blue-900 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+                        <span>Menunggu Validasi Admin</span>
+                    </div>
+                @elseif($isRejected)
+                    <div class="px-3 py-1.5 bg-red-100 border border-red-300 text-red-900 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">warning</span>
+                        <span>Verifikasi Perlu Perbaikan</span>
+                    </div>
+                @else
+                    <div class="px-3 py-1.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">info</span>
+                        <span>Belum Terverifikasi (Opsional)</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
+
+    <!-- Alert Catatan Penolakan -->
+    @if($isRejected && $institution->verification_note)
+    <div class="p-4 bg-red-50 border border-red-300 rounded-sm text-xs text-red-800 space-y-1">
+        <div class="flex items-center gap-2 font-bold text-red-900">
+            <span class="material-symbols-outlined text-[18px]">error</span>
+            <span>Catatan Penolakan dari Administrator:</span>
+        </div>
+        <p class="pl-6 text-red-700">{{ $institution->verification_note }}</p>
+    </div>
+    @endif
 
     <!-- Form Pembaruan Data Institusi -->
     <form action="{{ route('buyer.profile.update') }}" method="POST" class="space-y-8">
@@ -128,52 +165,154 @@
             </div>
         </div>
 
-        <!-- 3. Legalitas & Otomasi Kop Surat Izin -->
-        <div class="rgs-card p-6 border-t-4 border-t-[#51634b] space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#51634b] text-[20px]">approval_delegation</span>
-                    <h2 class="font-serif text-lg font-bold text-[#2B211E]">3. Otomasi Dokumen & Kop Surat Resmi</h2>
-                </div>
-                <span class="text-[11px] text-[#51634b] font-bold uppercase">Format Standar Dinas</span>
-            </div>
-
-            <p class="text-xs text-[#2B211E]/75 leading-relaxed">
-                Destinara secara otomatis memuat nama kepala dinas, nomor surat tugas, serta kop surat institusi Anda ke dalam <strong>Draf Surat Izin Riset</strong> dan <strong>Surat Konfirmasi Kunjungan (e-Pass)</strong> agar memangkas birokrasi perizinan ke Balai Taman Nasional dan Kesepakatan Lembaga Adat.
-            </p>
-
-            <div class="p-4 bg-[#faf6f0] border border-[#2B211E]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="space-y-1">
-                    <div class="font-bold text-xs text-[#2B211E]">Kop Surat & Stempel Digital Resmi:</div>
-                    <div class="text-[11px] text-[#2B211E]/70">
-                        @if(!empty($institution->official_letterhead))
-                            File aktif: <code>{{ basename($institution->official_letterhead) }}</code> (Tersimpan aman di penyimpanan terenkripsi)
-                        @else
-                            Format berkas: PNG/JPG/PDF (Maks. 2MB)
-                        @endif
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button type="button" class="px-3.5 py-1.5 bg-white border border-[#2B211E]/20 text-xs font-bold text-[#2B211E] uppercase tracking-wider hover:border-[#703A3A] transition-colors">
-                        Ganti Berkas Kop
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Tombol Aksi Simpan Profil -->
         <div class="flex items-center justify-end gap-3 pt-2">
             <a href="{{ route('buyer.dashboard') }}" class="rgs-btn-outline px-5 py-2.5 text-xs font-bold uppercase tracking-wider">
                 Batal
             </a>
-            <button type="submit" class="rgs-btn-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm flex items-center gap-2">
+            <button type="submit" class="rgs-btn-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider shadow-xs flex items-center gap-2">
                 <span class="material-symbols-outlined text-[18px]">save</span>
                 <span>Simpan Perubahan Profil</span>
             </button>
         </div>
-
     </form>
+
+    <!-- 3. Legalitas & Dokumen Pendukung Institusi -->
+    <div class="rgs-card p-6 border-t-4 border-t-[#51634b] space-y-6">
+        <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#51634b] text-[20px]">approval_delegation</span>
+                <h2 class="font-serif text-lg font-bold text-[#2B211E]">3. Otomasi Dokumen & Kop Surat Resmi</h2>
+            </div>
+            <span class="text-[11px] text-[#51634b] font-bold uppercase">Format Standar Dinas</span>
+        </div>
+
+        <p class="text-xs text-[#2B211E]/75 leading-relaxed">
+            Destinara secara otomatis memuat nama penanggung jawab, nomor izin, serta kop surat institusi Anda ke dalam <strong>Surat Konfirmasi Kunjungan (e-Pass)</strong> agar memangkas birokrasi perizinan.
+        </p>
+
+        <!-- Form Upload Berkas Pendukung -->
+        <form action="{{ route('buyer.profile.document.upload') }}" method="POST" enctype="multipart/form-data" class="p-4 bg-[#faf6f0] border border-[#2B211E]/15 space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Jenis Dokumen <span class="text-red-500">*</span>
+                    </label>
+                    <select name="type" required class="w-full bg-white border border-[#2B211E]/20 px-3 py-2 text-xs font-medium text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <option value="kop_surat">Kop Surat / Stempel Digital Resmi</option>
+                        <option value="sk_pendirian">SK Izin Operasional Sekolah / Kampus</option>
+                        <option value="surat_tugas">Surat Tugas / Rekomendasi Kepala Instansi</option>
+                        <option value="lainnya">Dokumen Pendukung Lainnya</option>
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2 space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]">
+                        Pilih Berkas Dokumen <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required class="w-full bg-white border border-[#2B211E]/20 px-3 py-1.5 text-xs text-[#2B211E] focus:outline-none focus:border-[#703A3A]">
+                        <button type="submit" class="rgs-btn-primary px-4 py-2 text-xs font-bold uppercase tracking-wider shrink-0 flex items-center gap-1.5 shadow-xs">
+                            <span class="material-symbols-outlined text-[16px]">upload_file</span>
+                            <span>Unggah</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Daftar Dokumen Institusi yang Sudah Diunggah -->
+        <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-[#2B211E]">Berkas Terunggah ({{ $institution->documents->count() }})</h4>
+            @if($institution->documents->isNotEmpty())
+            <div class="divide-y divide-[#2B211E]/10 border border-[#2B211E]/15 bg-white">
+                @foreach($institution->documents as $doc)
+                <div class="p-3.5 flex items-center justify-between gap-4 text-xs">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#703A3A] text-[20px]">description</span>
+                        <div>
+                            <div class="font-bold text-[#2B211E]">{{ $doc->original_name }}</div>
+                            <div class="text-[11px] text-[#2B211E]/60 flex items-center gap-2">
+                                <span class="font-mono uppercase font-semibold text-[#703A3A]">{{ str_replace('_', ' ', $doc->type) }}</span>
+                                <span>•</span>
+                                <span>Diunggah {{ $doc->created_at->translatedFormat('d M Y H:i') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('buyer.profile.document.download', $doc->id) }}" class="px-3 py-1.5 border border-[#2B211E]/20 hover:border-[#703A3A] text-xs font-semibold text-[#703A3A] flex items-center gap-1 transition-colors">
+                            <span class="material-symbols-outlined text-[14px]">download</span>
+                            <span>Unduh</span>
+                        </a>
+
+                        <form action="{{ route('buyer.profile.document.delete', $doc->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?')">
+                            @csrf
+                            <button type="submit" class="px-2.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">delete</span>
+                                <span>Hapus</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="p-6 text-center text-xs text-[#2B211E]/60 bg-[#faf6f0] border border-[#2B211E]/10">
+                Belum ada berkas pendukung yang diunggah.
+            </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- 4. Bagian Pengajuan Verifikasi Institusi (Opsional) -->
+    <div class="rgs-card p-6 border-t-4 {{ $isVerified ? 'border-t-emerald-600' : ($isPending ? 'border-t-blue-600' : 'border-t-[#2B3A4A]') }} space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined {{ $isVerified ? 'text-emerald-700' : ($isPending ? 'text-blue-700' : 'text-[#2B3A4A]') }} text-[22px]">
+                    {{ $isVerified ? 'verified_user' : ($isPending ? 'pending_actions' : 'badge') }}
+                </span>
+                <h2 class="font-serif text-lg font-bold text-[#2B211E]">4. Verifikasi Keabsahan Institusi (Opsional BOS/BOPTN)</h2>
+            </div>
+            <span class="text-[11px] font-mono text-[#2B211E]/60">Validasi Kredensial</span>
+        </div>
+
+        @if($isVerified)
+            <div class="p-4 bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-700 text-2xl">verified</span>
+                <div>
+                    <h4 class="font-bold text-sm">Institusi Anda Telah Terverifikasi Sah</h4>
+                    <p class="text-emerald-800 mt-0.5">NPSN/NIDN institusi Anda telah terverifikasi untuk pertanggungjawaban BOS dan kelengkapan dinas.</p>
+                </div>
+            </div>
+        @elseif($isPending)
+            <div class="p-4 bg-blue-50 border border-blue-200 text-xs text-blue-900 flex items-center gap-3">
+                <span class="material-symbols-outlined text-blue-700 text-2xl animate-spin">sync</span>
+                <div>
+                    <h4 class="font-bold text-sm">Pengajuan Verifikasi Institusi Sedang Ditinjau</h4>
+                    <p class="text-blue-800 mt-0.5">Tim Destinara sedang memvalidasi keabsahan data institusi Anda.</p>
+                </div>
+            </div>
+        @else
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-[#faf6f0] border border-[#2B211E]/15">
+                <div class="space-y-1">
+                    <h4 class="font-bold text-xs text-[#2B211E] uppercase">Ajukan Validasi Keabsahan Institusi</h4>
+                    <p class="text-xs text-[#2B211E]/75">
+                        Memudahkan verifikasi SPK dan penerbitan izin dinas secara resmi untuk rombongan sekolah / universitas.
+                    </p>
+                </div>
+
+                <form action="{{ route('buyer.profile.submitVerification') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="rgs-btn-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs shrink-0 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                        <span>Ajukan Verifikasi Institusi</span>
+                    </button>
+                </form>
+            </div>
+        @endif
+    </div>
 
 </div>
 @endsection

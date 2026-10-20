@@ -1,0 +1,889 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Domain\Booking\Exceptions\InvalidBookingTransitionException;
+use App\Domain\Booking\Services\AvailabilityService;
+use App\Domain\Booking\Services\BookingCodeGenerator;
+use App\Domain\Booking\Services\BookingService;
+use App\Domain\Booking\Services\PricingService;
+use App\Domain\Booking\StateMachine\BookingStateMachine;
+use App\Enums\AccountType;
+use App\Enums\AddonPricingType;
+use App\Enums\BookingStatus;
+use App\Enums\DestinationStatus;
+use App\Enums\PaymentStatus;
+use App\Enums\VerificationStatus;
+use App\Models\Addon;
+use App\Models\AvailabilitySlot;
+use App\Models\Bank;
+use App\Models\BookingSlotAllocation;
+use App\Models\CancellationPolicy;
+use App\Models\Destination;
+use App\Models\DestinationCategory;
+use App\Models\Institution;
+use App\Models\Package;
+use App\Models\PartnerProfile;
+use App\Models\Payment;
+use App\Models\Province;
+use App\Models\User;
+use App\Models\Voucher;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use InvalidArgumentException;
+use RuntimeException;
+use Tests\TestCase;
+
+class BookingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $buyer;
+
+    protected User $partnerUser;
+
+    protected Destination $destination;
+
+    protected Package $package;
+
+    protected AvailabilitySlot $slot;
+
+    protected CancellationPolicy $cancellationPolicy;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed();
+
+        $this->buyer = User::factory()->create([
+            'account_type' => AccountType::BUYER,
+            'status' => 'active',
+        ]);
+
+        Institution::create([
+            'user_id' => $this->buyer->id,
+            'institution_name' => 'SMA Negeri 1 Yogyakarta',
+            'pic_name' => 'Budi Santoso',
+            'pic_phone' => '6281234567890',
+            'pic_email' => 'budi@test.com',
+            'pic_position' => 'Guru Pendamping',
+            'address' => 'Jl. Tentara Pelajar No. 1',
+            'city' => 'Yogyakarta',
+            'province' => 'DI Yogyakarta',
+        ]);
+
+        $this->partnerUser = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+        ]);
+
+        PartnerProfile::create([
+            'user_id' => $this->partnerUser->id,
+            'organization_name' => 'Pokdarwis Lestari',
+            'business_type' => 'pokdarwis',
+            'pic_name' => 'Bapak Budi',
+            'pic_phone' => '6281234567890',
+            'pic_email' => 'budi@pokdarwis.test',
+            'address' => 'Jl. Desa No. 1',
+            'city' => 'Sleman',
+            'province' => 'DI Yogyakarta',
+            'verification_status' => VerificationStatus::VERIFIED,
+        ]);
+
+        $this->cancellationPolicy = CancellationPolicy::first();
+        $province = Province::first();
+        $category = DestinationCategory::firstOrCreate(['slug' => 'desa-wisata'], ['name' => 'Desa Wisata', 'is_active' => true]);
+
+        $this->destination = Destination::create([
+            'partner_id' => $this->partnerUser->id,
+            'category_id' => $category->id,
+            'province_id' => $province->id,
+            'cancellation_policy_id' => $this->cancellationPolicy->id,
+            'name' => 'Desa Wisata Kalibiru',
+            'slug' => 'desa-wisata-kalibiru',
+            'city' => 'Kulon Progo',
+            'address' => 'Hargowilis, Kokap',
+            'description' => 'Deskripsi lengkap desa wisata kalibiru.',
+            'status' => DestinationStatus::PUBLISHED,
+        ]);
+
+        $this->package = Package::create([
+            'destination_id' => $this->destination->id,
+            'name' => 'Paket Edukasi Alam',
+            'slug' => 'paket-edukasi-alam',
+            'inquiry_types' => ['study_tour', 'penelitian'],
+            'duration_days' => 1,
+            'price_per_pax' => 100000,
+            'min_pax' => 10,
+            'max_pax' => 50,
+            'is_active' => true,
+        ]);
+
+        $this->slot = AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => Carbon::now()->addDays(10)->toDateString(),
+            'capacity' => 30,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+    }
+
+    public function test_booking_code_generator_produces_crockford_base32_code(): void
+    {
+        $code = BookingCodeGenerator::generate();
+        $this->assertMatchesRegularExpression('/^DST-[0-9]{6}-[0-9A-HJKMNP-TV-Z]{5}$/', $code);
+    }
+
+    public function test_pricing_calculation_formula(): void
+    {
+        $pricingService = app(PricingService::class);
+
+        $addon = Addon::create([
+            'destination_id' => $this->destination->id,
+            'name' => 'Makan Siang Prasmanan',
+            'price' => 25000,
+            'pricing_type' => AddonPricingType::PER_PAX,
+            'is_active' => true,
+        ]);
+
+        $result = $pricingService->calculate(
+            package: $this->package,
+            pax: 20,
+            selectedAddonIds: [$addon->id],
+            voucher: null,
+            userId: $this->buyer->id
+        );
+
+        // Package: 20 * 100,000 = 2,000,000
+        $this->assertEquals(2000000, $result->packageTotal);
+        // Addon: 20 * 25,000 = 500,000
+        $this->assertEquals(500000, $result->addonsTotal);
+        // Insurance: 20 * 2,000 (from default setting) = 40,000
+        $this->assertEquals(40000, $result->insuranceAmount);
+        // Platform fee: 25,000 (from default setting)
+        $this->assertEquals(25000, $result->platformFeeAmount);
+        // Total: 2,000,000 + 500,000 + 40,000 + 25,000 = 2,565,000
+        $this->assertEquals(2565000, $result->totalAmount);
+        // Commission (10% of subtotal 2,500,000 = 250,000)
+        $this->assertEquals(250000, $result->commissionAmount);
+        // Partner Net: 2,500,000 - 250,000 = 2,250,000
+        $this->assertEquals(2250000, $result->partnerNetAmount);
+    }
+
+    public function test_pricing_with_voucher_discount(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'HEMAT20',
+            'name' => 'Diskon 20%',
+            'type' => 'percent',
+            'value' => 20,
+            'min_transaction' => 500000,
+            'max_discount' => 300000,
+            'quota' => 10,
+            'used_count' => 0,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(7),
+            'is_active' => true,
+        ]);
+
+        $pricingService = app(PricingService::class);
+        $result = $pricingService->calculate(
+            package: $this->package,
+            pax: 20,
+            selectedAddonIds: [],
+            voucher: $voucher,
+            userId: $this->buyer->id
+        );
+
+        // Subtotal package: 2,000,000 + platform 25,000 = 2,025,000. 20% is 405,000, capped at max_discount 300,000.
+        $this->assertEquals(300000, $result->discountAmount);
+        // Total: 2,000,000 + 40,000 (insurance) + 25,000 (platform) - 300,000 = 1,765,000
+        $this->assertEquals(1765000, $result->totalAmount);
+    }
+
+    public function test_booking_creation_validates_lead_time(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        // min_lead_days is 7 in settings. Planned date 3 days ahead will fail.
+        $bookingService = app(BookingService::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(3)->toDateString(),
+            'participant_count' => 15,
+        ], $this->buyer);
+    }
+
+    public function test_booking_creation_validates_min_max_pax(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $bookingService = app(BookingService::class);
+        // package min_pax is 10, passing 5 should fail
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 5,
+        ], $this->buyer);
+    }
+
+    public function test_booking_creation_holds_slots_and_sets_status_menunggu_pembayaran(): void
+    {
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 15,
+        ], $this->buyer);
+
+        $this->assertEquals(BookingStatus::MENUNGGU_PEMBAYARAN, $booking->status);
+        $this->slot->refresh();
+        $this->assertEquals(15, $this->slot->held_count);
+        $this->assertEquals(0, $this->slot->booked_count);
+
+        $this->assertDatabaseHas('booking_slot_allocations', [
+            'booking_id' => $booking->id,
+            'availability_slot_id' => $this->slot->id,
+            'pax' => 15,
+            'type' => 'held',
+        ]);
+    }
+
+    public function test_booking_state_machine_valid_and_invalid_transitions(): void
+    {
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        $stateMachine = app(BookingStateMachine::class);
+
+        // Invalid transition: directly to selesai from menunggu_pembayaran throws exception
+        $this->expectException(InvalidBookingTransitionException::class);
+        $stateMachine->transition($booking, BookingStatus::SELESAI, $this->buyer, 'Invalid transition');
+    }
+
+    public function test_slot_depletion_prevents_overbooking(): void
+    {
+        $bookingService = app(BookingService::class);
+
+        // Slot capacity is 30. Book 20 pax.
+        $booking1 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 20,
+        ], $this->buyer);
+
+        $this->assertNotNull($booking1);
+
+        // Attempt to book 15 more pax when only 10 remain (30 - 20 = 10) -> should fail
+        $this->expectException(RuntimeException::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 15,
+        ], $this->buyer);
+    }
+
+    public function test_booking_with_voucher_success_and_discount_applied(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'PROMO100',
+            'name' => 'Diskon Rp 100rb',
+            'type' => 'fixed',
+            'value' => 100000,
+            'min_transaction' => 500000,
+            'quota' => 10,
+            'used_count' => 0,
+            'per_user_limit' => 2,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'PROMO100',
+        ], $this->buyer);
+
+        $this->assertEquals(100000, $booking->discount_amount);
+        $this->assertEquals($voucher->id, $booking->voucher_id);
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+        $this->assertDatabaseHas('voucher_redemptions', [
+            'voucher_id' => $voucher->id,
+            'booking_id' => $booking->id,
+            'user_id' => $this->buyer->id,
+            'amount' => 100000,
+        ]);
+    }
+
+    public function test_booking_with_expired_voucher_is_rejected(): void
+    {
+        Voucher::create([
+            'code' => 'EXPIRED100',
+            'name' => 'Diskon Expired',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 10,
+            'starts_at' => now()->subDays(10),
+            'ends_at' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Masa berlaku voucher telah habis');
+
+        $bookingService = app(BookingService::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'EXPIRED100',
+        ], $this->buyer);
+    }
+
+    public function test_booking_with_exhausted_quota_is_rejected(): void
+    {
+        Voucher::create([
+            'code' => 'HABIS100',
+            'name' => 'Diskon Kuota Habis',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 2,
+            'used_count' => 2,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kuota pemakaian voucher telah habis');
+
+        $bookingService = app(BookingService::class);
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'HABIS100',
+        ], $this->buyer);
+    }
+
+    public function test_booking_with_per_user_limit_exceeded_is_rejected(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'LIMIT1',
+            'name' => 'Diskon Max 1x',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 10,
+            'used_count' => 0,
+            'per_user_limit' => 1,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        // First booking succeeds
+        $booking1 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LIMIT1',
+        ], $this->buyer);
+        $this->assertNotNull($booking1);
+
+        // Second booking by the same buyer with the same voucher must fail
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('batas penggunaan voucher');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LIMIT1',
+        ], $this->buyer);
+    }
+
+    public function test_two_bookings_competing_for_last_voucher_quota_only_one_succeeds(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'LASTQUOTA',
+            'name' => 'Diskon Kuota Terakhir',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 1,
+            'used_count' => 0,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $buyer2 = User::factory()->create([
+            'account_type' => AccountType::BUYER,
+            'status' => 'active',
+        ]);
+        Institution::create([
+            'user_id' => $buyer2->id,
+            'institution_name' => 'SMP Negeri 2 Yogyakarta',
+            'pic_name' => 'Siti Rahma',
+            'pic_phone' => '6281234567891',
+            'pic_email' => 'siti@test.com',
+            'pic_position' => 'Kepala Lab',
+            'address' => 'Jl. Kaliurang Km 5',
+            'city' => 'Yogyakarta',
+            'province' => 'DI Yogyakarta',
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        // Buyer 1 successfully takes the last quota
+        $booking1 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LASTQUOTA',
+        ], $this->buyer);
+
+        $this->assertNotNull($booking1);
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+
+        // Buyer 2 attempts to use the same voucher with quota 1 -> must fail
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Kuota pemakaian voucher telah habis');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'LASTQUOTA',
+        ], $buyer2);
+    }
+
+    public function test_booking_cancellation_and_expiry_restores_voucher_quota(): void
+    {
+        $voucher = Voucher::create([
+            'code' => 'RESTORE100',
+            'name' => 'Diskon Restore',
+            'type' => 'fixed',
+            'value' => 50000,
+            'quota' => 5,
+            'used_count' => 0,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDays(5),
+            'is_active' => true,
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'RESTORE100',
+        ], $this->buyer);
+
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+        $this->assertDatabaseHas('voucher_redemptions', ['booking_id' => $booking->id]);
+
+        // Cancel unpaid booking -> should restore voucher
+        $bookingService->cancel($booking, $this->buyer, 'Batal rencana', 'buyer');
+
+        $voucher->refresh();
+        $this->assertEquals(0, $voucher->used_count);
+        $this->assertDatabaseMissing('voucher_redemptions', ['booking_id' => $booking->id]);
+
+        // Re-book to test expire command restoration
+        $booking2 = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+            'voucher_code' => 'RESTORE100',
+        ], $this->buyer);
+
+        $voucher->refresh();
+        $this->assertEquals(1, $voucher->used_count);
+
+        // Move expiry to the past
+        $booking2->update(['expires_at' => now()->subMinute()]);
+        Artisan::call('bookings:expire-unpaid');
+
+        $voucher->refresh();
+        $this->assertEquals(0, $voucher->used_count);
+        $this->assertDatabaseMissing('voucher_redemptions', ['booking_id' => $booking2->id]);
+    }
+
+    public function test_buyer_cancellation_with_refund_submits_bank_id_and_shows_on_admin_refunds_page(): void
+    {
+        $bank = Bank::firstOrCreate(
+            ['code' => 'BCA'],
+            ['name' => 'Bank Central Asia', 'is_active' => true]
+        );
+
+        $bookingService = app(BookingService::class);
+        $visitDate = Carbon::now()->addDays(30)->toDateString();
+
+        AvailabilitySlot::firstOrCreate(
+            ['destination_id' => $this->destination->id, 'date' => $visitDate],
+            ['capacity' => 50, 'booked_count' => 0, 'held_count' => 0, 'status' => 'open']
+        );
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $visitDate,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        Payment::create([
+            'booking_id' => $booking->id,
+            'external_id' => 'INV-TEST-PAID-001',
+            'gateway' => 'manual_transfer',
+            'amount' => $booking->total_amount,
+            'currency' => 'IDR',
+            'status' => PaymentStatus::PAID,
+            'paid_at' => now(),
+            'account_number' => '1234567890',
+            'account_holder' => 'Destinara Finance',
+        ]);
+        $booking->update([
+            'status' => BookingStatus::DIBAYAR,
+            'paid_amount' => $booking->total_amount,
+            'paid_at' => now(),
+        ]);
+
+        // 1. Visit booking detail as buyer -> modal displays refund estimate (> 0%) and bank input
+        $resShow = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $booking->booking_code));
+        $resShow->assertStatus(200);
+        $resShow->assertSee('Estimasi Pengembalian Dana');
+        $resShow->assertSee('name="bank_id"', false);
+
+        // 2. Submit cancellation with exact modal payload
+        $cancelPayload = [
+            'reason' => 'Perubahan kalender akademik yayasan mendadak',
+            'bank_id' => $bank->id,
+            'bank_account_number' => '8880192837',
+            'bank_account_holder' => 'Yayasan Pendidikan Destinara',
+        ];
+
+        $resCancel = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.cancel', $booking->booking_code),
+            $cancelPayload
+        );
+        $resCancel->assertRedirect(route('buyer.booking.show', $booking->booking_code));
+
+        $booking->refresh();
+        $this->assertEquals(BookingStatus::BATAL, $booking->status);
+
+        $this->assertDatabaseHas('refunds', [
+            'booking_id' => $booking->id,
+            'buyer_bank_id' => $bank->id,
+            'buyer_account_number' => '8880192837',
+            'buyer_account_holder' => 'Yayasan Pendidikan Destinara',
+        ]);
+
+        // 3. Admin visits refunds page -> displays bank name, account number, and account holder
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $admin->givePermissionTo('refunds.view');
+
+        $resAdmin = $this->actingAs($admin)->get(route('admin.finance.refunds'));
+        $resAdmin->assertStatus(200);
+        $resAdmin->assertSee($bank->name);
+        $resAdmin->assertSee('8880192837');
+        $resAdmin->assertSee('Yayasan Pendidikan Destinara');
+    }
+
+    public function test_buyer_cancellation_with_zero_refund_hides_bank_form_and_shows_no_refund(): void
+    {
+        $bookingService = app(BookingService::class);
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        // Simulate time advancing to H-2 before visit (falls into 0% refund tier < 7 days)
+        $booking->update([
+            'planned_date_start' => Carbon::now()->addDays(2)->toDateString(),
+        ]);
+
+        Payment::create([
+            'booking_id' => $booking->id,
+            'external_id' => 'INV-TEST-PAID-002',
+            'gateway' => 'manual_transfer',
+            'amount' => $booking->total_amount,
+            'currency' => 'IDR',
+            'status' => PaymentStatus::PAID,
+            'paid_at' => now(),
+            'account_number' => '1234567890',
+            'account_holder' => 'Destinara Finance',
+        ]);
+        $booking->update([
+            'status' => BookingStatus::DIBAYAR,
+            'paid_amount' => $booking->total_amount,
+            'paid_at' => now(),
+        ]);
+
+        // Visit booking detail -> shows "Tidak ada refund (0%)" and hides bank input
+        $resShow = $this->actingAs($this->buyer)->get(route('buyer.booking.show', $booking->booking_code));
+        $resShow->assertStatus(200);
+        $resShow->assertSee('Tidak ada refund (0%)');
+        $resShow->assertDontSee('name="bank_id"', false);
+
+        // Cancel with reason only (no bank details required)
+        $cancelPayload = [
+            'reason' => 'Pembatalan H-1 oleh pihak sekolah',
+        ];
+
+        $resCancel = $this->actingAs($this->buyer)->post(
+            route('buyer.booking.cancel', $booking->booking_code),
+            $cancelPayload
+        );
+        $resCancel->assertRedirect(route('buyer.booking.show', $booking->booking_code));
+
+        $booking->refresh();
+        $this->assertEquals(BookingStatus::BATAL, $booking->status);
+        $this->assertDatabaseMissing('refunds', [
+            'booking_id' => $booking->id,
+        ]);
+    }
+
+    public function test_booking_creation_rejected_when_no_payment_gateway_available_v7_4(): void
+    {
+        // Explicitly clear all payment gateways
+        setting([
+            'xendit_secret_key' => '',
+            'midtrans_server_key' => '',
+            'manual_transfer_accounts' => [],
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pembayaran belum tersedia, hubungi admin.');
+
+        $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(14)->toDateString(),
+            'participant_count' => 20,
+        ], $this->buyer);
+    }
+
+    public function test_reschedule_paid_booking_promotes_allocation_to_booked_v8_1(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+
+        $bookingService = app(BookingService::class);
+        $availService = app(AvailabilityService::class);
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $this->slot->date,
+            'participant_count' => 10,
+        ], $this->buyer);
+
+        // Simulate payment completed
+        $booking->status = BookingStatus::DIBAYAR;
+        $booking->paid_at = now();
+        $booking->save();
+        $availService->promoteHeldToBooked($booking);
+
+        $this->slot->refresh();
+        $this->assertEquals(10, $this->slot->booked_count);
+        $this->assertEquals(0, $this->slot->held_count);
+
+        // Create new slot for reschedule target date
+        $newDate = Carbon::parse($this->slot->date)->addDays(10)->toDateString();
+        $newSlot = AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $newDate,
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'is_closed' => false,
+        ]);
+
+        // Reschedule
+        $bookingService->reschedule(
+            $booking,
+            Carbon::parse($newDate),
+            $admin,
+            'Reschedule rombongan berstatus dibayar'
+        );
+
+        $this->slot->refresh();
+        $newSlot->refresh();
+        $booking->refresh();
+
+        $allocations = BookingSlotAllocation::where('booking_id', $booking->id)->get();
+        $this->assertNotEmpty($allocations);
+        foreach ($allocations as $allocation) {
+            $this->assertEquals('booked', $allocation->type);
+        }
+
+        $this->assertEquals(0, $this->slot->booked_count);
+        $this->assertEquals(10, $newSlot->booked_count);
+        $this->assertEquals(0, $newSlot->held_count);
+    }
+
+    public function test_ota_style_reschedule_cutoff_quota_and_sla_rules(): void
+    {
+        $admin = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $bookingService = app(BookingService::class);
+
+        setting([
+            'min_lead_days' => 3,
+            'reschedule_cutoff_days' => 3,
+            'max_reschedule_per_booking' => 1,
+            'partner_confirm_sla_hours' => 48,
+        ]);
+
+        // Target slots
+        $oldDate = $this->slot->date;
+
+        $booking = $bookingService->create([
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => $oldDate,
+            'participant_count' => 10,
+        ], $this->buyer);
+        $booking->status = BookingStatus::DIBAYAR;
+        $booking->partner_confirm_deadline = Carbon::now()->addHours(2);
+        $booking->partner_sla_reminded_at = Carbon::now()->subMinute();
+        $booking->save();
+
+        // 1. Cutoff test: booking planned_date_start set to H-2 (past H-3 cutoff) -> rejected
+        $booking->planned_date_start = Carbon::now()->addDays(2)->toDateString();
+        $booking->save();
+
+        try {
+            $newDateTarget = Carbon::now()->addDays(15);
+            $bookingService->reschedule($booking, $newDateTarget, $admin, 'Ganti tanggal mepet');
+            $this->fail('Expected cutoff RuntimeException was not thrown');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('maksimal H-3 sebelum tanggal kunjungan', $e->getMessage());
+        }
+
+        // Restore date to H-10 (valid for cutoff)
+        $booking->planned_date_start = Carbon::now()->addDays(10)->toDateString();
+        $booking->save();
+
+        // 2. First reschedule succeeds, resets SLA and SLA reminder for DIBAYAR
+        $date1 = Carbon::now()->addDays(14);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date1->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        $rescheduled = $bookingService->reschedule($booking, $date1, $admin, 'Reschedule pertama');
+        $this->assertEquals(1, $rescheduled->reschedule_count);
+        $this->assertNull($rescheduled->partner_sla_reminded_at);
+        $this->assertTrue($rescheduled->partner_confirm_deadline->gt(now()->addHours(40)));
+
+        // 3. Quota exhausted: second reschedule attempt rejected when max is 1
+        $date2 = Carbon::now()->addDays(20);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date2->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        try {
+            $bookingService->reschedule($booking, $date2, $admin, 'Reschedule kedua');
+            $this->fail('Expected quota RuntimeException was not thrown');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('Batas maksimal penjadwalan ulang (1 kali)', $e->getMessage());
+        }
+
+        // 4. Setting max = 0 (unlimited) allows reschedule
+        setting(['max_reschedule_per_booking' => 0]);
+        $rescheduledAgain = $bookingService->reschedule($booking, $date2, $admin, 'Reschedule dengan kuota unlimited');
+        $this->assertEquals(2, $rescheduledAgain->reschedule_count);
+
+        // 5. Booking DIKONFIRMASI: no SLA deadline set on reschedule
+        $booking->status = BookingStatus::DIKONFIRMASI;
+        $booking->partner_confirm_deadline = null;
+        $booking->partner_sla_reminded_at = null;
+        $booking->save();
+
+        $date3 = Carbon::now()->addDays(25);
+        AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => $date3->toDateString(),
+            'capacity' => 50,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'status' => 'open',
+        ]);
+
+        $rescheduledConfirmed = $bookingService->reschedule($booking, $date3, $admin, 'Reschedule booking dikonfirmasi');
+        $this->assertEquals(BookingStatus::DIKONFIRMASI, $rescheduledConfirmed->status);
+        $this->assertNull($rescheduledConfirmed->partner_confirm_deadline);
+        $this->assertNull($rescheduledConfirmed->partner_sla_reminded_at);
+    }
+}

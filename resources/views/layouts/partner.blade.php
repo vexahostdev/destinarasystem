@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @livewireStyles
 
     <style>
         body {
@@ -141,6 +141,19 @@
                 <span class="material-symbols-outlined text-[18px]">badge</span>
                 <span>Profil Adat</span>
             </a>
+
+            <a href="{{ route('mitra.notifications') }}" 
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.notifications*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">notifications</span>
+                    <span>Notifikasi</span>
+                </div>
+                @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                    <span class="px-2 py-0.5 text-[10px] font-bold bg-[#703A3A] text-white rounded-full">
+                        {{ Auth::user()->unreadNotifications()->count() }}
+                    </span>
+                @endif
+            </a>
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
@@ -182,11 +195,23 @@
                 </div>
             </div>
 
-            <!-- Right: Saldo Siap Tarik & Quick Action -->
-            <div class="flex items-center gap-3">
+            <!-- Right: Payout Menunggu Proses & Quick Action -->
+                @php
+                    $readyBalance = Auth::check() ? \App\Models\PartnerPayout::where('partner_id', Auth::id())
+                        ->where('status', \App\Enums\PayoutStatus::PENDING)
+                        ->where('eligible_at', '<=', now())
+                        ->sum('net_amount') : 0;
+                @endphp
                 <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#faf6f0] border border-[#2B211E]/15 text-xs hover:border-[#51634b] transition-colors">
-                    <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Siap Tarik:</span>
-                    <span class="font-bold font-mono text-[#51634b]">Rp 1.417.500</span>
+                    <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Menunggu Payout:</span>
+                    <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($readyBalance, 0, ',', '.') }}</span>
+                </a>
+
+                <a href="{{ route('mitra.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#51634b] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">
+                    <span class="material-symbols-outlined text-[20px]">notifications</span>
+                    @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-600 rounded-full ring-2 ring-white"></span>
+                    @endif
                 </a>
 
                 <a href="{{ route('mitra.availability') }}" class="rgs-btn-outline px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
@@ -196,37 +221,10 @@
             </div>
         </header>
 
-        <!-- Flash Messages -->
-        @if(session('success'))
-            <div class="bg-[#51634b] text-white px-4 py-3 border-b border-[#3b4937]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">verified</span>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="bg-[#8C5151] text-white px-4 py-3 border-b border-[#703A3A]">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">warning</span>
-                        <span>{{ session('error') }}</span>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
-                        <span class="material-symbols-outlined text-[16px]">close</span>
-                    </button>
-                </div>
-            </div>
-        @endif
-
         <!-- Main Content Container -->
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <x-flash />
+            <x-form-errors />
             @yield('content')
         </main>
 
@@ -246,5 +244,6 @@
         </footer>
     </div>
 
+    @livewireScriptConfig
 </body>
 </html>

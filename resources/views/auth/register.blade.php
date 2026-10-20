@@ -20,12 +20,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-10 antialiased selection:bg-[#703A3A] selection:text-white bg-[#FAF7F5]" x-data="{ role: 'buyer' }">
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-10 antialiased selection:bg-[#703A3A] selection:text-white bg-[#FAF7F5]">
 
     <div class="max-w-6xl w-full bg-white rounded-3xl shadow-[0_20px_60px_rgba(112,58,58,0.12)] border border-gray-100 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
         
@@ -52,33 +53,33 @@
 
                 <div class="p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-xs sm:text-sm text-white/90 space-y-2">
                     <p class="leading-relaxed">
-                        "Destinara merampingkan birokrasi perizinan riset, sehingga guru dan mahasiswa dapat fokus menggali kearifan lokal secara etis, aman, dan terlindungi hukum."
+                        "Destinara merampingkan tata kelola perizinan dan kunjungan lapangan, sehingga institusi pendidikan dan komunitas tapak dapat berkolaborasi secara etis, transparan, dan berkelanjutan."
                     </p>
                     <div class="font-bold text-white text-xs pt-1">
-                        Tim Kurasi Lapang Destinara
+                        Platform Ekosistem Pembelajaran Lapang Nusantara
                     </div>
                 </div>
             </div>
 
-            <!-- Bottom Stats -->
+            <!-- Bottom Information Pillars -->
             <div class="pt-8 border-t border-white/10 grid grid-cols-3 gap-4 text-center relative z-10 mt-8 lg:mt-0">
                 <div>
-                    <span class="text-2xl font-extrabold text-white block">15+</span>
-                    <span class="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Desa Mitra</span>
+                    <span class="material-symbols-outlined text-2xl text-white mb-1">school</span>
+                    <span class="text-[10px] text-white/80 uppercase tracking-wider font-semibold block">Edukasi Lapang</span>
                 </div>
                 <div>
-                    <span class="text-2xl font-extrabold text-[#D4E9CA] block">1.200+</span>
-                    <span class="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Pelajar</span>
+                    <span class="material-symbols-outlined text-2xl text-[#D4E9CA] mb-1">handshake</span>
+                    <span class="text-[10px] text-white/80 uppercase tracking-wider font-semibold block">Kemitraan Adat</span>
                 </div>
                 <div>
-                    <span class="text-2xl font-extrabold text-[#FFD7A7] block">100%</span>
-                    <span class="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Legalitas FPIC</span>
+                    <span class="material-symbols-outlined text-2xl text-[#FFD7A7] mb-1">verified_user</span>
+                    <span class="text-[10px] text-white/80 uppercase tracking-wider font-semibold block">Tata Kelola Sah</span>
                 </div>
             </div>
         </div>
 
         <!-- Right Panel: Registration Form -->
-        <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white space-y-6">
+        <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center bg-white space-y-6" x-data="{ role: '{{ old('account_type', 'buyer') }}' }">
             
             <!-- Top Switch: Masuk vs Daftar -->
             <div class="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -98,88 +99,113 @@
 
             <div>
                 <h3 class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B]">Pendaftaran Akun</h3>
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">Pilih tipe akun Anda untuk memulai proses reservasi.</p>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">Pilih tipe akun Anda untuk memulai proses reservasi atau kurasi destinasi.</p>
             </div>
 
-            <!-- Role Selector (Buyer vs Partner) -->
-            <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Tipe Pengguna</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div @click="role = 'buyer'" 
-                         :class="role === 'buyer' ? 'border-[#703A3A] bg-[#703A3A]/5 ring-2 ring-[#703A3A]/30' : 'border-gray-200 bg-white hover:border-gray-300'" 
-                         class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3">
-                        <input type="radio" name="role_select" value="buyer" :checked="role === 'buyer'" class="mt-1 text-[#703A3A] focus:ring-[#703A3A]">
-                        <div>
-                            <span class="font-bold text-xs text-[#1E1B1B] block">Instansi Pendidikan</span>
-                            <span class="text-[11px] text-gray-500 block mt-0.5">Sekolah, Kampus, & Peneliti (Buyer)</span>
-                        </div>
-                    </div>
-                    <div @click="role = 'partner'" 
-                         :class="role === 'partner' ? 'border-[#703A3A] bg-[#703A3A]/5 ring-2 ring-[#703A3A]/30' : 'border-gray-200 bg-white hover:border-gray-300'" 
-                         class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3">
-                        <input type="radio" name="role_select" value="partner" :checked="role === 'partner'" class="mt-1 text-[#703A3A] focus:ring-[#703A3A]">
-                        <div>
-                            <span class="font-bold text-xs text-[#1E1B1B] block">Pengelola Destinasi</span>
-                            <span class="text-[11px] text-gray-500 block mt-0.5">Desa Wisata & Adat (Mitra)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Alert Errors -->
-            @if($errors->any())
-                <div class="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-800 space-y-1">
-                    @foreach($errors->all() as $error)
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-base text-red-600 shrink-0">error</span>
-                            <span>{{ $error }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+            <x-flash />
+            <x-form-errors />
 
             <!-- Registration Form Inputs -->
             <form action="{{ route('register.post') }}" method="POST" class="space-y-4">
                 @csrf
-                <input type="hidden" name="role" :value="role">
+
+                <!-- Role Selector (Buyer vs Partner) -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Tipe Pengguna <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label @click="role = 'buyer'" 
+                             :class="role === 'buyer' ? 'border-[#703A3A] bg-[#703A3A]/5 ring-2 ring-[#703A3A]/30' : 'border-gray-200 bg-white hover:border-gray-300'" 
+                             class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3">
+                            <input type="radio" name="account_type" value="buyer" x-model="role" class="mt-1 text-[#703A3A] focus:ring-[#703A3A]">
+                            <div>
+                                <span class="font-bold text-xs text-[#1E1B1B] block">Instansi Pendidikan</span>
+                                <span class="text-[11px] text-gray-500 block mt-0.5">Sekolah, Kampus, & Peneliti (Buyer)</span>
+                            </div>
+                        </label>
+                        <label @click="role = 'partner'" 
+                             :class="role === 'partner' ? 'border-[#703A3A] bg-[#703A3A]/5 ring-2 ring-[#703A3A]/30' : 'border-gray-200 bg-white hover:border-gray-300'" 
+                             class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3">
+                            <input type="radio" name="account_type" value="partner" x-model="role" class="mt-1 text-[#703A3A] focus:ring-[#703A3A]">
+                            <div>
+                                <span class="font-bold text-xs text-[#1E1B1B] block">Pengelola Destinasi</span>
+                                <span class="text-[11px] text-gray-500 block mt-0.5">Desa Wisata & Adat (Mitra)</span>
+                            </div>
+                        </label>
+                    </div>
+                    @error('account_type')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nama PIC</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="Contoh: Ryan Prasetya" 
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nama PIC <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name') }}" required placeholder="Contoh: Budi Santoso" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('name')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5" x-text="role === 'buyer' ? 'Nama Sekolah / Kampus' : 'Nama Desa / Sanggar'"></label>
-                        <input type="text" name="org_name" value="{{ old('org_name') }}" required placeholder="Contoh: SMA Negeri 1 / Desa Wonosadi" 
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">
+                            <span x-text="role === 'buyer' ? 'Nama Sekolah / Kampus' : 'Nama Desa / Komunitas'"></span> <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="org_name" value="{{ old('org_name') }}" required placeholder="Nama Sekolah / Institusi / Pokdarwis" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('org_name')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Email Resmi</label>
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Email Resmi <span class="text-red-500">*</span></label>
                         <input type="email" name="email" value="{{ old('email') }}" required placeholder="nama@instansi.sch.id" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('email')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nomor WhatsApp</label>
-                        <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="0812-xxxx-xxxx" 
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Nomor WhatsApp <span class="text-red-500">*</span></label>
+                        <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="08xxxxxxxxxx" 
                                class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('phone')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Kata Sandi</label>
-                    <input type="password" name="password" required placeholder="Minimal 8 karakter" 
-                           class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Kata Sandi <span class="text-red-500">*</span></label>
+                        <input type="password" name="password" required placeholder="Minimal 8 karakter" 
+                               class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('password')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Konfirmasi Kata Sandi <span class="text-red-500">*</span></label>
+                        <input type="password" name="password_confirmation" required placeholder="Ulangi kata sandi" 
+                               class="w-full text-xs px-3.5 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                        @error('password_confirmation')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div class="flex items-start gap-2 pt-1">
-                    <input type="checkbox" required id="tos" class="mt-0.5 rounded text-[#703A3A] focus:ring-[#703A3A]">
-                    <label for="tos" class="text-[11px] text-gray-500 leading-tight">
-                        Saya menyetujui <a href="#" class="text-[#703A3A] font-semibold underline">Syarat & Ketentuan</a> serta bersedia mematuhi <a href="#" class="text-[#703A3A] font-semibold underline">Protokol Etika Tapak</a>.
-                    </label>
+                <div class="space-y-1 pt-1">
+                    <div class="flex items-start gap-2">
+                        <input type="checkbox" name="terms" value="1" required id="tos" {{ old('terms') ? 'checked' : '' }} class="mt-0.5 rounded text-[#703A3A] focus:ring-[#703A3A]">
+                        <label for="tos" class="text-[11px] text-gray-500 leading-tight">
+                            Saya menyetujui <a href="{{ route('terms') }}" target="_blank" class="text-[#703A3A] font-semibold underline hover:text-[#561D1E]">Syarat &amp; Ketentuan</a> serta Kebijakan Privasi platform Destinara.
+                        </label>
+                    </div>
+                    @error('terms')
+                        <p class="text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <button type="submit" 
@@ -196,5 +222,6 @@
 
     </div>
 
+    @livewireScriptConfig
 </body>
 </html>

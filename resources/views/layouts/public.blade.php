@@ -22,6 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 
     <style>
         body {
@@ -147,20 +148,16 @@
                 <div class="p-4 rounded-2xl bg-gray-50 border border-gray-100 mb-6">
                     @auth
                         @php
-                            $userRole = Auth::user()->role ?? 'buyer';
-                            $roleRoute = match($userRole) {
-                                'buyer' => 'buyer.dashboard',
-                                'mitra' => 'mitra.dashboard',
-                                'admin' => 'admin.dashboard',
-                                'superadmin' => 'superadmin.dashboard',
+                            $user = Auth::user();
+                            $roleRoute = match(true) {
+                                $user->isPartner() => 'mitra.dashboard',
+                                $user->isInternal() => 'admin.dashboard',
                                 default => 'buyer.dashboard',
                             };
-                            $roleLabel = match($userRole) {
-                                'buyer' => 'Buyer Institusi',
-                                'mitra' => 'Mitra Pengelola Tapak',
-                                'admin' => 'Admin Sistem',
-                                'superadmin' => 'Super Admin',
-                                default => 'Dashboard',
+                            $roleLabel = match(true) {
+                                $user->isPartner() => 'Mitra Pengelola Tapak',
+                                $user->isInternal() => 'Admin Sistem',
+                                default => 'Buyer Institusi',
                             };
                         @endphp
                         <div class="flex items-center justify-between mb-3">
@@ -222,13 +219,17 @@
                     <span class="material-symbols-outlined text-[16px] text-[#703A3A]">mail</span>
                     <a href="mailto:halo@destinara.id" class="hover:text-[#703A3A]">halo@destinara.id</a>
                 </div>
-                <p class="text-[11px] text-gray-400 pt-2">&copy; {{ date('Y') }} Destinara. Inisiatif Tapak Terverifikasi FPIC.</p>
+                <p class="text-[11px] text-gray-400 pt-2">&copy; {{ date('Y') }} Destinara. Inisiatif Ruang Belajar Tapak Nusantara.</p>
             </div>
         </div>
     </header>
 
     <!-- Main Page Content -->
     <main class="flex-grow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <x-flash />
+            <x-form-errors />
+        </div>
         @yield('content')
     </main>
 
@@ -247,7 +248,7 @@
                 </a>
                 <div class="flex items-center gap-3 text-xs text-gray-500">
                     <span class="w-2 h-2 rounded-full bg-[#51634b]"></span>
-                    <span>Inisiatif Pendidikan Lapangan &amp; Riset Komunitas Terverifikasi FPIC Adat</span>
+                    <span>Inisiatif Pendidikan Lapangan &amp; Riset Komunitas Terkurasi</span>
                 </div>
             </div>
 
@@ -370,5 +371,6 @@
     </footer>
 
     @stack('scripts')
+    @livewireScriptConfig
 </body>
 </html>

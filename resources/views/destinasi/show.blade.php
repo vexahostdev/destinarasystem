@@ -1,14 +1,14 @@
 @extends('layouts.public')
 
-@section('title', $destination['name'] . ' — ' . $destination['city'] . ', ' . $destination['province'] . ' | Destinara')
-@section('meta_description', $destination['highlights'])
+@section('title', (string) ($destination['name'] . ' — ' . $destination['city'] . ', ' . $destination['province'] . ' | Destinara'))
+@section('meta_description', (string) ($destination['highlights'] ?? 'Destinasi Edukasi Lapangan Terverifikasi'))
 
 @section('content')
 <main class="w-full bg-[#FAF7F5] pt-20 sm:pt-24 pb-20" x-data="{
     peserta: 30,
     tipe: 'study_tour',
     basePrice: {{ $destination['price'] }},
-    get guidePrice() { return this.tipe === 'study_tour' ? 250000 : 150000; },
+    guidePrice: {{ (int) ($model->addons->where('is_active', true)->first()?->price ?? 0) }},
     get subtotal() { return this.peserta * this.basePrice; },
     get total() { return this.subtotal + this.guidePrice; },
     formatRupiah(val) {
@@ -26,14 +26,12 @@
       </a>
 
       <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#51634b]/10 text-[#51634b] text-xs font-bold">
-          <span class="material-symbols-outlined text-[16px]">verified</span>
-          <span>Protokol FPIC Sah</span>
-        </span>
+        @if(!empty($destination['rating']))
         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200/50">
           <span class="material-symbols-outlined text-[15px] fill-current text-amber-500">star</span>
           <span>{{ $destination['rating'] }} ({{ $destination['reviews_count'] }} ulasan)</span>
         </span>
+        @endif
       </div>
     </div>
 
@@ -67,10 +65,12 @@
           <div class="relative w-full aspect-[16/9] overflow-hidden rounded-3xl bg-[#231917] shadow-md border border-gray-100">
             <img :src="activePhoto" alt="{{ $destination['name'] }}" class="w-full h-full object-cover transition-all duration-300">
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+            @if(!empty($destination['gallery']) && count($destination['gallery']) > 0)
             <div class="absolute bottom-4 left-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium">
               <span class="material-symbols-outlined text-[16px] text-[#D4E9CA]">photo_camera</span>
-              <span>Dokumentasi Lapangan Terverifikasi</span>
+              <span>{{ count($destination['gallery']) }} Dokumentasi Foto</span>
             </div>
+            @endif
           </div>
 
           <!-- Sub Photo Thumbnails -->
@@ -93,9 +93,9 @@
             </div>
             <h3 class="text-xl sm:text-2xl font-bold text-[#1E1B1B]">Konteks & Narasi Hidup Tapak</h3>
           </div>
-          <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
-            {{ $destination['name'] }} merupakan ruang hidup komunal yang merawat keharmonisan antara kosmologi tradisi, tata kelola lingkungan lokal, dan kedaulatan warga. Destinara telah memfasilitasi integrasi pengetahuan tak benda ini agar dapat dipelajari langsung oleh peserta didik dan peneliti formal dengan menghormati martabat tetua adat.
-          </p>
+          <div class="text-gray-600 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+            {{ $destination['description'] ?? $destination['highlights'] }}
+          </div>
         </div>
 
         <!-- Focus Riset Box -->
@@ -203,16 +203,67 @@
           </div>
         </div>
 
-        <!-- Protokol Etika FPIC Adat -->
-        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
+        <!-- Kontak Pengelola & PIC Lapangan (Aturan Reveal SPEC §8.5) -->
+        <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-4">
           <div class="flex items-center gap-2 font-bold text-base text-[#1E1B1B]">
-            <span class="material-symbols-outlined text-[#703A3A] text-[20px]">policy</span>
-            <h4>Protokol Etika Tapak & Kepatuhan Adat (FPIC)</h4>
+            <span class="material-symbols-outlined text-[#703A3A] text-[20px]">contact_phone</span>
+            <h4>Kontak Pengelola & Narahubung Tapak</h4>
           </div>
-          <p>1. <strong>Pakaian Adat:</strong> Rombongan wajib mengenakan kain/selendang adat yang disediakan di pos gerbang masuk sebelum memasuki area sakral.</p>
-          <p>2. <strong>Dokumentasi Tertib:</strong> Mengambil foto/video diperkenankan pada zona publik. Untuk upacara ritual internal keluarga adat, wajib memohon izin tetua.</p>
-          <p>3. <strong>Bebas Sampah Plastik:</strong> Dilarang keras membawa kemasan plastik sekali pakai ke dalam kawasan hutan dan mata air.</p>
+
+          @if(count($destination['contacts']) > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @foreach($destination['contacts'] as $contact)
+                <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
+                  <div>
+                    <span class="font-bold text-slate-800 block">{{ $contact['name'] }}</span>
+                    <span class="text-slate-500 text-[11px]">{{ $contact['role'] }}</span>
+                  </div>
+                  <div>
+                    @if($contact['is_revealed'])
+                      <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', $contact['phone']) }}" target="_blank" class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full hover:bg-emerald-100 transition">
+                        <span class="material-symbols-outlined text-[14px]">chat</span>
+                        {{ $contact['phone'] }}
+                      </a>
+                    @else
+                      <span class="inline-flex items-center gap-1 text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        <span class="material-symbols-outlined text-[14px]">lock</span>
+                        Nomor terkunci
+                      </span>
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            </div>
+            @if(!($destination['contacts'][0]['is_revealed'] ?? false))
+              <p class="text-[11px] text-slate-500 bg-amber-50 p-3 rounded-xl border border-amber-200/50">
+                <span class="font-bold text-amber-800">Privasi Kontak:</span> Nomor kontak pengelola akan terbuka otomatis bagi akun institusi pemesan setelah reservasi berstatus {{ $destination['contact_reveal_label'] }}.
+              </p>
+            @endif
+          @else
+            <p class="text-xs text-slate-500">Narahubung terdaftar langsung di bawah koordinasi pengelola tapak resmi.</p>
+          @endif
         </div>
+
+        <!-- Kebijakan Pembatalan & Pengembalian Dana (SPEC §8.6) -->
+        @if(!empty($destination['cancellationPolicy']))
+          <div class="p-6 bg-white rounded-3xl border border-gray-100 shadow-xs space-y-3 text-xs sm:text-sm text-gray-600">
+            <div class="flex items-center gap-2 font-bold text-base text-[#1E1B1B]">
+              <span class="material-symbols-outlined text-[#703A3A] text-[20px]">verified_user</span>
+              <h4>Kebijakan Pembatalan: {{ $destination['cancellationPolicy']->name }}</h4>
+            </div>
+            <p class="text-xs text-slate-500">{{ $destination['cancellationPolicy']->description }}</p>
+            @if($destination['cancellationPolicy']->tiers && $destination['cancellationPolicy']->tiers->isNotEmpty())
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                @foreach($destination['cancellationPolicy']->tiers as $tier)
+                  <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-center">
+                    <span class="font-bold text-slate-700 block">H-{{ $tier->days_before }} atau lebih</span>
+                    <span class="text-emerald-700 font-extrabold text-sm">{{ $tier->refund_percent }}% Refund</span>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+          </div>
+        @endif
 
       </div>
 
@@ -244,10 +295,17 @@
               <span class="text-gray-500">Daya Tampung</span>
               <span class="font-bold text-[#51634b]">{{ $destination['capacity'] }} Orang / Rombongan</span>
             </div>
+            @if(!empty($destination['has_permit']))
             <div class="flex justify-between items-center">
               <span class="text-gray-500">Legalitas</span>
-              <span class="font-bold text-emerald-600">✓ 100% FPIC Terverifikasi</span>
+              <span class="font-bold text-emerald-600">Dokumen Izin Lengkap</span>
             </div>
+            @elseif(!empty($destination['is_partner_verified']))
+            <div class="flex justify-between items-center">
+              <span class="text-gray-500">Legalitas</span>
+              <span class="font-bold text-emerald-600">Mitra Terverifikasi</span>
+            </div>
+            @endif
           </div>
 
           <!-- Booking Simulator Form Inputs -->
@@ -287,7 +345,7 @@
                 <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(subtotal)"></span>
               </div>
               <div class="flex justify-between text-gray-600">
-                <span>Pemandu Adat Resmi:</span>
+                <span>{{ $model->addons->where('is_active', true)->first()?->name ?? 'Layanan Pendamping' }}:</span>
                 <span class="font-semibold text-[#1E1B1B]" x-text="formatRupiah(guidePrice)"></span>
               </div>
               <div class="flex justify-between text-sm font-extrabold text-[#1E1B1B] pt-2 border-t border-gray-200">
@@ -300,17 +358,23 @@
           <!-- Action Buttons -->
           <div class="flex flex-col gap-2.5 pt-1">
             @auth
-              @if(Auth::user()->role === 'buyer')
+              @if(Auth::user()->isBuyer())
                 <a href="{{ route('buyer.booking.create', ['tapak' => $destination['slug']]) }}" 
                    class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
                   <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                  <span>Lanjut Reservasi Rombongan</span>
+                  <span>Ajukan Booking</span>
+                </a>
+              @elseif(Auth::user()->isPartner())
+                <a href="{{ route('partner.dashboard') }}" 
+                   class="bg-[#51634b] hover:bg-[#3b4937] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                  <span>Dashboard Mitra</span>
                 </a>
               @else
-                <a href="{{ route(Auth::user()->role . '.dashboard') }}" 
-                   class="bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
-                  <span class="material-symbols-outlined text-[18px]">dashboard</span>
-                  <span>Buka Konsol {{ ucfirst(Auth::user()->role) }}</span>
+                <a href="{{ route('admin.dashboard') }}" 
+                   class="bg-[#2B3A4A] hover:bg-[#1f2a36] text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                  <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                  <span>Dashboard Admin</span>
                 </a>
               @endif
             @else
@@ -321,7 +385,7 @@
               </a>
             @endauth
 
-            <a href="https://wa.me/6281288776655?text=Halo%20Destinara%2C%20mohon%20informasi%20dossier%20kurikulum%20dan%20silabus%20resmi%20untuk%20{{ urlencode($destination['name'] ?? $destination->name) }}" 
+            <a href="https://wa.me/{{ preg_replace('/[^\d]/', '', (string) setting('company_phone', '6281200000000')) }}?text=Halo%20Destinara%2C%20mohon%20informasi%20dossier%20kurikulum%20dan%20silabus%20resmi%20untuk%20{{ urlencode($destination['name'] ?? $destination->name) }}" 
                target="_blank"
                class="border border-gray-300 hover:border-gray-400 text-gray-700 py-3 px-6 rounded-full font-semibold text-xs text-center flex items-center justify-center gap-1.5 transition-all bg-white hover:bg-gray-50">
               <span class="material-symbols-outlined text-[16px]">description</span>

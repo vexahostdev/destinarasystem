@@ -169,7 +169,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Default aman: cookie hanya lewat HTTPS di production/staging bila env tidak diisi (Audit v11 K-12)
+    'secure' => env('SESSION_SECURE_COOKIE', in_array(env('APP_ENV'), ['production', 'staging'], true)),
 
     /*
     |--------------------------------------------------------------------------

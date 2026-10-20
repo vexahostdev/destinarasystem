@@ -8,6 +8,8 @@
     cancelModal: false, 
     selectedBookingId: null, 
     selectedBookingCode: '', 
+    selectedRescheduleCount: 0,
+    maxReschedule: {{ (int) setting('max_reschedule_per_booking', 1) }},
     currentDate: '' 
 }">
 
@@ -112,52 +114,56 @@
                         </td>
                         <td class="py-4 px-4">
                             <span class="font-medium text-[#2B211E] block">{{ $b->destination->name ?? '-' }}</span>
-                            <span class="text-[11px] text-[#2B211E]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province ?? '' }}</span>
+                            <span class="text-[11px] text-[#2B211E]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province?->name ?? (is_string($b->destination->province) ? $b->destination->province : '') }}</span>
                         </td>
                         <td class="py-4 px-4 font-mono font-semibold text-[#2B211E]">
-                            {{ \Carbon\Carbon::parse($b->visit_date)->translatedFormat('d M Y') }}
+                            {{ \Carbon\Carbon::parse($b->planned_date_start ?? $b->visit_date)->translatedFormat('d M Y') }}
                         </td>
                         <td class="py-4 px-4 text-center">
-                            <span class="font-mono font-bold text-sm block">{{ $b->total_pax }} Pax</span>
-                            <span class="text-[10px] uppercase font-mono text-[#2B211E]/60">{{ $b->destination->category ?? 'studi' }}</span>
+                            <span class="font-mono font-bold text-sm block">{{ $b->participant_count ?? $b->total_pax }} Pax</span>
+                            <span class="text-[10px] uppercase font-mono text-[#2B211E]/60">{{ $b->destination->category?->name ?? $b->destination->category ?? 'studi' }}</span>
                         </td>
                         <td class="py-4 px-4 text-right">
                             <span class="font-mono font-bold text-sm text-[#2B211E] block">
-                                Rp {{ number_format($b->total_price ?? 0, 0, ',', '.') }}
+                                Rp {{ number_format($b->total_amount ?? $b->total_price ?? 0, 0, ',', '.') }}
                             </span>
-                            @if($b->payment && $b->payment->status === 'paid')
-                                <span class="text-[10px] text-emerald-800 font-semibold font-mono">Lunas ({{ strtoupper($b->payment->payment_method ?? 'VA') }})</span>
+                            @if($b->payment && ($b->payment->status === \App\Enums\PaymentStatus::PAID || $b->payment->isPaid()))
+                                <span class="text-[10px] text-emerald-800 font-semibold font-mono">Lunas ({{ strtoupper(is_object($b->payment->payment_method) ? $b->payment->payment_method->value : (string)($b->payment->payment_method ?? 'VA')) }})</span>
                             @else
                                 <span class="text-[10px] text-amber-800 font-semibold font-mono">Belum Lunas</span>
                             @endif
                         </td>
                         <td class="py-4 px-4 text-center">
-                            @if(in_array($b->status, ['confirmed', 'dikonfirmasi']))
+                            @php
+                                $bSt = $b->status instanceof \UnitEnum ? $b->status->value : (string)$b->status;
+                                $bLabel = $b->status instanceof \App\Enums\BookingStatus ? $b->status->label() : strtoupper($bSt);
+                            @endphp
+                            @if(in_array($bSt, ['confirmed', 'dikonfirmasi']))
                                 <span class="px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-semibold uppercase font-mono">
                                     Terkonfirmasi
                                 </span>
-                            @elseif(in_array($b->status, ['awaiting_payment', 'menunggu_pembayaran']))
+                            @elseif(in_array($bSt, ['awaiting_payment', 'menunggu_pembayaran']))
                                 <span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-semibold uppercase font-mono">
                                     Menunggu Bayar
                                 </span>
-                            @elseif(in_array($b->status, ['pending_confirmation', 'review_mitra']))
+                            @elseif(in_array($bSt, ['pending_confirmation', 'review_mitra', 'dibayar']))
                                 <span class="px-2.5 py-1 bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-semibold uppercase font-mono">
                                     Review Mitra
                                 </span>
-                            @elseif(in_array($b->status, ['completed', 'selesai']))
+                            @elseif(in_array($bSt, ['completed', 'selesai']))
                                 <span class="px-2.5 py-1 bg-gray-100 text-gray-800 border border-gray-300 text-[10px] font-semibold uppercase font-mono">
                                     Selesai
                                 </span>
                             @else
                                 <span class="px-2.5 py-1 bg-red-100 text-red-800 border border-red-300 text-[10px] font-semibold uppercase font-mono">
-                                    {{ strtoupper($b->status) }}
+                                    {{ $bLabel }}
                                 </span>
                             @endif
                         </td>
                         <td class="py-4 px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 
-                                @if($b->status === 'pending_confirmation')
+                                @if(in_array($bSt, ['pending_confirmation', 'dibayar']))
                                     <!-- Force Confirm Button -->
                                     <form action="{{ route('admin.bookings.updateStatus', $b->id) }}" method="POST">
                                         @csrf
@@ -170,7 +176,7 @@
 
                                 <!-- Reschedule Button -->
                                 <button type="button" 
-                                        @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; currentDate = '{{ $b->visit_date }}'; rescheduleModal = true"
+                                        @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; selectedRescheduleCount = {{ (int) ($b->reschedule_count ?? 0) }}; currentDate = '{{ $b->visit_date }}'; rescheduleModal = true"
                                         title="Jadwalkan Ulang Tanggal Rombongan" 
                                         class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors">
                                     <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
@@ -181,7 +187,7 @@
                                     <span class="material-symbols-outlined text-[16px]">description</span>
                                 </a>
 
-                                @if($b->status !== 'cancelled')
+                                @if(!in_array($bSt, ['cancelled', 'dibatalkan']))
                                 <!-- Cancel Modal Button -->
                                 <button type="button" 
                                         @click="selectedBookingId = {{ $b->id }}; selectedBookingCode = '{{ $b->booking_code }}'; cancelModal = true"
@@ -225,17 +231,41 @@
                 @csrf
                 <input type="hidden" name="action" value="reschedule">
 
-                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 text-xs">
-                    <p class="text-[#2B211E]/70">Kode Reservasi:</p>
-                    <p class="font-mono font-bold text-[#703A3A] text-sm" x-text="selectedBookingCode"></p>
+                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[#2B211E]/70">Kode Reservasi:</span>
+                        <span class="font-mono font-bold text-[#703A3A] text-sm" x-text="selectedBookingCode"></span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80 pt-1 border-t border-[#2B211E]/10">
+                        <span>Sisa Kuota Reschedule:</span>
+                        <strong x-text="maxReschedule === 0 ? 'Tanpa Batas' : Math.max(0, maxReschedule - selectedRescheduleCount) + ' kali'"></strong>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80">
+                        <span>Batas Waktu Pengajuan:</span>
+                        <span>Maksimal H-{{ (int) setting('reschedule_cutoff_days', 3) }} sebelum jadwal lama</span>
+                    </div>
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
-                        Tanggal Kunjungan Baru
+                        Tanggal Kunjungan Baru *
                     </label>
-                    <input type="date" name="visit_date" :value="currentDate" required class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none">
+                    <input type="date" name="new_date" :value="currentDate" required min="{{ now()->addDays((int) setting('min_lead_days', 3))->format('Y-m-d') }}" class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none">
+                    @error('new_date')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
                     <p class="text-[10px] text-[#2B211E]/60">Sistem akan otomatis menyesuaikan slot ketersediaan pada tapak tujuan.</p>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
+                        Alasan Penjadwalan Ulang *
+                    </label>
+                    <textarea name="reschedule_reason" required rows="2" placeholder="Catatan alasan perubahan tanggal kunjungan..."
+                              class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none"></textarea>
+                    @error('reschedule_reason')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#2B211E]/10">

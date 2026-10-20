@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -102,7 +103,7 @@
                     <input type="checkbox" name="remember" class="rounded text-[#703A3A] focus:ring-[#703A3A]">
                     <span>Ingat saya</span>
                 </label>
-                <a href="mailto:admin@destinara.id?subject=Bantuan%20Akses%20dan%20Reset%20Sandi%20Destinara" class="text-[#703A3A] font-semibold hover:underline">
+                <a href="{{ route('password.request') }}" class="text-[#703A3A] font-semibold hover:underline">
                     Lupa sandi?
                 </a>
             </div>
@@ -133,5 +134,6 @@
 
     </div>
 
+    @livewireScriptConfig
 </body>
 </html>

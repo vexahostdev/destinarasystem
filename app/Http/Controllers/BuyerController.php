@@ -2,68 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Audit\AuditLogger;
+use App\Domain\Booking\Services\BookingService;
+use App\Domain\Catalog\Services\ReviewService;
+use App\Domain\Notification\Services\NotificationDispatcher;
+use App\Domain\Payment\Services\PaymentGatewayManager;
+use App\Domain\Payment\Services\PaymentService;
+use App\Enums\BookingStatus;
+use App\Enums\DestinationStatus;
+use App\Enums\PaymentStatus;
+use App\Enums\VerificationStatus;
+use App\Models\Bank;
+use App\Models\Booking;
+use App\Models\Destination;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Institution;
-use App\Models\Destination;
-use App\Models\Booking;
-use App\Models\Payment;
-use App\Models\Document;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BuyerController extends Controller
 {
-    /**
-     * Helper untuk mendapatkan user buyer aktif di sesi
-     */
-    protected function ensureBuyerAuth()
-    {
-        return Auth::user();
-    }
-
     /**
      * Halaman 1: Dashboard Buyer
      */
     public function dashboard(Request $request)
     {
-        $user = $this->ensureBuyerAuth();
+        $user = Auth::user();
         $institution = $user->institution;
 
-        // Metrik Rombongan
+        // Metrik Rombongan Real
         $activeBookingsCount = Booking::where('user_id', $user->id)
-            ->whereIn('status', ['menunggu_pembayaran', 'dibayar', 'dikonfirmasi'])
+            ->whereIn('status', [
+                BookingStatus::MENUNGGU_PEMBAYARAN,
+                BookingStatus::DIBAYAR,
+                BookingStatus::DIKONFIRMASI,
+                BookingStatus::BERLANGSUNG,
+            ])
             ->count();
 
         $pendingPaymentCount = Booking::where('user_id', $user->id)
-            ->where('status', 'menunggu_pembayaran')
+            ->where('status', BookingStatus::MENUNGGU_PEMBAYARAN)
             ->count();
 
         $confirmedCount = Booking::where('user_id', $user->id)
-            ->where('status', 'dikonfirmasi')
+            ->where('status', BookingStatus::DIKONFIRMASI)
             ->count();
 
         $completedCount = Booking::where('user_id', $user->id)
-            ->where('status', 'selesai')
+            ->where('status', BookingStatus::SELESAI)
             ->count();
 
-        // Jadwal Kunjungan Terdekat (Hero Booking Card)
-        $nextBooking = Booking::with(['destination', 'payment', 'documents'])
+        // Jadwal Kunjungan Terdekat
+        $nextBooking = Booking::with(['destination.province', 'payments', 'documents'])
             ->where('user_id', $user->id)
-            ->whereIn('status', ['menunggu_pembayaran', 'dibayar', 'dikonfirmasi'])
+            ->whereIn('status', [
+                BookingStatus::MENUNGGU_PEMBAYARAN,
+                BookingStatus::DIBAYAR,
+                BookingStatus::DIKONFIRMASI,
+                BookingStatus::BERLANGSUNG,
+            ])
             ->orderBy('planned_date_start', 'asc')
             ->first();
 
         // Daftar Booking Aktif Terbaru
-        $recentBookings = Booking::with(['destination', 'payment'])
+        $recentBookings = Booking::with(['destination.province', 'payments', 'package'])
             ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->take(5)
             ->get();
 
         // Rekomendasi Destinasi Terverifikasi
-        $recommendedDestinations = Destination::where('status', 'published')
+        $recommendedDestinations = Destination::with(['province', 'media', 'packages'])
+            ->where('status', DestinationStatus::PUBLISHED)
             ->take(3)
             ->get();
 
@@ -81,27 +92,35 @@ class BuyerController extends Controller
     }
 
     /**
-     * Halaman 2: Form Pengajuan Booking Baru (Multi-step Archival Form)
+     * Halaman 2: Form Pengajuan Booking Baru (Livewire Wrapper)
      */
     public function createBooking(Request $request)
     {
-        $user = $this->ensureBuyerAuth();
+        $user = Auth::user();
         $institution = $user->institution;
 
-        $destinations = Destination::where('status', 'published')->get();
+        $destinations = Destination::where('status', DestinationStatus::PUBLISHED)->get();
 
-        // Cek jika ada parameter pre-selected destination
         $selectedSlug = $request->query('destinasi') ?? $request->query('tapak');
-        $selectedDestination = $selectedSlug 
-            ? Destination::where('slug', $selectedSlug)->first() 
+        $selectedDestination = $selectedSlug
+            ? Destination::with(['packages', 'addons'])->where('slug', $selectedSlug)->first()
             : $destinations->first();
 
-        // Data reorder jika ada
+        if (! $selectedDestination && $destinations->isNotEmpty()) {
+            $selectedDestination = $destinations->first();
+            $selectedDestination->load(['packages', 'addons']);
+        }
+
+        // Reorder: strictly verify ownership (SPEC D3)
         $reorderCode = $request->query('reorder');
         $reorderData = null;
         if ($reorderCode) {
-            $reorderData = Booking::where('booking_code', $reorderCode)->first();
-            if ($reorderData) {
+            $reorderData = Booking::where('booking_code', $reorderCode)
+                ->where('user_id', $user->id)
+                ->with(['destination.packages', 'destination.addons', 'package'])
+                ->first();
+
+            if ($reorderData && $reorderData->destination) {
                 $selectedDestination = $reorderData->destination;
             }
         }
@@ -116,195 +135,251 @@ class BuyerController extends Controller
     }
 
     /**
-     * Simpan Pengajuan Booking Baru
-     */
-    public function storeBooking(Request $request)
-    {
-        $user = $this->ensureBuyerAuth();
-        $institution = $user->institution;
-
-        $request->validate([
-            'destination_id' => 'required|exists:destinations,id',
-            'inquiry_type' => 'required|in:study_tour,penelitian',
-            'planned_date_start' => 'required|date',
-            'planned_date_end' => 'required|date|after_or_equal:planned_date_start',
-            'participant_count' => 'required|integer|min:5|max:500',
-            'guide_count' => 'required|integer|min:1|max:20',
-        ]);
-
-        $destination = Destination::findOrFail($request->destination_id);
-
-        // Kalkulasi biaya
-        $pricePerPax = $destination->price_per_pax;
-        $participantCount = (int) $request->participant_count;
-        $subtotal = $pricePerPax * $participantCount;
-        $insurance = $participantCount * 2000; // Asuransi lapangan Rp 2.000 / pax
-        $platformFee = 25000; // Biaya administrasi BOS & verifikasi dokumen
-        $total = $subtotal + $insurance + $platformFee;
-
-        // Generate Booking Code: DST-2026-XXXX-CODE
-        $shortCode = strtoupper(Str::substr($destination->slug, 0, 3));
-        $randDigits = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
-        $bookingCode = 'DST-' . date('Y') . '-' . date('md') . $randDigits . '-' . $shortCode;
-
-        $booking = Booking::create([
-            'booking_code' => $bookingCode,
-            'institution_id' => $institution->id,
-            'user_id' => $user->id,
-            'destination_id' => $destination->id,
-            'inquiry_type' => $request->inquiry_type,
-            'planned_date_start' => $request->planned_date_start,
-            'planned_date_end' => $request->planned_date_end,
-            'participant_count' => $participantCount,
-            'guide_count' => (int) $request->guide_count,
-            'purpose_notes' => $request->purpose_notes,
-            'needs_permit_letter' => $request->has('needs_permit_letter'),
-            'subtotal_amount' => $subtotal,
-            'insurance_amount' => $insurance,
-            'platform_fee' => $platformFee,
-            'total_amount' => $total,
-            'status' => 'menunggu_pembayaran',
-            'internal_notes' => 'Pengajuan otomatis melalui form booking buyer portal.',
-        ]);
-
-        // Buat tagihan payment pending
-        Payment::create([
-            'booking_id' => $booking->id,
-            'gateway_ref' => 'MID-SNAP-' . date('Ymd') . '-' . rand(1000, 9999),
-            'payment_method' => 'bca_va',
-            'amount' => $total,
-            'status' => 'pending',
-        ]);
-
-        // Buat invoice dokumen awal
-        Document::create([
-            'booking_id' => $booking->id,
-            'type' => 'invoice',
-            'title' => 'Invoice Resmi #' . $bookingCode,
-            'file_path' => 'assets/docs/invoice-' . strtolower($bookingCode) . '.pdf',
-            'generated_at' => Carbon::now(),
-        ]);
-
-        return redirect()->route('buyer.booking.show', $booking->booking_code)
-            ->with('success', 'Pengajuan booking rombongan berhasil dibuat. Silakan lanjutkan ke konfirmasi verifikasi & pembayaran.');
-    }
-
-    /**
      * Halaman 3: Detail Booking & Status Verifikasi
      */
-    public function showBooking($code)
+    public function showBooking(string $code)
     {
-        $user = $this->ensureBuyerAuth();
-        $institution = $user->institution;
+        $user = Auth::user();
 
-        $booking = Booking::with(['destination.contacts', 'payment', 'documents'])
+        $booking = Booking::with([
+            'destination.contacts',
+            'destination.province',
+            'destination.media',
+            'destination.cancellationPolicy.tiers',
+            'package',
+            'items',
+            'payments',
+            'documents',
+            'review',
+            'institution',
+        ])
             ->where('booking_code', $code)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        return view('buyer.booking.show', compact('user', 'institution', 'booking'));
+        $isPaid = in_array($booking->status, [
+            BookingStatus::DIBAYAR,
+            BookingStatus::DIKONFIRMASI,
+            BookingStatus::BERLANGSUNG,
+            BookingStatus::SELESAI,
+        ]);
+        $bookingService = app(BookingService::class);
+        $refundCalc = $bookingService->calculateRefund($booking, 'buyer');
+        $banks = Bank::where('is_active', true)->orderBy('name')->get();
+        $canCancel = (bool) setting('allow_buyer_cancel', true) && in_array($booking->status, [
+            BookingStatus::MENUNGGU_PEMBAYARAN,
+            BookingStatus::DIBAYAR,
+            BookingStatus::DIKONFIRMASI,
+        ]);
+        $latestPayment = $booking->payments()->latest('id')->first();
+        $manualPayment = $booking->payments()->where('gateway', 'manual_transfer')->latest('id')->first();
+
+        return view('buyer.booking.show', [
+            'user' => $user,
+            'institution' => $user->institution,
+            'booking' => $booking,
+            'isPaid' => $isPaid,
+            'refundCalc' => $refundCalc,
+            'banks' => $banks,
+            'canCancel' => $canCancel,
+            'latestPayment' => $latestPayment,
+            'manualPayment' => $manualPayment,
+        ]);
     }
 
     /**
-     * Halaman 4: Pembayaran / Checkout & Simulasi Lunas
+     * Halaman 4: Kasir & Pembayaran Resmi
      */
-    public function payment($code)
+    public function payment(string $code, PaymentService $paymentService)
     {
-        $user = $this->ensureBuyerAuth();
-        $institution = $user->institution;
+        $user = Auth::user();
 
-        $booking = Booking::with(['destination', 'payment'])
+        $booking = Booking::with(['destination', 'payments', 'package', 'institution'])
             ->where('booking_code', $code)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        return view('buyer.booking.payment', compact('user', 'institution', 'booking'));
-    }
-
-    /**
-     * Proses / Simulasi Pembayaran Instan (Sandbox Midtrans / BOS / VA)
-     */
-    public function processPayment(Request $request, $code)
-    {
-        $user = $this->ensureBuyerAuth();
-
-        $booking = Booking::with(['destination.partner', 'institution', 'payment', 'documents'])
-            ->where('booking_code', $code)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-
-        $method = $request->input('payment_method', 'bca_va');
-
-        // Perbarui Payment menjadi Settled
-        if ($booking->payment) {
-            $booking->payment->update([
-                'payment_method' => $method,
-                'status' => 'settled',
-                'paid_at' => Carbon::now(),
-            ]);
+        if ($booking->status !== BookingStatus::MENUNGGU_PEMBAYARAN) {
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('info', 'Pesanan ini tidak sedang menunggu pembayaran.');
         }
 
-        // Perbarui Status Booking menjadi 'dibayar' sesuai Alur PRD v1.0
-        // (Menunggu konfirmasi slot oleh Mitra Pengelola Tapak)
-        $booking->update([
-            'status' => 'dibayar',
-        ]);
+        $availableGateways = app(PaymentGatewayManager::class)->getAvailableGateways();
 
-        // Kirim Log Notifikasi ke Pengelola Tapak & Buyer
-        \App\Models\NotificationLog::create([
-            'recipient_type' => 'partner',
-            'recipient_name' => $booking->destination->partner->name ?? 'Pengelola Tapak',
-            'channel' => 'whatsapp',
-            'target' => $booking->destination->partner->phone ?? '0812-3456-7890',
-            'event_type' => 'booking_created',
-            'title' => 'Pembayaran Booking #' . $booking->booking_code . ' Diterima',
-            'preview_text' => 'Rombongan ' . ($booking->institution->institution_name ?? 'Institusi') . ' (' . $booking->participant_count . ' peserta) telah menyelesaikan pembayaran dan menunggu konfirmasi kesiapan slot dari Anda.',
-            'status' => 'sent',
-            'sent_at' => Carbon::now(),
-        ]);
+        if (empty($availableGateways)) {
+            Log::error('No payment gateway is configured or enabled for booking.', [
+                'booking_code' => $booking->booking_code,
+            ]);
 
-        \App\Models\NotificationLog::create([
-            'recipient_type' => 'buyer',
-            'recipient_name' => $user->name,
-            'channel' => 'email',
-            'target' => $user->email,
-            'event_type' => 'payment_reminder',
-            'title' => 'Pembayaran Booking #' . $booking->booking_code . ' Lunas',
-            'preview_text' => 'Pembayaran Anda berhasil diverifikasi. Pengelola tapak sedang meninjau kesiapan slot rombongan.',
-            'status' => 'sent',
-            'sent_at' => Carbon::now(),
-        ]);
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => 'none',
+                'booking_code' => $booking->booking_code,
+                'message' => 'Tidak ada gateway pembayaran yang aktif dan terkonfigurasi lengkap.',
+            ], ['admin']);
 
-        return redirect()->route('buyer.booking.show', $booking->booking_code)
-            ->with('success', 'Pembayaran sebesar Rp ' . number_format($booking->total_amount, 0, ',', '.') . ' berhasil diverifikasi lunas! Status pengajuan kini: DIBAYAR (Menunggu konfirmasi kesiapan slot oleh Pengelola Tapak).');
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Pembayaran belum tersedia, hubungi admin.');
+        }
+
+        $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
+
+        // If no pending payment exists but booking is unpaid, create a new attempt
+        if (! $payment || ($payment->expires_at && $payment->expires_at->isPast())) {
+            try {
+                $defaultGw = in_array(setting('default_gateway', 'xendit'), $availableGateways, true)
+                    ? setting('default_gateway', 'xendit')
+                    : $availableGateways[0];
+                $payment = $paymentService->retryPayment($booking, $defaultGw);
+            } catch (\Throwable $e) {
+                $payment = null;
+            }
+        }
+
+        $banks = Bank::where('is_active', true)->get();
+        $enabledGateways = $availableGateways;
+
+        $manualAccounts = setting('manual_transfer_accounts', []);
+        if (! is_array($manualAccounts)) {
+            $manualAccounts = json_decode((string) $manualAccounts, true) ?? [];
+        }
+
+        $minPaymentAmount = (int) setting('min_payment_amount', 10000);
+
+        return view('buyer.booking.payment', compact('user', 'booking', 'payment', 'banks', 'enabledGateways', 'manualAccounts', 'minPaymentAmount'));
     }
 
     /**
-     * Halaman 5: Riwayat Transaksi & Re-order
+     * Proses Checkout / Pembayaran
+     */
+    public function processPayment(Request $request, string $code, PaymentService $paymentService)
+    {
+        $user = Auth::user();
+
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $request->validate([
+            'gateway' => 'required|in:xendit,midtrans,manual_transfer',
+            'proof_file' => 'required_if:gateway,manual_transfer|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $availableGateways = app(PaymentGatewayManager::class)->getAvailableGateways();
+
+        if (empty($availableGateways)) {
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => 'none',
+                'booking_code' => $booking->booking_code,
+                'message' => 'Tidak ada gateway pembayaran yang aktif dan terkonfigurasi lengkap saat checkout.',
+            ], ['admin']);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Pembayaran belum tersedia, hubungi admin.');
+        }
+
+        if (! in_array($request->gateway, $availableGateways, true)) {
+            return back()->with('error', 'Metode pembayaran yang dipilih sedang tidak tersedia atau dinonaktifkan.');
+        }
+
+        $gateway = $request->gateway;
+
+        // Online Gateway: check min payment amount before initiating
+        if ($gateway !== 'manual_transfer') {
+            $minAmount = (int) setting('min_payment_amount', 10000);
+            if ($booking->total_amount < $minAmount && $booking->total_amount > 0) {
+                return back()->with('error', 'Nominal pembayaran (Rp '.number_format($booking->total_amount, 0, ',', '.').') berada di bawah batas minimum transaksi gateway online (Rp '.number_format($minAmount, 0, ',', '.').'). Silakan gunakan metode transfer manual.');
+            }
+        }
+
+        try {
+            $payment = $booking->payments()->where('status', PaymentStatus::PENDING)->latest()->first();
+
+            if (! $payment || $payment->gateway !== $gateway) {
+                $payment = $paymentService->retryPayment($booking, $gateway);
+            }
+
+            // If manual transfer, store the uploaded proof
+            if ($gateway === 'manual_transfer') {
+                $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
+
+                return redirect()->route('buyer.booking.show', $booking->booking_code)
+                    ->with('success', 'Bukti transfer manual berhasil diunggah! Tim Destinara akan segera memverifikasi pembayaran Anda.');
+            }
+
+            // Online Gateway: ensure payment has checkout_url
+            if (! $payment->checkout_url || ($payment->expires_at && $payment->expires_at->isPast())) {
+                $payment = $paymentService->initiatePayment($payment);
+            }
+
+            if (! $payment->checkout_url) {
+                Log::error('Gateway did not return checkout_url', [
+                    'booking_code' => $booking->booking_code,
+                    'gateway' => $gateway,
+                    'payment_id' => $payment->id,
+                ]);
+
+                app(NotificationDispatcher::class)->send('system.gateway_error', [
+                    'gateway' => $gateway,
+                    'booking_code' => $booking->booking_code,
+                    'message' => 'Gateway '.$gateway.' tidak mengembalikan tautan pembayaran (checkout_url kosong).',
+                ], ['admin']);
+
+                return back()->with('error', 'Gagal memproses pembayaran online melalui '.ucfirst($gateway).': tautan pembayaran tidak dapat dibuat. Silakan gunakan metode transfer manual atau hubungi admin.');
+            }
+
+            return redirect()->away($payment->checkout_url);
+        } catch (\Throwable $e) {
+            Log::error('Gateway payment initiation failed: '.$e->getMessage(), [
+                'booking_code' => $booking->booking_code,
+                'gateway' => $gateway,
+            ]);
+
+            app(NotificationDispatcher::class)->send('system.gateway_error', [
+                'gateway' => $gateway,
+                'booking_code' => $booking->booking_code,
+                'message' => 'Terjadi kesalahan gateway saat inisiasi pembayaran: '.$e->getMessage(),
+            ], ['admin']);
+
+            return back()->with('error', 'Jalur pembayaran online sementara tidak dapat dihubungi. Silakan pilih metode transfer manual atau hubungi admin.');
+        }
+    }
+
+    /**
+     * Halaman 5: Riwayat Transaksi & Re-order (Paginated)
      */
     public function history(Request $request)
     {
-        $user = $this->ensureBuyerAuth();
+        $user = Auth::user();
         $institution = $user->institution;
 
         $statusFilter = $request->query('status', 'semua');
 
-        $query = Booking::with(['destination', 'payment', 'documents'])
+        $query = Booking::with(['destination.province', 'destination.media', 'payments', 'documents'])
             ->where('user_id', $user->id);
 
         if ($statusFilter && $statusFilter !== 'semua') {
             $query->where('status', $statusFilter);
         }
 
-        $bookings = $query->orderBy('created_at', 'desc')->get();
+        $bookings = $query->latest()->paginate(10);
 
-        // Hitung total nilai transaksi institusi yang sudah diselesaikan
+        // Metric summaries strictly calculated from real DB records
         $totalExpenditure = Booking::where('user_id', $user->id)
-            ->whereIn('status', ['dibayar', 'dikonfirmasi', 'selesai'])
+            ->whereIn('status', [
+                BookingStatus::DIBAYAR,
+                BookingStatus::DIKONFIRMASI,
+                BookingStatus::BERLANGSUNG,
+                BookingStatus::SELESAI,
+            ])
             ->sum('total_amount');
 
         $totalPax = Booking::where('user_id', $user->id)
-            ->whereIn('status', ['dibayar', 'dikonfirmasi', 'selesai'])
+            ->whereIn('status', [
+                BookingStatus::DIBAYAR,
+                BookingStatus::DIKONFIRMASI,
+                BookingStatus::BERLANGSUNG,
+                BookingStatus::SELESAI,
+            ])
             ->sum('participant_count');
 
         return view('buyer.history', compact(
@@ -318,12 +393,12 @@ class BuyerController extends Controller
     }
 
     /**
-     * Halaman 6: Profil Institusi & Dokumen Pendukung
+     * Halaman 6: Profil Institusi
      */
     public function profile()
     {
-        $user = $this->ensureBuyerAuth();
-        $institution = $user->institution;
+        $user = Auth::user();
+        $institution = $user->institution()->first();
 
         return view('buyer.profile', compact('user', 'institution'));
     }
@@ -333,7 +408,7 @@ class BuyerController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        $user = $this->ensureBuyerAuth();
+        $user = Auth::user();
         $institution = $user->institution;
 
         $request->validate([
@@ -372,15 +447,333 @@ class BuyerController extends Controller
     }
 
     /**
-     * Unduh / Tampilkan Dokumen Resmi Berstempel Destinara
+     * Unggah Dokumen Pendukung Institusi
      */
-    public function downloadDoc($code, $type)
+    public function uploadDocument(Request $request)
     {
-        $user = $this->ensureBuyerAuth();
-        $booking = Booking::with(['destination', 'institution', 'payment'])
-            ->where('booking_code', $code)
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $request->validate([
+            'type' => 'required|in:kop_surat,sk_pendirian,surat_tugas,lainnya',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $path = $request->file('file')->store("institution_documents/{$institution->id}", 'local');
+
+        $institution->documents()->create([
+            'type' => $request->type,
+            'file_path' => $path,
+            'original_name' => $request->file('file')->getClientOriginalName(),
+        ]);
+
+        if ($request->type === 'kop_surat') {
+            $institution->update(['letterhead_path' => $path]);
+        }
+
+        return redirect()->back()->with('success', 'Dokumen pendukung berhasil diunggah.');
+    }
+
+    /**
+     * Hapus Dokumen Pendukung Institusi
+     */
+    public function deleteDocument($id)
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $doc = $institution->documents()->findOrFail($id);
+        Storage::disk('local')->delete($doc->file_path);
+        if ($institution->letterhead_path === $doc->file_path) {
+            $institution->update(['letterhead_path' => null]);
+        }
+        $doc->delete();
+
+        return redirect()->back()->with('success', 'Dokumen pendukung berhasil dihapus.');
+    }
+
+    /**
+     * Unduh Dokumen Pendukung Institusi
+     */
+    public function downloadDocument($id)
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $doc = $institution->documents()->findOrFail($id);
+
+        if (! Storage::disk('local')->exists($doc->file_path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($doc->file_path, $doc->original_name);
+    }
+
+    /**
+     * Ajukan Verifikasi Institusi ke Administrator
+     */
+    public function submitVerification()
+    {
+        $user = Auth::user();
+        $institution = $user->institution;
+        if (! $institution) {
+            abort(403);
+        }
+
+        $institution->verification_status = VerificationStatus::PENDING;
+        $institution->save();
+
+        AuditLogger::log(
+            action: 'submit_institution_verification',
+            target: $institution,
+            description: "Institusi '{$institution->institution_name}' mengajukan verifikasi legalitas.",
+            userId: $user->id
+        );
+
+        return redirect()->back()->with('success', 'Pengajuan verifikasi institusi berhasil dikirimkan ke administrator.');
+    }
+
+    /**
+     * Halaman 7: Wishlist Destinasi
+     */
+    public function wishlist()
+    {
+        $user = Auth::user();
+        $wishlists = Wishlist::with(['destination.province', 'destination.media', 'destination.packages'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->paginate(12);
+
+        return view('buyer.wishlist', compact('user', 'wishlists'));
+    }
+
+    /**
+     * Toggle Wishlist
+     */
+    public function toggleWishlist(Request $request)
+    {
+        $request->validate(['destination_id' => 'required|exists:destinations,id']);
+        $user = Auth::user();
+        $destId = (int) $request->destination_id;
+
+        $existing = Wishlist::where('user_id', $user->id)->where('destination_id', $destId)->first();
+        if ($existing) {
+            $existing->delete();
+            $status = 'removed';
+        } else {
+            Wishlist::create([
+                'user_id' => $user->id,
+                'destination_id' => $destId,
+            ]);
+            $status = 'added';
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'status' => $status]);
+        }
+
+        return back()->with('success', $status === 'added' ? 'Destinasi ditambahkan ke wishlist.' : 'Destinasi dihapus dari wishlist.');
+    }
+
+    /**
+     * Batal Mandiri oleh Pemesan (SPEC §8.4)
+     */
+    public function cancelBooking(Request $request, string $code, BookingService $bookingService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
             ->where('user_id', $user->id)
             ->firstOrFail();
-        return view('buyer.documents.template', compact('booking', 'type'));
+
+        if (! (bool) setting('allow_buyer_cancel', true)) {
+            abort(403, 'Fitur pembatalan mandiri oleh pemesan saat ini sedang dinonaktifkan.');
+        }
+
+        $calc = $bookingService->calculateRefund($booking, 'buyer');
+        $bankDetails = null;
+
+        if ($calc['percent'] > 0) {
+            $rules = [
+                'reason' => 'required|string|min:5|max:500',
+                'bank_account_number' => 'required|string|max:50',
+                'bank_account_holder' => 'required|string|max:255',
+            ];
+            if ($request->has('bank_id')) {
+                $rules['bank_id'] = 'required|exists:banks,id';
+            } else {
+                $rules['bank_name'] = 'required|string|max:100';
+            }
+
+            $validated = $request->validate($rules);
+            $bankId = $validated['bank_id'] ?? null;
+            $bankName = $validated['bank_name'] ?? null;
+            if ($bankId && ! $bankName) {
+                $bankName = Bank::find($bankId)?->name;
+            } elseif ($bankName && ! $bankId) {
+                $bankId = Bank::where('name', $bankName)->value('id');
+            }
+
+            $bankDetails = [
+                'bank_id' => $bankId,
+                'bank_name' => $bankName,
+                'account_number' => $validated['bank_account_number'],
+                'account_holder' => $validated['bank_account_holder'],
+            ];
+            $reason = $validated['reason'];
+        } else {
+            $validated = $request->validate([
+                'reason' => 'required|string|min:5|max:500',
+            ]);
+            $reason = $validated['reason'];
+        }
+
+        try {
+            $bookingService->cancel(
+                booking: $booking,
+                actor: $user,
+                reason: $reason,
+                source: 'buyer',
+                overridePercent: null,
+                bankDetails: $bankDetails
+            );
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Pesanan Anda berhasil dibatalkan.'.($calc['percent'] > 0 ? " Pengajuan refund {$calc['percent']}% telah diteruskan ke tim keuangan." : ''));
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Cek Status Transaksi ke Payment Gateway
+     */
+    public function checkPaymentStatus(string $code, PaymentService $paymentService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $payment = $booking->payments()->latest('id')->first();
+        if (! $payment) {
+            return back()->with('error', 'Tidak ada data transaksi pembayaran untuk pesanan ini.');
+        }
+
+        try {
+            $paymentService->checkStatus($payment);
+            $booking->refresh();
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('info', "Status pembayaran terkini: {$payment->fresh()->status->label()}. Status pesanan: {$booking->status->label()}.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal memeriksa status ke gateway: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Upload Ulang Bukti Transfer Manual
+     */
+    public function reuploadManualProof(Request $request, string $code, PaymentService $paymentService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $request->validate([
+            'proof_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $payment = $booking->payments()
+            ->where('gateway', 'manual_transfer')
+            ->latest('id')
+            ->first();
+
+        if (! $payment) {
+            return back()->with('error', 'Tidak ditemukan riwayat pembayaran transfer manual.');
+        }
+
+        try {
+            $paymentService->processManualProofUpload($payment, $request->file('proof_file'), $user);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Bukti transfer pembayaran berhasil diunggah ulang! Tim Destinara akan segera memverifikasi pembayaran Anda.');
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Halaman 8: Notifikasi Buyer (Database Notifications)
+     */
+    public function notifications()
+    {
+        $user = Auth::user();
+        $notifications = $user->notifications()->latest()->paginate(15);
+
+        return view('buyer.notifications', compact('user', 'notifications'));
+    }
+
+    public function markNotificationAsRead($id)
+    {
+        $notification = Auth::user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return redirect()->back()->with('success', 'Notifikasi ditandai sudah dibaca.');
+    }
+
+    public function markAllNotificationsAsRead()
+    {
+        Auth::user()->unreadNotifications->markAsRead();
+
+        return redirect()->back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
+    }
+
+    /**
+     * Kirim Ulasan Kunjungan Selesai
+     */
+    public function submitReview(Request $request, string $code, ReviewService $reviewService)
+    {
+        $user = Auth::user();
+        $booking = Booking::where('booking_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10|max:2000',
+        ]);
+
+        try {
+            $reviewService->createReview(
+                booking: $booking,
+                buyer: $user,
+                rating: (int) $request->rating,
+                comment: $request->comment
+            );
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('success', 'Ulasan dan penilaian berhasil dikirim. Terima kasih atas kontribusi Anda!');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Review submission error: '.$e->getMessage(), [
+                'booking_code' => $booking->booking_code,
+                'user_id' => $user->id,
+            ]);
+
+            return redirect()->route('buyer.booking.show', $booking->booking_code)
+                ->with('error', 'Terjadi kesalahan saat menyimpan ulasan: '.$e->getMessage());
+        }
     }
 }

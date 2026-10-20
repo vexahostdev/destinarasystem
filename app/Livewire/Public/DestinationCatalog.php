@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Livewire\Public;
+
+use App\Enums\DestinationStatus;
+use App\Models\Destination;
+use App\Models\DestinationCategory;
+use App\Models\Province;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class DestinationCatalog extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+
+    public string $category = '';
+
+    public string $province = '';
+
+    public string $inquiry_type = '';
+
+    public string $sort = 'popular';
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'category' => ['except' => ''],
+        'province' => ['except' => ''],
+        'inquiry_type' => ['except' => ''],
+        'sort' => ['except' => 'popular'],
+        'page' => ['except' => 1],
+    ];
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCategory(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingProvince(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingInquiryType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSort(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'category', 'province', 'inquiry_type', 'sort']);
+        $this->resetPage();
+    }
+
+    public function render(): View
+    {
+        $query = Destination::query()
+            ->with(['category', 'province', 'packages', 'media', 'reviews'])
+            ->where('status', DestinationStatus::PUBLISHED);
+
+        if (! empty($this->search)) {
+            $q = trim($this->search);
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('city', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
+        if (! empty($this->category)) {
+            $query->whereHas('category', function ($sub) {
+                $sub->where('slug', $this->category);
+            });
+        }
+
+        if (! empty($this->province)) {
+            $query->whereHas('province', function ($sub) {
+                $sub->where('name', $this->province);
+            });
+        }
+
+        if (! empty($this->inquiry_type)) {
+            $inquiry = $this->inquiry_type;
+            $query->where(function ($sub) use ($inquiry) {
+                $sub->whereJsonContains('suitable_for', $inquiry)
+                    ->orWhereHas('packages', function ($p) use ($inquiry) {
+                        $p->where('is_active', true)->whereJsonContains('inquiry_types', $inquiry);
+                    });
+            });
+        }
+
+        if ($this->sort === 'lowest_price') {
+            $query->withMin('packages', 'price_per_pax')
+                ->orderBy('packages_min_price_per_pax', 'asc');
+        } elseif ($this->sort === 'highest_capacity') {
+            $query->orderBy('default_daily_capacity', 'desc');
+        } elseif ($this->sort === 'popular') {
+            $query->withAvg('reviews', 'rating')
+                ->orderByDesc('reviews_avg_rating')
+                ->latest();
+        } else {
+            $query->latest();
+        }
+
+        $destinations = $query->paginate(12);
+
+        $categories = DestinationCategory::where('is_active', true)->pluck('name', 'slug')->all();
+        $provinces = Province::orderBy('name')->pluck('name')->all();
+
+        return view('livewire.public.destination-catalog', [
+            'destinations' => $destinations,
+            'categories' => $categories,
+            'provinces' => $provinces,
+        ]);
+    }
+}

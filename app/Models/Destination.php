@@ -2,105 +2,173 @@
 
 namespace App\Models;
 
+use App\Enums\DestinationStatus;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Destination extends Model
 {
-    use HasFactory;
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'partner_id',
+        'category_id',
         'name',
         'slug',
-        'category',
-        'province',
+        'province_id',
         'city',
-        'price_per_pax',
+        'address',
+        'latitude',
+        'longitude',
+        'short_description',
         'description',
         'educational_highlights',
-        'facilities',
         'suitable_for',
         'has_permit_document',
+        'cancellation_policy_id',
+        'default_daily_capacity',
         'cover_image',
-        'gallery_images',
         'status',
+        'is_featured',
+        'rating_avg',
+        'rating_count',
+        'meta_title',
+        'meta_description',
+        'published_at',
     ];
 
-    protected $casts = [
-        'facilities' => 'array',
-        'suitable_for' => 'array',
-        'gallery_images' => 'array',
-        'has_permit_document' => 'boolean',
-        'price_per_pax' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'suitable_for' => 'array',
+            'educational_highlights' => 'array',
+            'has_permit_document' => 'boolean',
+            'is_featured' => 'boolean',
+            'status' => DestinationStatus::class,
+            'rating_avg' => 'decimal:2',
+            'rating_count' => 'integer',
+            'published_at' => 'datetime',
+        ];
+    }
 
-    public function partner()
+    public function partner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'partner_id');
     }
 
-    public function contacts()
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(DestinationCategory::class, 'category_id');
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function cancellationPolicy(): BelongsTo
+    {
+        return $this->belongsTo(CancellationPolicy::class);
+    }
+
+    public function facilities(): BelongsToMany
+    {
+        return $this->belongsToMany(Facility::class, 'destination_facility');
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(DestinationMedia::class)->orderBy('sort_order');
+    }
+
+    public function contacts(): HasMany
     {
         return $this->hasMany(DestinationContact::class);
     }
 
-    public function slots()
+    public function moderations(): HasMany
+    {
+        return $this->hasMany(DestinationModeration::class)->latest();
+    }
+
+    public function packages(): HasMany
+    {
+        return $this->hasMany(Package::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    public function allPackages(): HasMany
+    {
+        return $this->hasMany(Package::class)->orderBy('sort_order');
+    }
+
+    public function addons(): HasMany
+    {
+        return $this->hasMany(Addon::class)->where('is_active', true);
+    }
+
+    public function allAddons(): HasMany
+    {
+        return $this->hasMany(Addon::class);
+    }
+
+    public function availabilitySlots(): HasMany
     {
         return $this->hasMany(AvailabilitySlot::class);
     }
 
-    public function bookings()
+    public function slots(): HasMany
+    {
+        return $this->availabilitySlots();
+    }
+
+    public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
 
-    // Accessor aliases for seamless public view compatibility
-    public function getPriceAttribute()
+    public function reviews(): HasMany
     {
-        return $this->price_per_pax ?? 45000;
+        return $this->hasMany(Review::class)->where('status', 'published')->latest();
     }
 
-    public function getPriceFormattedAttribute()
+    public function allReviews(): HasMany
     {
-        return 'Rp ' . number_format($this->price_per_pax ?? 45000, 0, ',', '.');
+        return $this->hasMany(Review::class)->latest();
     }
 
-    public function getImageAttribute()
+    public function scopePublished($query)
     {
-        if (!empty($this->cover_image)) {
-            return str_starts_with($this->cover_image, 'http') ? $this->cover_image : asset($this->cover_image);
-        }
-        return asset('assets/img/hd/hero-fieldwork.jpg');
+        return $query->where('status', DestinationStatus::PUBLISHED);
     }
 
-    public function getGalleryAttribute()
+    public function scopeFeatured($query)
     {
-        if (!empty($this->gallery_images) && is_array($this->gallery_images)) {
-            return array_map(function($img) {
-                return str_starts_with($img, 'http') ? $img : asset($img);
-            }, $this->gallery_images);
-        }
-        return [$this->image];
+        return $query->where('is_featured', true);
     }
 
-    public function getHighlightsAttribute()
+    public function getPriceFromAttribute(): ?int
     {
-        return $this->educational_highlights ?? $this->description;
+        return $this->packages()->min('price_per_pax');
     }
 
-    public function getRatingAttribute()
+    public function isPublished(): bool
     {
-        return '4.9';
+        return $this->status === DestinationStatus::PUBLISHED;
     }
 
-    public function getReviewsCountAttribute()
+    protected static function booted(): void
     {
-        return 98;
-    }
-
-    public function getCategoryCodeAttribute()
-    {
-        return $this->category;
+        static::saved(function () {
+            Cache::increment('public_api_version');
+        });
+        static::deleted(function () {
+            Cache::increment('public_api_version');
+        });
     }
 }

@@ -37,16 +37,16 @@
 
                 <div class="absolute top-3 left-3 flex items-center gap-2">
                     <span class="px-2.5 py-1 bg-[#2B211E]/80 text-white text-[10px] font-bold uppercase tracking-wider">
-                        {{ strtoupper(str_replace('_', ' ', $dest->category)) }}
+                        {{ strtoupper(str_replace('_', ' ', $dest->category?->name ?? 'Wisata Edukasi')) }}
                     </span>
                 </div>
 
                 <div class="absolute top-3 right-3">
-                    @if($dest->status === 'published')
+                    @if($dest->status === \App\Enums\DestinationStatus::PUBLISHED)
                         <span class="px-2.5 py-1 bg-[#51634b] text-white text-[10px] font-bold uppercase tracking-wider shadow-xs flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-white"></span> Tayang & Aktif
                         </span>
-                    @elseif($dest->status === 'pending_review')
+                    @elseif($dest->status === \App\Enums\DestinationStatus::PENDING_REVIEW)
                         <span class="px-2.5 py-1 bg-[#b87a38] text-white text-[10px] font-bold uppercase tracking-wider shadow-xs flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-white"></span> Sedang Dikurasi Admin
                         </span>
@@ -62,7 +62,7 @@
             <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div class="space-y-2">
                     <div class="text-[11px] font-bold uppercase tracking-wider text-[#703A3A]">
-                        {{ $dest->city }}, {{ $dest->province }}
+                        {{ $dest->city }}, {{ $dest->province?->name ?? (is_string($dest->province) ? $dest->province : '') }}
                     </div>
                     <h2 class="font-serif text-xl font-bold text-[#2B211E] leading-snug">
                         {{ $dest->name }}
@@ -105,7 +105,7 @@
                             </a>
                         </div>
 
-                        @if($dest->status === 'published')
+                        @if($dest->status === \App\Enums\DestinationStatus::PUBLISHED)
                             <a href="{{ route('destinasi.show', $dest->slug) }}" target="_blank" class="text-xs font-bold text-[#51634b] hover:underline flex items-center gap-1">
                                 <span>Lihat Halaman Publik</span>
                                 <span class="material-symbols-outlined text-[14px]">open_in_new</span>

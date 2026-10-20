@@ -58,17 +58,17 @@
     @else
         <div class="space-y-6">
             @foreach($destinations as $d)
-            <div class="rgs-card bg-white p-6 transition-all hover:shadow-md border-l-4 {{ $d->status === 'pending_review' ? 'border-l-amber-600' : ($d->status === 'published' ? 'border-l-emerald-600' : 'border-l-gray-400') }}">
+            <div class="rgs-card bg-white p-6 transition-all hover:shadow-md border-l-4 {{ $d->status === \App\Enums\DestinationStatus::PENDING_REVIEW ? 'border-l-amber-600' : ($d->status === \App\Enums\DestinationStatus::PUBLISHED ? 'border-l-emerald-600' : 'border-l-gray-400') }}">
                 <div class="flex flex-col lg:flex-row items-start justify-between gap-6">
                     
                     <!-- Thumbnail & Quick Specs -->
                     <div class="w-full lg:w-64 h-44 bg-[#faf6f0] shrink-0 overflow-hidden relative border border-[#2B211E]/10">
-                        <img src="{{ $d->cover_image }}" alt="{{ $d->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $d->cover_image ? asset('storage/' . $d->cover_image) : asset('assets/img/hero-terroir.png') }}" alt="{{ $d->name }}" class="w-full h-full object-cover">
                         <div class="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono uppercase">
-                            {{ $d->category }}
+                            {{ $d->category?->name ?? 'Edukasi' }}
                         </div>
                         <div class="absolute bottom-2 left-2 px-2 py-0.5 bg-[#703A3A] text-white text-[10px] font-mono">
-                            Rp {{ number_format($d->price_per_pax, 0, ',', '.') }}/pax
+                            {{ $d->packages->min('price_per_pax') ? 'Mulai Rp ' . number_format($d->packages->min('price_per_pax'), 0, ',', '.') : 'Tersedia Paket' }}
                         </div>
                     </div>
 
@@ -76,28 +76,16 @@
                     <div class="flex-1 space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <span class="text-xs font-mono text-[#2B211E]/60 uppercase">{{ $d->province }} • {{ $d->city }}</span>
+                                <span class="text-xs font-mono text-[#2B211E]/60 uppercase">{{ $d->province?->name ?? '' }} • {{ $d->city }}</span>
                                 <h3 class="font-serif text-xl font-bold text-[#2B211E]">{{ $d->name }}</h3>
                             </div>
                             <div>
-                                @if($d->status === 'pending_review')
-                                    <span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-xs font-semibold uppercase font-mono">
-                                        Menunggu Telaah Kurasi
-                                    </span>
-                                @elseif($d->status === 'published')
-                                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-semibold uppercase font-mono">
-                                        Published (Aktif)
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-1 bg-gray-100 text-gray-800 border border-gray-300 text-xs font-semibold uppercase font-mono">
-                                        {{ $d->status }}
-                                    </span>
-                                @endif
+                                <x-status-badge :enum="$d->status" />
                             </div>
                         </div>
 
                         <p class="text-xs text-[#2B211E]/80 leading-relaxed">
-                            {{ $d->description }}
+                            {{ $d->short_description ?? $d->description }}
                         </p>
 
                         <!-- Highlights Kurikulum & Standar Keselamatan -->
@@ -116,40 +104,42 @@
 
                             <div class="bg-[#faf6f0] p-2.5 border border-[#2B211E]/10">
                                 <span class="font-bold text-[#51634b] block mb-1">Daya Dukung & Fasilitas Rombongan:</span>
-                                <span class="text-[#2B211E]/80 block">Kapasitas Maks: <strong class="font-mono">{{ $d->max_daily_capacity ?? 100 }} Siswa/Hari</strong></span>
+                                <span class="text-[#2B211E]/80 block">Kapasitas Harian: <strong class="font-mono">{{ $d->default_daily_capacity ?? 50 }} Siswa/Hari</strong></span>
                                 <div class="flex flex-wrap gap-1 mt-1">
-                                    @if(is_array($d->facilities))
-                                        @foreach(array_slice($d->facilities, 0, 3) as $fac)
-                                            <span class="px-1.5 py-0.2 bg-white border border-[#2B211E]/15 text-[10px]">{{ $fac }}</span>
-                                        @endforeach
-                                        @if(count($d->facilities) > 3)
-                                            <span class="text-[10px] text-[#2B211E]/60">+{{ count($d->facilities) - 3 }} lainnya</span>
-                                        @endif
+                                    @foreach($d->facilities->take(3) as $fac)
+                                        <span class="px-1.5 py-0.2 bg-white border border-[#2B211E]/15 text-[10px]">{{ $fac->name }}</span>
+                                    @endforeach
+                                    @if($d->facilities->count() > 3)
+                                        <span class="text-[10px] text-[#2B211E]/60">+{{ $d->facilities->count() - 3 }} lainnya</span>
                                     @endif
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Kriteria Mutu Destinara -->
+                        <!-- Data Kelengkapan Lapangan & Legalitas -->
                         <div class="flex flex-wrap items-center gap-4 text-[11px] font-mono text-[#2B211E]/70 pt-2 border-t border-[#2B211E]/08">
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Protokol FPIC Adat Sah
+                                <span class="material-symbols-outlined text-[14px]">photo_camera</span>
+                                {{ $d->media->count() }} Foto
                             </span>
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Akses Bus Besar Terverifikasi
+                                <span class="material-symbols-outlined text-[14px]">checklist</span>
+                                {{ $d->facilities->count() }} Fasilitas
                             </span>
                             <span class="flex items-center gap-1 text-emerald-800">
-                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                Surat Penetapan Pengelola
+                                <span class="material-symbols-outlined text-[14px]">description</span>
+                                {{ $d->partner?->partnerProfile?->documents?->count() ?? 0 }} Dokumen Legalitas
+                            </span>
+                            <span class="flex items-center gap-1 text-[#703A3A]">
+                                <span class="material-symbols-outlined text-[14px]">person</span>
+                                PIC: {{ $d->partner?->name ?? 'Belum ada PIC' }} ({{ $d->partner?->phone ?? ($d->contacts->first()?->phone ?? '-') }})
                             </span>
                         </div>
                     </div>
 
                     <!-- Action Column -->
                     <div class="flex flex-row lg:flex-col items-center justify-end gap-2 w-full lg:w-48 shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
-                        @if($d->status === 'pending_review')
+                        @if($d->status === \App\Enums\DestinationStatus::PENDING_REVIEW)
                             <form action="{{ route('admin.destinations.updateStatus', $d->id) }}" method="POST" class="w-full">
                                 @csrf
                                 <input type="hidden" name="action" value="approve">
@@ -173,7 +163,7 @@
                                 <span>Tolak Dossier</span>
                             </button>
                         @else
-                            <a href="{{ route('admin.destinations.curation', $d->id) }}" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 bg-white">
+                            <a href="{{ route('admin.destinations.edit', $d->id) }}" class="rgs-btn-outline w-full py-2 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 bg-white">
                                 <span class="material-symbols-outlined text-[16px]">edit</span>
                                 <span>Edit Kurasi</span>
                             </a>

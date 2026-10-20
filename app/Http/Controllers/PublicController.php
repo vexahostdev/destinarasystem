@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Enums\BookingStatus;
+use App\Enums\DestinationStatus;
 use App\Models\Destination;
+use App\Models\Document;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PublicController extends Controller
 {
     /**
-     * 1. Halaman Beranda (Dialihkan ke Katalog Destinasi karena landing page beranda berpusat di Destinara Compro)
+     * 1. Halaman Beranda (Dialihkan ke Katalog Destinasi).
      */
     public function home()
     {
@@ -16,81 +20,88 @@ class PublicController extends Controller
     }
 
     /**
-     * 2. Halaman Direktori Destinasi (Katalog & Filter Dinamis Basis Data)
+     * 2. Halaman Direktori Destinasi (Katalog Publik).
      */
     public function destinasi(Request $request)
     {
-        $query = Destination::where('status', 'published');
+        return view('destinasi.index');
+    }
 
-        // Search Query Filtering
-        if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where(function($b) use ($q) {
-                $b->where('name', 'like', "%{$q}%")
-                  ->orWhere('province', 'like', "%{$q}%")
-                  ->orWhere('city', 'like', "%{$q}%")
-                  ->orWhere('description', 'like', "%{$q}%")
-                  ->orWhere('educational_highlights', 'like', "%{$q}%");
-            });
-        }
+    /**
+     * 3. Halaman Detail Destinasi.
+     */
+    public function showDestinasi(string $slug)
+    {
+        $destination = Destination::with([
+            'partner.partnerProfile',
+            'category',
+            'province',
+            'cancellationPolicy.tiers',
+            'packages',
+            'addons',
+            'media',
+            'facilities',
+            'reviews.user',
+            'contacts',
+            'slots' => fn ($q) => $q->where('date', '>=', now()->toDateString())->orderBy('date')->limit(30),
+        ])
+            ->where('slug', $slug)
+            ->where('status', DestinationStatus::PUBLISHED)
+            ->firstOrFail();
 
-        // Category Filtering
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
+        // Reveal rule SPEC §8.5
+        $canRevealContacts = (bool) auth()->user()?->can('revealContacts', $destination);
 
-        // Province Filtering
-        if ($request->filled('province')) {
-            $query->where('province', $request->province);
-        }
+        $minPrice = $destination->packages->min('price_per_pax') ?? 0;
+        $gallery = $destination->media->isNotEmpty()
+            ? $destination->media->map(fn ($m) => asset('storage/'.$m->file_path))->all()
+            : ['https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=1200&q=80'];
 
-        // Sorting
-        $sort = $request->get('sort', 'popular');
-        if ($sort === 'lowest_price') {
-            $query->orderBy('price_per_pax', 'asc');
-        } elseif ($sort === 'highest_capacity') {
-            $query->orderBy('capacity', 'desc');
-        } else {
-            $query->latest();
-        }
+        $destinationData = [
+            'id' => $destination->id,
+            'name' => $destination->name,
+            'slug' => $destination->slug,
+            'city' => $destination->city,
+            'address' => $destination->address,
+            'province' => $destination->province?->name ?? $destination->city,
+            'category' => $destination->category?->name ?? 'Wisata Edukasi',
+            'highlights' => Str::limit($destination->short_description ?? $destination->description ?? 'Destinasi Edukasi Lapangan Terverifikasi', 200) ?: 'Destinasi Edukasi Lapangan Terverifikasi',
+            'description' => $destination->description,
+            'price' => $minPrice,
+            'price_formatted' => 'Rp '.number_format($minPrice, 0, ',', '.'),
+            'capacity' => $destination->default_daily_capacity ?? 100,
+            'rating' => $destination->reviews->count() > 0 ? number_format($destination->rating, 1) : null,
+            'reviews_count' => $destination->reviews->count(),
+            'gallery' => $gallery,
+            'image' => $gallery[0],
+            'suitable_for' => is_array($destination->educational_focus)
+                ? $destination->educational_focus
+                : (json_decode($destination->educational_focus ?? '[]', true) ?: ['Studi Lapang', 'P5 Kurikulum Merdeka']),
+            'facilities' => $destination->facilities->pluck('name')->all() ?: ['Toilet Bersih', 'Area Parkir Bus', 'Pendopo/Ruang Diskusi'],
+            'packages' => $destination->packages,
+            'cancellationPolicy' => $destination->cancellationPolicy,
+            'slots' => $destination->slots,
+            'reviews' => $destination->reviews,
+            // Nomor kontak tidak dikirim ke view sama sekali bila viewer belum berhak (SPEC §8.5)
+            'contacts' => $destination->contacts->map(fn ($c) => [
+                'name' => $c->contact_name,
+                'role' => $c->role,
+                'phone' => $canRevealContacts ? $c->phone : null,
+                'is_revealed' => $canRevealContacts,
+            ]),
+            'contact_reveal_label' => strtolower(BookingStatus::from(setting('contact_reveal_status', 'dikonfirmasi'))->label()),
+            'has_permit' => (bool) $destination->has_permit_document,
+            'is_partner_verified' => (bool) $destination->partner?->partnerProfile?->isVerified(),
+        ];
 
-        $destinations = $query->get();
-
-        $provinces = Destination::where('status', 'published')
-            ->pluck('province')
-            ->unique()
-            ->values()
-            ->all();
-
-        return view('destinasi.index', [
-            'destinations' => $destinations,
-            'total' => $destinations->count(),
-            'categories' => [
-                'desa_wisata' => 'Desa Wisata & Adat',
-                'taman_nasional' => 'Taman Nasional & Hutan',
-                'situs_budaya' => 'Situs Budaya & Kriya',
-                'konservasi_alam' => 'Konservasi Alam',
-                'kedaulatan_pangan' => 'Kedaulatan Pangan',
-            ],
-            'provinces' => $provinces,
+        return view('destinasi.show', [
+            'destination' => $destinationData,
+            'model' => $destination,
         ]);
     }
 
     /**
-     * 3. Halaman Detail Destinasi (Dinamis Basis Data)
-     */
-    public function showDestinasi($slug)
-    {
-        $destination = Destination::with(['partner.partnerProfile', 'contacts', 'slots'])
-            ->where('slug', $slug)
-            ->where('status', 'published')
-            ->firstOrFail();
-
-        return view('destinasi.show', compact('destination'));
-    }
-
-    /**
-     * 4. Halaman Alur & Cara Kerja Kemitraan
+     * 4. Halaman Alur & Cara Kerja Kemitraan.
      */
     public function caraKerja()
     {
@@ -98,40 +109,30 @@ class PublicController extends Controller
     }
 
     /**
-     * 5. Halaman Pendaftaran Akun (Split-screen)
+     * 5. Halaman Tanya Jawab / FAQ.
      */
-    public function register()
+    public function faq()
     {
-        if (auth()->check()) {
-            $role = auth()->user()->role ?? 'buyer';
-            return match($role) {
-                'buyer' => redirect()->route('buyer.dashboard'),
-                'partner', 'mitra' => redirect()->route('mitra.dashboard'),
-                'admin' => redirect()->route('admin.dashboard'),
-                'super_admin', 'superadmin' => redirect()->route('superadmin.dashboard'),
-                default => redirect()->route('buyer.dashboard'),
-            };
-        }
-
-        return view('auth.register');
+        return view('public.faq');
     }
 
     /**
-     * 6. Halaman / Modal Masuk (Login)
+     * 6. Halaman Syarat & Ketentuan.
      */
-    public function login()
+    public function terms()
     {
-        if (auth()->check()) {
-            $role = auth()->user()->role ?? 'buyer';
-            return match($role) {
-                'buyer' => redirect()->route('buyer.dashboard'),
-                'partner', 'mitra' => redirect()->route('mitra.dashboard'),
-                'admin' => redirect()->route('admin.dashboard'),
-                'super_admin', 'superadmin' => redirect()->route('superadmin.dashboard'),
-                default => redirect()->route('buyer.dashboard'),
-            };
-        }
+        return view('public.terms');
+    }
 
-        return view('auth.login');
+    /**
+     * 7. Halaman Publik Verifikasi Keabsahan Dokumen (SPEC §11, §13).
+     */
+    public function verifyDocument(string $hash)
+    {
+        $document = Document::with(['booking.destination', 'booking.institution', 'payout'])
+            ->where('verification_hash', $hash)
+            ->first();
+
+        return view('public.verify-document', compact('document', 'hash'));
     }
 }
