@@ -233,4 +233,20 @@ class AuthTest extends TestCase
             'recipient' => 'wayan@penglipuran.test',
         ]);
     }
+
+    public function test_forgot_password_response_does_not_reveal_whether_email_is_registered_k5(): void
+    {
+        User::factory()->create(['email' => 'terdaftar@sekolah.test', 'account_type' => AccountType::BUYER]);
+
+        $registered = $this->from(route('password.request'))
+            ->post(route('password.email'), ['email' => 'terdaftar@sekolah.test']);
+        $unregistered = $this->from(route('password.request'))
+            ->post(route('password.email'), ['email' => 'tidak-ada@sekolah.test']);
+
+        foreach ([$registered, $unregistered] as $response) {
+            $response->assertRedirect(route('password.request'));
+            $response->assertSessionHasNoErrors();
+            $response->assertSessionHas('status', 'Jika email tersebut terdaftar, tautan reset password telah dikirim. Silakan periksa kotak masuk Anda.');
+        }
+    }
 }

@@ -211,13 +211,10 @@ class AuthController extends Controller
         }
         RateLimiter::hit($throttleKey, 60);
 
-        $status = Password::sendResetLink($request->only('email'));
+        Password::sendResetLink($request->only('email'));
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()->with('status', trans($status));
-        }
-
-        return back()->withErrors(['email' => trans($status)]);
+        // Pesan selalu sama agar tidak membocorkan apakah email terdaftar (Audit v11 K-5)
+        return back()->with('status', 'Jika email tersebut terdaftar, tautan reset password telah dikirim. Silakan periksa kotak masuk Anda.');
     }
 
     /**
