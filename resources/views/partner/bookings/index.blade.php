@@ -157,9 +157,12 @@
                             @csrf
                             <input type="hidden" name="reason" value="">
                         </form>
-                    @else
-                        <span class="text-xs text-[#2B211E]/60 italic">Sudah Ditanggapi</span>
                     @endif
+
+                    <a href="{{ route('mitra.booking.show', $booking->booking_code) }}" class="px-3 py-2 border border-[#2B211E]/20 text-[#2B211E] bg-[#faf6f0] hover:bg-[#703A3A] hover:text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[15px]">info</span>
+                        <span>Detail</span>
+                    </a>
                 </div>
             </div>
         </div>

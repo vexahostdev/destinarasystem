@@ -633,6 +633,31 @@ class NotificationTemplateSeeder extends Seeder
             ],
 
             // =========================================================================
+            // 12a. booking.permit_available (buyer)
+            // =========================================================================
+            [
+                'event_key' => 'booking.permit_available',
+                'channel' => 'mail',
+                'audience' => 'buyer',
+                'subject' => 'Surat Izin Resmi Tersedia: {{booking_code}} di {{destination_name}}',
+                'body' => "Halo {{pic_name}},\n\nSurat izin bertanda tangan resmi untuk pemesanan {{booking_code}} di {{destination_name}} telah diunggah oleh pengelola destinasi dan kini tersedia untuk diunduh di portal Destinara.\n\nNomor Dokumen: {{document_number}}\n\nTim Destinara",
+            ],
+            [
+                'event_key' => 'booking.permit_available',
+                'channel' => 'whatsapp',
+                'audience' => 'buyer',
+                'subject' => null,
+                'body' => "Halo *{{pic_name}}*, surat izin resmi untuk pemesanan *{{booking_code}}* di {{destination_name}} telah diunggah oleh pengelola dan siap diunduh.\n\n- Destinara",
+            ],
+            [
+                'event_key' => 'booking.permit_available',
+                'channel' => 'database',
+                'audience' => 'buyer',
+                'subject' => 'Surat Izin Resmi Tersedia: {{booking_code}}',
+                'body' => 'Surat izin bertanda tangan untuk pemesanan {{booking_code}} di {{destination_name}} telah diterbitkan oleh pengelola destinasi.',
+            ],
+
+            // =========================================================================
             // 13. visit.reminder (buyer, partner)
             // =========================================================================
             [

@@ -8,11 +8,14 @@ use App\Domain\Booking\Services\CheckInService;
 use App\Domain\Catalog\Services\AvailabilityCalendarService;
 use App\Domain\Catalog\Services\DestinationService;
 use App\Domain\Catalog\Services\ReviewService;
+use App\Domain\Document\Services\DocumentNumberGenerator;
 use App\Domain\Notification\Services\NotificationDispatcher;
 use App\Enums\AccountType;
 use App\Enums\AddonPricingType;
 use App\Enums\BookingStatus;
 use App\Enums\DestinationStatus;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Enums\VerificationStatus;
 use App\Events\DestinationSubmitted;
 use App\Models\Addon;
@@ -24,6 +27,7 @@ use App\Models\Destination;
 use App\Models\DestinationCategory;
 use App\Models\DestinationContact;
 use App\Models\DestinationMedia;
+use App\Models\Document;
 use App\Models\Facility;
 use App\Models\OrganizationType;
 use App\Models\Package;
@@ -651,6 +655,109 @@ class PartnerController extends Controller
         } catch (\Throwable $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Halaman Detail Booking Mitra (SPEC §13, §14.3)
+     */
+    public function showBooking(string $code)
+    {
+        $user = Auth::user();
+        $booking = Booking::with([
+            'destination.contacts',
+            'destination.province',
+            'package',
+            'items',
+            'payments',
+            'documents',
+            'institution',
+            'user',
+        ])
+            ->where('booking_code', $code)
+            ->firstOrFail();
+
+        if ($booking->destination->partner_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat booking ini.');
+        }
+
+        $canUploadPermit = $user->can('uploadPermit', $booking);
+        $permitDraft = $booking->documents->first(fn ($d) => $d->type === DocumentType::PERMIT_DRAFT && $d->status !== DocumentStatus::VOID);
+        $permitSigned = $booking->documents->first(fn ($d) => $d->type === DocumentType::PERMIT_SIGNED && $d->status === DocumentStatus::FINAL);
+
+        return view('partner.bookings.show', compact('user', 'booking', 'canUploadPermit', 'permitDraft', 'permitSigned'));
+    }
+
+    /**
+     * Upload Surat Izin Bertanda Tangan oleh Mitra (SPEC §11, §13, §14.3)
+     */
+    public function uploadSignedPermit(Request $request, string $code)
+    {
+        $user = Auth::user();
+        $booking = Booking::with(['destination', 'institution', 'user', 'documents'])
+            ->where('booking_code', $code)
+            ->firstOrFail();
+
+        $this->authorize('uploadPermit', $booking);
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf', 'max:'.(int) setting('max_upload_size_kb', 5120)],
+        ]);
+
+        $uploadedFile = $request->file('file');
+        if (strtolower($uploadedFile->getClientOriginalExtension()) !== 'pdf') {
+            return redirect()->back()->withErrors(['file' => 'Berkas harus berupa file PDF (.pdf).']);
+        }
+
+        $docNumber = app(DocumentNumberGenerator::class)->generate(DocumentType::PERMIT_SIGNED);
+        $hash = bin2hex(random_bytes(16));
+        $safeDocNum = str_replace(['/', '\\'], '_', $docNumber);
+        $fileName = "permit_signed_{$safeDocNum}_{$hash}.pdf";
+        $yearMonth = now()->format('Y/m');
+        $filePath = $uploadedFile->storeAs("documents/{$yearMonth}", $fileName, 'local');
+
+        // Void previous active permit_signed documents
+        Document::where('booking_id', $booking->id)
+            ->where('type', DocumentType::PERMIT_SIGNED)
+            ->where('status', '!=', DocumentStatus::VOID)
+            ->update(['status' => DocumentStatus::VOID]);
+
+        $latestVersion = Document::where('booking_id', $booking->id)
+            ->where('type', DocumentType::PERMIT_SIGNED)
+            ->max('version') ?? 0;
+
+        $document = Document::create([
+            'booking_id' => $booking->id,
+            'type' => DocumentType::PERMIT_SIGNED,
+            'document_number' => $docNumber,
+            'title' => 'Surat Izin Bertanda Tangan Resmi',
+            'file_path' => $filePath,
+            'verification_hash' => $hash,
+            'status' => DocumentStatus::FINAL,
+            'generated_at' => now(),
+            'generated_by' => $user->id,
+            'version' => $latestVersion + 1,
+        ]);
+
+        AuditLogger::log(
+            action: 'upload_signed_permit',
+            target: $document,
+            description: "Mitra mengunggah surat izin bertanda tangan resmi {$docNumber} untuk booking {$booking->booking_code}.",
+            userId: $user->id
+        );
+
+        $dispatcher = app(NotificationDispatcher::class);
+        $dispatcher->send('booking.permit_available', [
+            'booking' => $booking,
+            'user' => $booking->user,
+            'booking_code' => $booking->booking_code,
+            'destination_name' => $booking->destination?->name,
+            'institution_name' => $booking->institution?->institution_name ?? $booking->user?->name,
+            'pic_name' => $booking->institution?->pic_name ?? $booking->user?->name,
+            'document_number' => $document->document_number,
+            'download_url' => route('buyer.booking.show', $booking->booking_code),
+        ], ['buyer']);
+
+        return redirect()->back()->with('success', 'Surat izin bertanda tangan berhasil diunggah.');
     }
 
     /**

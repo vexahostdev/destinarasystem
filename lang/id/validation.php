@@ -247,6 +247,7 @@ return [
         'cover_image' => 'foto sampul destinasi',
         'gallery_images' => 'foto galeri destinasi',
         'document_type' => 'jenis dokumen legal',
+        'file' => 'berkas',
         'document_file' => 'berkas dokumen legal',
     ],
 

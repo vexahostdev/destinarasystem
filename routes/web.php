@@ -193,18 +193,22 @@ Route::prefix('mitra')->name('mitra.')->middleware(['auth', 'active', 'account:p
         Route::post('/ketersediaan/slot/update', [PartnerController::class, 'updateSlot'])->name('slot.update');
         Route::post('/ketersediaan/bulk', [PartnerController::class, 'bulkGenerateSlots'])->name('slots.bulk');
 
-        // Booking Masuk & Konfirmasi / Tolak
+        // Booking Masuk & Konfirmasi / Tolak / Detail / Upload Surat Izin (SPEC §11, §13)
         Route::get('/booking', [PartnerController::class, 'incomingBookings'])->name('bookings');
+        Route::get('/booking/{code}', [PartnerController::class, 'showBooking'])->name('booking.show');
         Route::post('/booking/{id}/terima', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
         Route::post('/booking/{id}/tolak', [PartnerController::class, 'rejectBooking'])->name('booking.reject');
+        Route::post('/booking/{code}/surat-izin', [PartnerController::class, 'uploadSignedPermit'])->name('booking.uploadPermit');
 
         // Balas Ulasan Pembeli
         Route::post('/ulasan/{id}/balas', [PartnerController::class, 'replyReview'])->name('reviews.reply');
     });
 });
 
-// Route alias for partner dashboard
+// Route alias for partner dashboard and routes
 Route::get('/partner/dashboard', fn () => redirect()->route('mitra.dashboard'))->name('partner.dashboard');
+Route::get('/partner/booking/{code}', [PartnerController::class, 'showBooking'])->middleware(['auth', 'active', 'account:partner', 'verified', 'partner.verified']);
+Route::post('/partner/booking/{code}/surat-izin', [PartnerController::class, 'uploadSignedPermit'])->middleware(['auth', 'active', 'account:partner', 'verified', 'partner.verified']);
 
 /*
 |--------------------------------------------------------------------------

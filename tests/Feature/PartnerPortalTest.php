@@ -423,4 +423,124 @@ class PartnerPortalTest extends TestCase
         $this->post('/mitra/notifikasi/read-all')->assertRedirect();
         $this->assertNotNull($notif2->fresh()->read_at);
     }
+
+    public function test_partner_upload_signed_permit_flow_v9_1(): void
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            '*' => \Illuminate\Support\Facades\Http::response(['status' => 'success'], 200),
+        ]);
+
+        $booking = Booking::create([
+            'booking_code' => app(BookingCodeGenerator::class)->generate(),
+            'user_id' => $this->buyer->id,
+            'institution_id' => $this->buyer->institution->id,
+            'destination_id' => $this->destination->id,
+            'package_id' => $this->package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => Carbon::now()->addDays(14)->toDateString(),
+            'planned_date_end' => Carbon::now()->addDays(14)->toDateString(),
+            'participant_count' => 20,
+            'companion_count' => 2,
+            'subtotal_amount' => 1000000,
+            'total_amount' => 1000000,
+            'commission_percent' => 10,
+            'commission_amount' => 100000,
+            'partner_net_amount' => 900000,
+            'needs_permit_letter' => true,
+            'status' => BookingStatus::DIKONFIRMASI,
+        ]);
+
+        // Active permit_draft
+        $draftPermit = \App\Models\Document::create([
+            'booking_id' => $booking->id,
+            'type' => \App\Enums\DocumentType::PERMIT_DRAFT,
+            'document_number' => 'DRAFT-IZIN/2026/10/00001',
+            'title' => 'Draf Surat Izin Kegiatan',
+            'file_path' => 'documents/draft_001.pdf',
+            'verification_hash' => hash('sha256', 'draft-permit-test'),
+            'status' => \App\Enums\DocumentStatus::DRAFT,
+            'version' => 1,
+            'generated_at' => now(),
+        ]);
+
+        // 1. Another partner attempts upload -> 403 Forbidden
+        $otherPartner = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+        ]);
+        PartnerProfile::create([
+            'user_id' => $otherPartner->id,
+            'organization_name' => 'Mitra Lain',
+            'verification_status' => VerificationStatus::VERIFIED,
+            'bank_id' => $this->bank->id,
+            'bank_account_number' => '1111111111',
+            'bank_account_holder' => 'Mitra Lain',
+        ]);
+
+        $pdfFile = \Illuminate\Http\UploadedFile::fake()->create('surat_izin_bertanda_tangan.pdf', 500, 'application/pdf');
+        $forbiddenRes = $this->actingAs($otherPartner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
+            'file' => $pdfFile,
+        ]);
+        $forbiddenRes->assertStatus(403);
+
+        // 2. Non-PDF file upload rejected
+        $txtFile = \Illuminate\Http\UploadedFile::fake()->create('surat_izin.txt', 200, 'text/plain');
+        $invalidRes = $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
+            'file' => $txtFile,
+        ]);
+        $invalidRes->assertSessionHasErrors(['file']);
+
+        // 3. Valid PDF uploaded by destination partner
+        $validRes = $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
+            'file' => $pdfFile,
+        ]);
+        $validRes->assertRedirect();
+        $validRes->assertSessionHas('success');
+
+        $signedPermit = \App\Models\Document::where('booking_id', $booking->id)
+            ->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)
+            ->where('status', \App\Enums\DocumentStatus::FINAL)
+            ->first();
+
+        $this->assertNotNull($signedPermit);
+        $this->assertEquals(1, $signedPermit->version);
+        $this->assertStringStartsWith('IZIN/', $signedPermit->document_number);
+        $this->assertNotEmpty($signedPermit->verification_hash);
+        $this->assertTrue(\Illuminate\Support\Facades\Storage::disk('local')->exists($signedPermit->file_path));
+
+        // 4. Notification sent to buyer
+        $this->assertDatabaseHas('notification_logs', [
+            'event_key' => 'booking.permit_available',
+            'notifiable_id' => $this->buyer->id,
+        ]);
+
+        // 5. Buyer can download the signed permit
+        $downloadRes = $this->actingAs($this->buyer)->get(route('documents.download', $signedPermit->id));
+        $downloadRes->assertOk();
+
+        // 6. Partner uploads replacement version -> previous version voided, new version is 2
+        $pdfFile2 = \Illuminate\Http\UploadedFile::fake()->create('surat_izin_v2.pdf', 600, 'application/pdf');
+        $replaceRes = $this->actingAs($this->partner)->post(route('mitra.booking.uploadPermit', $booking->booking_code), [
+            'file' => $pdfFile2,
+        ]);
+        $replaceRes->assertRedirect();
+
+        $signedPermit->refresh();
+        $this->assertEquals(\App\Enums\DocumentStatus::VOID, $signedPermit->status);
+
+        $newSignedPermit = \App\Models\Document::where('booking_id', $booking->id)
+            ->where('type', \App\Enums\DocumentType::PERMIT_SIGNED)
+            ->where('status', \App\Enums\DocumentStatus::FINAL)
+            ->first();
+
+        $this->assertNotNull($newSignedPermit);
+        $this->assertEquals(2, $newSignedPermit->version);
+        $this->assertNotEquals($signedPermit->id, $newSignedPermit->id);
+
+        // 7. Partner booking show page renders with upload form
+        $showRes = $this->actingAs($this->partner)->get(route('mitra.booking.show', $booking->booking_code));
+        $showRes->assertOk();
+        $showRes->assertSee('Surat Izin Bertanda Tangan');
+        $showRes->assertSee(route('mitra.booking.uploadPermit', $booking->booking_code));
+    }
 }

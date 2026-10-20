@@ -88,6 +88,22 @@ class BookingPolicy
         return $user->isPartner() && $booking->destination->partner_id === $user->id && $booking->status === BookingStatus::DIKONFIRMASI;
     }
 
+    public function uploadPermit(User $user, Booking $booking): bool
+    {
+        if (! $user->isPartner() || $booking->destination->partner_id !== $user->id) {
+            return false;
+        }
+
+        if ($booking->status !== BookingStatus::DIKONFIRMASI) {
+            return false;
+        }
+
+        return $booking->documents()
+            ->where('type', \App\Enums\DocumentType::PERMIT_DRAFT)
+            ->where('status', '!=', \App\Enums\DocumentStatus::VOID)
+            ->exists();
+    }
+
     public function review(User $user, Booking $booking): bool
     {
         return $user->isBuyer() && $booking->user_id === $user->id && $booking->status === BookingStatus::SELESAI && ! $booking->review;
