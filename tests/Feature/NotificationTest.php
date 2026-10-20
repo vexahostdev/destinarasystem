@@ -517,7 +517,7 @@ class NotificationTest extends TestCase
 
         $this->assertNotEmpty($buyerLogsConfirmed);
         foreach ($buyerLogsConfirmed as $log) {
-            $this->assertStringContainsString('dokumen baru telah diterbitkan', strtolower($log->body));
+            $this->assertStringContainsString('surat konfirmasi dan e-voucher baru telah diterbitkan', strtolower($log->body));
         }
 
         $partnerLogsConfirmed = NotificationLog::where('event_key', 'booking.rescheduled')

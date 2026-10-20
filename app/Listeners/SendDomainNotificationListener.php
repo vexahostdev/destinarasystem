@@ -123,7 +123,7 @@ class SendDomainNotificationListener
             $b = $event->booking;
             $isConfirmed = $b->status === \App\Enums\BookingStatus::DIKONFIRMASI;
             $documentsNote = $isConfirmed
-                ? 'Surat Konfirmasi dan E-Voucher baru telah diterbitkan (dokumen baru telah diterbitkan).'
+                ? 'Surat Konfirmasi dan E-Voucher baru telah diterbitkan.'
                 : 'Jadwal menunggu konfirmasi pengelola.';
             $partnerNote = $isConfirmed
                 ? 'Dokumen baru telah diterbitkan.'
