@@ -66,6 +66,19 @@ class BackupConfigurationTest extends TestCase
         $this->assertStringContainsString('backup:monitor', $commands);
     }
 
+    public function test_queue_worker_runs_from_scheduler_for_all_used_queues(): void
+    {
+        $event = collect(app(Schedule::class)->events())
+            ->first(fn ($e) => str_contains((string) $e->command, 'queue:work'));
+
+        $this->assertNotNull($event, 'queue:work harus dijadwalkan agar deployment cukup satu Scheduled Task schedule:run.');
+        $this->assertSame('* * * * *', $event->expression);
+        $this->assertTrue($event->withoutOverlapping);
+        $this->assertStringContainsString('--queue=notifications,documents,default', $event->command);
+        $this->assertStringContainsString('--stop-when-empty', $event->command);
+        $this->assertStringContainsString('--max-time=55', $event->command);
+    }
+
     public function test_system_health_reads_latest_backup_from_destination_disk(): void
     {
         $this->seed();

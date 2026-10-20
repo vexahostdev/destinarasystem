@@ -90,24 +90,20 @@ php artisan migrate --force && php artisan db:seed --force && php artisan storag
 
 ## 5. Background Processes (Worker & Scheduler)
 
-### A. Queue Worker
-Di Coolify, pada tab **Processes** / **Worker**, tambahkan background worker berikut:
-```bash
-php artisan queue:work --queue=webhooks,default,documents,notifications --tries=3 --timeout=120 --max-time=3600
-```
-- Menangani webhook pembayaran, antrean pembuatan PDF bertanda tangan/QR, dan pengiriman notifikasi WhatsApp/Email.
+### A. Scheduler (sekaligus Queue Worker) — cukup SATU Scheduled Task
+Aplikasi Nixpacks di Coolify hanya menjalankan web server (nginx + PHP-FPM); tidak ada proses worker terpisah. Karena itu queue worker dijadwalkan dari scheduler Laravel (`routes/console.php`), sehingga Anda cukup membuat satu Scheduled Task:
 
-### B. Cron Scheduler
-Jalankan scheduler Laravel setiap menit. Anda dapat mengkonfigurasinya melalui:
-1. **Coolify Scheduled Task**:
-   - Schedule: `* * * * *`
-   - Command: `php artisan schedule:run`
-2. **Atau Tambah Daemon Process di Coolify**:
-   ```bash
-   php artisan schedule:work
-   ```
+- Coolify → aplikasi → **Scheduled Tasks** → **Add**
+  - Name: `laravel-scheduler`
+  - Command: `php artisan schedule:run`
+  - Frequency: `* * * * *`
+  - Container: (kosongkan / container aplikasi)
 
+Setiap menit scheduler menjalankan `queue:work --queue=notifications,documents,default --stop-when-empty --max-time=55` (PDF dokumen ber-QR dan notifikasi email/WA, jeda maksimal ±1 menit). Webhook pembayaran diproses langsung oleh controller, tidak lewat antrean.
+
+### B. Daftar Tugas Terjadwal
 Tugas cron yang otomatis berjalan (cek dengan `php artisan schedule:list`):
+- `queue:work` antrean notifications, documents, default (setiap menit)
 - `bookings:expire-unpaid` (setiap 5 menit)
 - `payments:send-reminders` (setiap 10 menit)
 - `bookings:partner-sla` (setiap 15 menit)
@@ -137,7 +133,7 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 ```
 
 - Alert kegagalan backup dan backup tidak sehat (lebih dari 1 hari tanpa backup baru) dikirim ke **Pengaturan > Notifikasi > Email Alert Admin** (`admin_alert_emails`).
-- Image Docker harus menyediakan `mysqldump` (paket `mariadb-client` / `mysql-client`) agar `backup:run --only-db` berhasil.
+- `mysqldump` dipasang otomatis saat build lewat `nixpacks.toml` (paket apt `mysql-client`). Cek setelah deploy: Terminal Coolify → `mysqldump --version`.
 - Uji setelah deploy: `php artisan backup:run --only-db`, lalu buka **/admin/system-health** dan pastikan baris backup menampilkan waktu terakhir.
 - Pemulihan: unduh zip dari bucket, buka dengan `BACKUP_ARCHIVE_PASSWORD`, impor `db-dumps/*.sql` ke MySQL, salin folder `private/` dan `public/` ke `storage/app/`.
 

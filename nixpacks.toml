@@ -1,0 +1,5 @@
+# Konfigurasi build Nixpacks untuk Coolify (lihat COOLIFY_DEPLOY.md).
+# "..." mempertahankan paket bawaan provider PHP/Laravel; di sini hanya menambah klien MySQL
+# agar `php artisan backup:run --only-db` (spatie/laravel-backup) dapat menjalankan mysqldump.
+[phases.setup]
+aptPkgs = ["...", "mysql-client"]
