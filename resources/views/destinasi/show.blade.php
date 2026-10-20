@@ -269,7 +269,7 @@
 
       <!-- Sticky Booking Simulator Card (Kanan 4) -->
       <div class="lg:col-span-4 sticky top-24 space-y-4">
-        <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_50px_rgba(31, 43, 69,0.12)] border border-gray-100 flex flex-col gap-5">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_50px_rgba(31,43,69,0.12)] border border-gray-100 flex flex-col gap-5">
           
           <div>
             <span class="text-xs uppercase tracking-wider font-bold text-[#1F2B45] block mb-1">

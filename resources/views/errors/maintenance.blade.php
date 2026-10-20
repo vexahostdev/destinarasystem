@@ -16,7 +16,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#1F2B45] selection:text-white bg-[#FFFFFF]">
 
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31, 43, 69,0.1)] border border-gray-100 relative z-10 text-center space-y-5">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31,43,69,0.1)] border border-gray-100 relative z-10 text-center space-y-5">
         
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#1F2B45]/10 text-[#1F2B45] mb-1">
             <span class="material-symbols-outlined text-4xl">construction</span>
