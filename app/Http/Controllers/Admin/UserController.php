@@ -7,6 +7,7 @@ use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 
@@ -47,10 +48,18 @@ class UserController extends Controller
 
     public function toggleStatus(Request $request, User $user)
     {
+        if ($user->isInternal()) {
+            abort(403, 'Pengelolaan akun staf internal hanya dapat dilakukan melalui menu Tim Internal.');
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:active,suspended',
             'reason' => 'required_if:status,suspended|nullable|string|max:500',
         ]);
+
+        if ($user->isPartner() && $validated['status'] === 'suspended' && ! Auth::user()->can('partners.suspend')) {
+            abort(403, 'Anda tidak memiliki hak akses partners.suspend untuk menangguhkan akun mitra.');
+        }
 
         $user->status = $validated['status'];
         $user->suspended_reason = $validated['status'] === 'suspended' ? $validated['reason'] : null;
@@ -78,6 +87,10 @@ class UserController extends Controller
 
     public function sendPasswordReset(User $user)
     {
+        if ($user->isInternal()) {
+            abort(403, 'Pengelolaan akun staf internal hanya dapat dilakukan melalui menu Tim Internal.');
+        }
+
         $status = Password::broker()->sendResetLink(['email' => $user->email]);
 
         AuditLogger::log(
@@ -91,6 +104,10 @@ class UserController extends Controller
 
     public function verifyEmail(User $user)
     {
+        if ($user->isInternal()) {
+            abort(403, 'Pengelolaan akun staf internal hanya dapat dilakukan melalui menu Tim Internal.');
+        }
+
         if ($user->hasVerifiedEmail()) {
             return back()->with('info', "Email {$user->email} sudah terverifikasi sebelumnya.");
         }

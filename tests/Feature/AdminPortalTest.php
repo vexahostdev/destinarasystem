@@ -593,5 +593,59 @@ class AdminPortalTest extends TestCase
         $demoteRes->assertRedirect();
         $this->assertTrue($secondSa->fresh()->hasRole('hr_manager'));
     }
+
+    public function test_admin_user_controller_restrictions_and_partner_suspend_permission_k_2(): void
+    {
+        $operasional = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $operasional->assignRole('admin_operasional');
+
+        // 1. admin_operasional cannot toggleStatus on super admin / internal staff -> 403
+        $toggleSaRes = $this->actingAs($operasional)->post(route('admin.users.toggleStatus', $this->superAdmin->id), [
+            'status' => 'suspended',
+            'reason' => 'Coba suspend super admin',
+        ]);
+        $toggleSaRes->assertStatus(403);
+
+        // 2. admin_operasional cannot send password reset or verify email for internal staff -> 403
+        $resetSaRes = $this->actingAs($operasional)->post(route('admin.users.sendPasswordReset', $this->superAdmin->id));
+        $resetSaRes->assertStatus(403);
+
+        $verifySaRes = $this->actingAs($operasional)->post(route('admin.users.verifyEmail', $this->superAdmin->id));
+        $verifySaRes->assertStatus(403);
+
+        // 3. admin_operasional CAN toggle status of buyer -> 302
+        $toggleBuyerRes = $this->actingAs($operasional)->post(route('admin.users.toggleStatus', $this->buyer->id), [
+            'status' => 'suspended',
+            'reason' => 'Pelanggaran akun pembeli.',
+        ]);
+        $toggleBuyerRes->assertRedirect();
+        $this->assertEquals('suspended', $this->buyer->fresh()->status);
+
+        // 4. Partner suspension requires partners.suspend permission
+        $staffWithoutPartnerSuspend = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $roleWithoutPartnerSuspend = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'buyer_manager', 'guard_name' => 'web']);
+        $roleWithoutPartnerSuspend->syncPermissions(['users.manage', 'users.view']);
+        $staffWithoutPartnerSuspend->assignRole($roleWithoutPartnerSuspend);
+
+        $suspendPartnerDenied = $this->actingAs($staffWithoutPartnerSuspend)->post(route('admin.users.toggleStatus', $this->partner->id), [
+            'status' => 'suspended',
+            'reason' => 'Pelanggaran mitra.',
+        ]);
+        $suspendPartnerDenied->assertStatus(403);
+
+        // Super Admin (or user with partners.suspend) can suspend partner
+        $suspendPartnerAllowed = $this->actingAs($this->superAdmin)->post(route('admin.users.toggleStatus', $this->partner->id), [
+            'status' => 'suspended',
+            'reason' => 'Pelanggaran mitra sah.',
+        ]);
+        $suspendPartnerAllowed->assertRedirect();
+        $this->assertEquals('suspended', $this->partner->fresh()->status);
+    }
 }
 
