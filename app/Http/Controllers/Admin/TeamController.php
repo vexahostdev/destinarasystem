@@ -42,6 +42,10 @@ class TeamController extends Controller
             'role' => 'required|string|exists:roles,name',
         ]);
 
+        if ($validated['role'] === 'super_admin' && ! Auth::user()->isSuperAdmin()) {
+            abort(403, 'Hanya Super Admin yang dapat menetapkan role super_admin.');
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -69,6 +73,14 @@ class TeamController extends Controller
             return back()->with('error', 'Hanya staf internal yang dapat dikelola di modul ini.');
         }
 
+        $currentUser = Auth::user();
+        $isCurrentSuperAdmin = $currentUser->isSuperAdmin();
+
+        // 1. Only super admin may update an account with super_admin role
+        if ($user->hasRole('super_admin') && ! $isCurrentSuperAdmin) {
+            abort(403, 'Hanya Super Admin yang dapat mengubah akun Super Admin.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
@@ -77,6 +89,36 @@ class TeamController extends Controller
             'role' => 'required|string|exists:roles,name',
             'status' => 'required|in:active,suspended',
         ]);
+
+        // 2. Only super admin may assign or revoke super_admin role
+        if (($validated['role'] === 'super_admin' || $user->hasRole('super_admin')) && ! $isCurrentSuperAdmin) {
+            abort(403, 'Hanya Super Admin yang dapat menetapkan atau mencabut role super_admin.');
+        }
+
+        // 3. Non-super-admin staff cannot change their own role or status
+        if (! $isCurrentSuperAdmin && $user->id === $currentUser->id) {
+            $currentRoleName = $user->roles->first()?->name;
+            if ($validated['role'] !== $currentRoleName || $validated['status'] !== $user->status) {
+                abort(403, 'Staf non-super-admin tidak boleh mengubah role atau status dirinya sendiri.');
+            }
+        }
+
+        // 4. Protect the last super admin from being demoted or suspended
+        if ($user->hasRole('super_admin')) {
+            $activeSuperAdmins = User::where('account_type', AccountType::INTERNAL)
+                ->where('status', 'active')
+                ->role('super_admin')
+                ->count();
+
+            if ($activeSuperAdmins <= 1) {
+                if ($user->status === 'active' && $validated['status'] === 'suspended') {
+                    return back()->with('error', 'Tidak dapat menonaktifkan Super Admin terakhir.');
+                }
+                if ($validated['role'] !== 'super_admin') {
+                    return back()->with('error', 'Tidak dapat menurunkan role Super Admin terakhir.');
+                }
+            }
+        }
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
@@ -103,6 +145,20 @@ class TeamController extends Controller
     {
         if (! $user->isInternal()) {
             return back()->with('error', 'Hanya staf internal yang dapat dikelola di modul ini.');
+        }
+
+        $currentUser = Auth::user();
+        if ($user->hasRole('super_admin') && ! $currentUser->isSuperAdmin()) {
+            abort(403, 'Hanya Super Admin yang dapat menghapus akun Super Admin.');
+        }
+
+        if ($user->hasRole('super_admin')) {
+            $superAdminCount = User::where('account_type', AccountType::INTERNAL)
+                ->role('super_admin')
+                ->count();
+            if ($superAdminCount <= 1) {
+                return back()->with('error', 'Tidak dapat menghapus Super Admin terakhir.');
+            }
         }
 
         if ($user->id === Auth::id()) {
@@ -146,6 +202,10 @@ class TeamController extends Controller
 
     public function updateRole(Request $request, Role $role)
     {
+        if ($role->name === 'super_admin') {
+            abort(403, 'Hak akses peran super_admin tidak dapat diubah.');
+        }
+
         $validated = $request->validate([
             'permissions' => 'nullable|array',
             'permissions.*' => 'string|exists:permissions,name',

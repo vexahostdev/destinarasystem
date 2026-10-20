@@ -479,5 +479,119 @@ class AdminPortalTest extends TestCase
             $v3->errors()->first('new_date')
         );
     }
+
+    public function test_super_admin_privilege_escalation_and_protection_rules_k_1(): void
+    {
+        // 1. Setup a custom staff role with internal_users.manage and roles.manage permissions
+        $customRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'hr_manager', 'guard_name' => 'web']);
+        $customRole->givePermissionTo(['internal_users.manage', 'roles.manage']);
+
+        $staffUser = User::factory()->create([
+            'account_type' => AccountType::INTERNAL,
+            'status' => 'active',
+        ]);
+        $staffUser->assignRole('hr_manager');
+
+        // Target super admin (the existing one from setUp)
+        $superAdmin = $this->superAdmin;
+
+        // A. Staff attempts to create super_admin user -> must 403
+        $createSaResponse = $this->actingAs($staffUser)->post(route('admin.team.user.store'), [
+            'name' => 'Hacker Admin',
+            'email' => 'hacker@destinara.test',
+            'phone' => '081234567890',
+            'password' => 'Secret123456!',
+            'role' => 'super_admin',
+        ]);
+        $createSaResponse->assertStatus(403);
+
+        // B. Staff attempts to promote self to super_admin -> must 403
+        $selfPromoteResponse = $this->actingAs($staffUser)->post(route('admin.team.user.update', $staffUser->id), [
+            'name' => $staffUser->name,
+            'email' => $staffUser->email,
+            'role' => 'super_admin',
+            'status' => 'active',
+        ]);
+        $selfPromoteResponse->assertStatus(403);
+
+        // C. Staff attempts to change self status to suspended -> must 403
+        $selfStatusResponse = $this->actingAs($staffUser)->post(route('admin.team.user.update', $staffUser->id), [
+            'name' => $staffUser->name,
+            'email' => $staffUser->email,
+            'role' => 'hr_manager',
+            'status' => 'suspended',
+        ]);
+        $selfStatusResponse->assertStatus(403);
+
+        // D. Staff attempts to update existing super admin -> must 403
+        $updateSaResponse = $this->actingAs($staffUser)->post(route('admin.team.user.update', $superAdmin->id), [
+            'name' => 'Changed Name',
+            'email' => $superAdmin->email,
+            'role' => 'hr_manager',
+            'status' => 'active',
+        ]);
+        $updateSaResponse->assertStatus(403);
+
+        // E. Staff attempts to delete super admin -> must 403
+        $deleteSaResponse = $this->actingAs($staffUser)->post(route('admin.team.user.delete', $superAdmin->id));
+        $deleteSaResponse->assertStatus(403);
+
+        // F. Role super_admin cannot be updated via updateRole -> must 403
+        $saRole = \Spatie\Permission\Models\Role::where('name', 'super_admin')->firstOrFail();
+        $updateSaRoleRes = $this->actingAs($superAdmin)->post(route('admin.team.role.update', $saRole->id), [
+            'permissions' => [],
+        ]);
+        $updateSaRoleRes->assertStatus(403);
+
+        // G. Last super admin protection: cannot suspend, demote, or delete the only super admin
+        $this->assertEquals(1, User::where('account_type', AccountType::INTERNAL)->where('status', 'active')->role('super_admin')->count());
+
+        // Attempt suspend
+        $suspendLastSaRes = $this->actingAs($superAdmin)->post(route('admin.team.user.update', $superAdmin->id), [
+            'name' => $superAdmin->name,
+            'email' => $superAdmin->email,
+            'role' => 'super_admin',
+            'status' => 'suspended',
+        ]);
+        $suspendLastSaRes->assertSessionHas('error');
+        $this->assertEquals('active', $superAdmin->fresh()->status);
+
+        // Attempt demote
+        $demoteLastSaRes = $this->actingAs($superAdmin)->post(route('admin.team.user.update', $superAdmin->id), [
+            'name' => $superAdmin->name,
+            'email' => $superAdmin->email,
+            'role' => 'hr_manager',
+            'status' => 'active',
+        ]);
+        $demoteLastSaRes->assertSessionHas('error');
+        $this->assertTrue($superAdmin->fresh()->hasRole('super_admin'));
+
+        // Attempt delete
+        $deleteLastSaRes = $this->actingAs($superAdmin)->post(route('admin.team.user.delete', $superAdmin->id));
+        $deleteLastSaRes->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $superAdmin->id]);
+
+        // H. Super admin CAN create another super admin, and then can update
+        $newSaRes = $this->actingAs($superAdmin)->post(route('admin.team.user.store'), [
+            'name' => 'Second Super Admin',
+            'email' => 'second_sa@destinara.test',
+            'phone' => '081234567899',
+            'password' => 'Password123!',
+            'role' => 'super_admin',
+        ]);
+        $newSaRes->assertRedirect();
+        $secondSa = User::where('email', 'second_sa@destinara.test')->firstOrFail();
+        $this->assertTrue($secondSa->hasRole('super_admin'));
+
+        // Now that there are 2 super admins, one can be demoted by a super admin
+        $demoteRes = $this->actingAs($superAdmin)->post(route('admin.team.user.update', $secondSa->id), [
+            'name' => $secondSa->name,
+            'email' => $secondSa->email,
+            'role' => 'hr_manager',
+            'status' => 'active',
+        ]);
+        $demoteRes->assertRedirect();
+        $this->assertTrue($secondSa->fresh()->hasRole('hr_manager'));
+    }
 }
 
