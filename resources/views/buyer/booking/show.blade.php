@@ -349,15 +349,11 @@
                 </div>
 
                 @php
-                    $hasVoidedPermit = $booking->documents->contains(function ($d) {
-                        $isPermit = ($d->type === \App\Enums\DocumentType::PERMIT_SIGNED || (is_string($d->type) && $d->type === 'permit_signed'));
-                        $isVoid = ($d->status === \App\Enums\DocumentStatus::VOID || (is_string($d->status) && $d->status === 'void'));
-                        return $isPermit && $isVoid;
+                    $hasVoidedPermit = $booking->documents->contains(function ($docItem) {
+                        return $docItem->type === \App\Enums\DocumentType::PERMIT_SIGNED && $docItem->status === \App\Enums\DocumentStatus::VOID;
                     });
-                    $hasActivePermit = $booking->documents->contains(function ($d) {
-                        $isPermit = ($d->type === \App\Enums\DocumentType::PERMIT_SIGNED || (is_string($d->type) && $d->type === 'permit_signed'));
-                        $isFinal = ($d->status === \App\Enums\DocumentStatus::FINAL || (is_string($d->status) && $d->status === 'final'));
-                        return $isPermit && $isFinal;
+                    $hasActivePermit = $booking->documents->contains(function ($docItem) {
+                        return $docItem->type === \App\Enums\DocumentType::PERMIT_SIGNED && $docItem->status === \App\Enums\DocumentStatus::FINAL;
                     });
                 @endphp
 
@@ -381,14 +377,11 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-xs text-[#2B211E]">{{ $doc->title }}</span>
-                                    @php
-                                        $dSt = $doc->status instanceof \App\Enums\DocumentStatus ? $doc->status->value : (string)$doc->status;
-                                    @endphp
-                                    @if($dSt === 'void')
+                                    @if($doc->status === \App\Enums\DocumentStatus::VOID)
                                         <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold uppercase rounded border border-rose-300">
                                             Void (Tidak Berlaku)
                                         </span>
-                                    @elseif($dSt === 'final')
+                                    @elseif($doc->status === \App\Enums\DocumentStatus::FINAL)
                                         <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase rounded border border-emerald-300">
                                             Sah
                                         </span>
