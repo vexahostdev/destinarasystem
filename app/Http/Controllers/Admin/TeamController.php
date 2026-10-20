@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -38,7 +39,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'phone' => 'nullable|string|max:30',
-            'password' => 'required|string|min:8',
+            'password' => ['required', 'string', $this->internalPasswordRule()],
             'role' => 'required|string|exists:roles,name',
         ]);
 
@@ -85,7 +86,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => 'nullable|string|max:30',
-            'password' => 'nullable|string|min:8',
+            'password' => ['nullable', 'string', $this->internalPasswordRule()],
             'role' => 'required|string|exists:roles,name',
             'status' => 'required|in:active,suspended',
         ]);
@@ -223,5 +224,13 @@ class TeamController extends Controller
         );
 
         return back()->with('success', "Izin peran '{$role->name}' berhasil diperbarui.");
+    }
+
+    /**
+     * Akun internal memegang akses paling sensitif: password kuat di semua environment (Audit v11 K-6).
+     */
+    protected function internalPasswordRule(): Password
+    {
+        return Password::min(10)->mixedCase()->numbers();
     }
 }

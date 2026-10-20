@@ -647,5 +647,36 @@ class AdminPortalTest extends TestCase
         $suspendPartnerAllowed->assertRedirect();
         $this->assertEquals('suspended', $this->partner->fresh()->status);
     }
-}
 
+    public function test_internal_staff_password_must_be_strong_k6(): void
+    {
+        $this->actingAs($this->superAdmin);
+
+        // Terlalu lemah: 8 karakter, tanpa huruf besar
+        $this->post(route('admin.team.user.store'), [
+            'name' => 'Staf Lemah',
+            'email' => 'lemah@destinara.test',
+            'password' => 'password',
+            'role' => 'admin_operasional',
+        ])->assertSessionHasErrors('password');
+        $this->assertDatabaseMissing('users', ['email' => 'lemah@destinara.test']);
+
+        // Kuat: 10+ karakter, huruf besar-kecil, angka
+        $this->post(route('admin.team.user.store'), [
+            'name' => 'Staf Kuat',
+            'email' => 'kuat@destinara.test',
+            'password' => 'StafKuat2026',
+            'role' => 'admin_operasional',
+        ])->assertSessionHasNoErrors();
+        $staff = User::where('email', 'kuat@destinara.test')->firstOrFail();
+
+        // Ganti password lewat update juga divalidasi
+        $this->post(route('admin.team.user.update', $staff), [
+            'name' => $staff->name,
+            'email' => $staff->email,
+            'password' => 'pendek1',
+            'role' => 'admin_operasional',
+            'status' => 'active',
+        ])->assertSessionHasErrors('password');
+    }
+}

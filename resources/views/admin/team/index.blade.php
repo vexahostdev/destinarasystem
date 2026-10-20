@@ -146,7 +146,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kata Sandi Awal *</label>
-                    <input type="password" name="password" required minlength="8" placeholder="Minimal 8 karakter..."
+                    <input type="password" name="password" required minlength="10" placeholder="Min. 10 karakter, huruf besar, huruf kecil, angka"
                            class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
                 </div>
                 <div>
