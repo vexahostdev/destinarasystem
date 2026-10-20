@@ -1,13 +1,6 @@
 @import 'tailwindcss';
 @import '../../public/css/style.css';
-
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@import 'tailwindcss';
-@import '../../public/css/style.css';
+@import './dark.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -18,4 +11,3 @@
     --font-sans: 'Plus Jakarta Sans', 'Work Sans', ui-sans-serif, system-ui, sans-serif;
     --font-serif: 'Plus Jakarta Sans', serif;
 }
-

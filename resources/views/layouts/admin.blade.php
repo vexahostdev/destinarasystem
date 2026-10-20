@@ -2,6 +2,7 @@
 <html lang="id" class="h-full bg-[#FFFFFF]">
 <head>
     <meta charset="UTF-8">
+    <x-theme-script />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Konsol Admin Operasional') — DESTINARA</title>
 
@@ -339,6 +340,8 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>SLA: 2 Jam Kerja</span>
                 </div>
+
+                <x-theme-toggle />
 
                 @can('destinations.verify')
                 <a href="{{ route('admin.destinations.verify') }}" class="rgs-btn-outline px-3 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">

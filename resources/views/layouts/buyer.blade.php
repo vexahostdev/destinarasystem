@@ -2,6 +2,7 @@
 <html lang="id" class="h-full bg-[#FFFFFF]">
 <head>
     <meta charset="UTF-8">
+    <x-theme-script />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Portal Buyer Institusi') — DESTINARA</title>
 
@@ -203,6 +204,7 @@
                     <span>Akun Pembeli Aktif</span>
                 </div>
 
+                <x-theme-toggle />
                 <a href="{{ route('buyer.notifications') }}" class="relative p-2 text-slate-600 hover:text-[#1F2B45] hover:bg-slate-100 rounded-full transition-colors" title="Pusat Notifikasi">
                     <span class="material-symbols-outlined text-[20px]">notifications</span>
                     @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)

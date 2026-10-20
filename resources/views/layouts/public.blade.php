@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
 <head>
     <meta charset="utf-8">
+    <x-theme-script />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Destinara — Menghidupkan Ruang Belajar Nyata di Tapak Nusantara')</title>
@@ -95,6 +96,8 @@
                 </a>
 
                 <!-- Circle 3: Drawer Menu Toggle (Desktop & Mobile) -->
+                <x-theme-toggle class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#1F2B45] hover:border-[#1F2B45] hover:bg-gray-50 transition-all shadow-xs" />
+
                 <button type="button" 
                         @click="mobileMenuOpen = true" 
                         title="Menu & Akun"
