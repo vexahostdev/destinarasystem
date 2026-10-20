@@ -589,7 +589,7 @@ class BuyerPortalTest extends TestCase
 
         $test->assertSet('isPaymentAvailable', false);
         $test->assertSee('Pembayaran belum tersedia');
-        $test->assertSeeHtml('disabled');
+        $this->assertMatchesRegularExpression('/<button[^>]*type="submit"[^>]*\sdisabled[\s>]/', $test->html());
 
         // Attempt submit -> should be rejected and not create booking
         $test->call('submit');
@@ -599,6 +599,31 @@ class BuyerPortalTest extends TestCase
             'user_id' => $this->buyer->id,
             'destination_id' => $this->destination->id,
         ]);
+
+        // Kebalikannya: saat gateway tersedia & slot valid -> tombol submit tidak disabled (V8-5)
+        setting([
+            'xendit_secret_key' => 'xnd_development_dummy_key_123',
+            'xendit_callback_token' => 'xnd_webhook_token_123',
+        ]);
+        \App\Models\AvailabilitySlot::create([
+            'destination_id' => $this->destination->id,
+            'date' => now()->addDays(14)->format('Y-m-d'),
+            'capacity' => 100,
+            'booked_count' => 0,
+            'held_count' => 0,
+            'is_closed' => false,
+        ]);
+
+        $testAvailable = Livewire::test(BookingForm::class, ['destination' => $this->destination])
+            ->set('packageId', $this->package->id)
+            ->set('participantCount', 20)
+            ->set('plannedDateStart', now()->addDays(14)->format('Y-m-d'))
+            ->call('recalculate');
+
+        $testAvailable->assertSet('isPaymentAvailable', true);
+        $testAvailable->assertSet('isSlotAvailable', true);
+        $testAvailable->assertDontSee('Pembayaran belum tersedia');
+        $this->assertDoesNotMatchRegularExpression('/<button[^>]*type="submit"[^>]*\sdisabled[\s>]/', $testAvailable->html());
     }
 }
 
