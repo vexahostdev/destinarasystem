@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FAF7F5]">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FFFFFF]">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,19 +15,19 @@
     @livewireStyles
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#703A3A] selection:text-white bg-[#FAF7F5]">
+<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#1F2B45] selection:text-white bg-[#FFFFFF]">
 
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(112,58,58,0.1)] border border-gray-100 relative z-10 space-y-6">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31, 43, 69,0.1)] border border-gray-100 relative z-10 space-y-6">
         
         <div class="text-center space-y-3">
             <a href="{{ route('home') }}" class="inline-flex items-center justify-center gap-2 group mb-1">
                 <img src="{{ asset('assets/img/logo-mark-tight.png') }}" alt="Logo Destinara" class="w-12 h-12 object-contain group-hover:scale-105 transition-transform">
             </a>
             <div>
-                <span class="text-2xl font-extrabold tracking-tight text-[#4A2020] block">DESTINARA</span>
-                <span class="text-[10px] tracking-widest text-[#703A3A] uppercase font-bold">Ruang Belajar Tapak Nusantara</span>
+                <span class="text-2xl font-extrabold tracking-tight text-[#16203A] block">DESTINARA</span>
+                <span class="text-[10px] tracking-widest text-[#1F2B45] uppercase font-bold">Ruang Belajar Tapak Nusantara</span>
             </div>
-            <h2 class="text-xl font-bold text-[#1E1B1B] pt-1">Atur Ulang Kata Sandi</h2>
+            <h2 class="text-xl font-bold text-[#111827] pt-1">Atur Ulang Kata Sandi</h2>
             <p class="text-xs text-gray-500">
                 Masukkan alamat email resmi akun Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
             </p>
@@ -54,22 +54,22 @@
         <form action="{{ route('password.email') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-bold text-[#1E1B1B] mb-1.5">Alamat Email Terdaftar</label>
+                <label class="block text-xs font-bold text-[#111827] mb-1.5">Alamat Email Terdaftar</label>
                 <div class="relative">
                     <input type="email" name="email" value="{{ old('email') }}" required placeholder="nama@instansi.sch.id" 
-                           class="w-full text-xs pl-10 pr-4 py-3 bg-[#FAF7F5] rounded-xl border border-gray-200 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] focus:ring-1 focus:ring-[#703A3A] transition-all">
+                           class="w-full text-xs pl-10 pr-4 py-3 bg-[#FFFFFF] rounded-xl border border-gray-200 text-[#111827] focus:outline-none focus:border-[#1F2B45] focus:ring-1 focus:ring-[#1F2B45] transition-all">
                     <span class="material-symbols-outlined absolute left-3 top-3 text-lg text-gray-400">mail</span>
                 </div>
             </div>
 
             <button type="submit" 
-                    class="w-full bg-[#703A3A] hover:bg-[#561D1E] text-white py-3.5 px-6 rounded-full font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
+                    class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-3.5 px-6 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer">
                 Kirim Tautan Reset &rarr;
             </button>
         </form>
 
         <div class="pt-2 border-t border-gray-100 text-center text-xs">
-            <a href="{{ route('login') }}" class="text-[#703A3A] font-bold hover:underline">
+            <a href="{{ route('login') }}" class="text-[#1F2B45] font-bold hover:underline">
                 &larr; Kembali ke Halaman Masuk
             </a>
         </div>

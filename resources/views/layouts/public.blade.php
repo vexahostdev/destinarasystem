@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}"/>
     <link rel="manifest" href="{{ asset('site.webmanifest') }}"/>
-    <meta name="theme-color" content="#703a3a"/>
+    <meta name="theme-color" content="#1F2B45"/>
 
     <!-- Google Fonts & Material Symbols -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,13 +27,13 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            background-color: #FAF7F5;
-            color: #1E1B1B;
+            background-color: #FFFFFF;
+            color: #111827;
         }
     </style>
     @stack('styles')
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-[#703A3A] selection:text-white" 
+<body class="min-h-screen flex flex-col antialiased selection:bg-[#1F2B45] selection:text-white" 
       x-data="{ mobileMenuOpen: false, scrolled: false }" 
       x-init="scrolled = (window.pageYOffset > 20); window.addEventListener('scroll', () => { scrolled = (window.pageYOffset > 20) }, { passive: true })">
 
@@ -54,21 +54,21 @@
             <!-- Center: Destinara System Navigation Links (Pomaii Clean Spacing & Interactive Hover Underline) -->
             <nav class="hidden md:flex items-center gap-7 lg:gap-8" aria-label="Navigasi Utama">
                 <a href="{{ route('destinasi.index') }}" 
-                   class="group text-sm font-semibold transition-colors relative py-1 {{ request()->routeIs('destinasi.*') ? 'text-[#703A3A] font-bold' : 'text-gray-800 hover:text-[#703A3A]' }}">
+                   class="group text-sm font-semibold transition-colors relative py-1 {{ request()->routeIs('destinasi.*') ? 'text-[#1F2B45] font-bold' : 'text-gray-800 hover:text-[#1F2B45]' }}">
                     <span>Katalog Destinasi</span>
-                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#703A3A] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('destinasi.*') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
+                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#1F2B45] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('destinasi.*') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
                 </a>
 
                 <a href="{{ route('cara-kerja') }}" 
-                   class="group text-sm font-medium transition-colors relative py-1 {{ request()->routeIs('cara-kerja') ? 'text-[#703A3A] font-bold' : 'text-gray-800 hover:text-[#703A3A]' }}">
+                   class="group text-sm font-medium transition-colors relative py-1 {{ request()->routeIs('cara-kerja') ? 'text-[#1F2B45] font-bold' : 'text-gray-800 hover:text-[#1F2B45]' }}">
                     <span>Alur &amp; Cara Kerja</span>
-                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#703A3A] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('cara-kerja') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
+                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#1F2B45] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('cara-kerja') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
                 </a>
 
                 <a href="{{ route('register') }}" 
-                   class="group text-sm font-medium transition-colors relative py-1 {{ request()->routeIs('register') ? 'text-[#703A3A] font-bold' : 'text-gray-800 hover:text-[#703A3A]' }}">
+                   class="group text-sm font-medium transition-colors relative py-1 {{ request()->routeIs('register') ? 'text-[#1F2B45] font-bold' : 'text-gray-800 hover:text-[#1F2B45]' }}">
                     <span>Kemitraan Adat</span>
-                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#703A3A] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('register') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
+                    <span class="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#1F2B45] rounded-full transition-all duration-300 origin-left {{ request()->routeIs('register') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100' }}"></span>
                 </a>
 
                 <span class="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 bg-[#51634b]/10 text-[#51634b] text-xs font-bold rounded-full">
@@ -83,14 +83,14 @@
                 <!-- Circle 1: Search Button -->
                 <a href="{{ route('destinasi.index') }}" 
                    title="Cari Tapak & Destinasi"
-                   class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#703A3A] hover:border-[#703A3A] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
+                   class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#1F2B45] hover:border-[#1F2B45] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
                     <span class="material-symbols-outlined text-[19px]">search</span>
                 </a>
 
                 <!-- Circle 2: Saved / Wishlist Button -->
                 <a href="{{ route('destinasi.index') }}" 
                    title="Tapak Tersimpan"
-                   class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#703A3A] hover:border-[#703A3A] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
+                   class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#1F2B45] hover:border-[#1F2B45] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
                     <span class="material-symbols-outlined text-[19px]">favorite_border</span>
                 </a>
 
@@ -99,7 +99,7 @@
                         @click="mobileMenuOpen = true" 
                         title="Menu & Akun"
                         aria-label="Buka Menu"
-                        class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#703A3A] hover:border-[#703A3A] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
+                        class="w-10 h-10 rounded-full border border-gray-200/90 bg-white/80 backdrop-blur-xs flex items-center justify-center text-gray-700 hover:text-[#1F2B45] hover:border-[#1F2B45] hover:bg-gray-50 transition-all cursor-pointer shadow-xs">
                     <span class="material-symbols-outlined text-[20px]">menu</span>
                 </button>
 
@@ -139,7 +139,7 @@
                             <span class="text-[10px] text-gray-500 font-medium">Ruang Belajar Tapak Nusantara</span>
                         </div>
                     </div>
-                    <button type="button" @click="mobileMenuOpen = false" aria-label="Tutup Menu" class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#703A3A] hover:border-[#703A3A] transition-colors">
+                    <button type="button" @click="mobileMenuOpen = false" aria-label="Tutup Menu" class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#1F2B45] hover:border-[#1F2B45] transition-colors">
                         <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
                 </div>
@@ -165,9 +165,9 @@
                                 <span class="text-xs text-gray-500 block">Masuk sebagai</span>
                                 <span class="font-bold text-sm text-gray-900">{{ Auth::user()->name ?? 'Pengguna' }}</span>
                             </div>
-                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-full bg-[#703A3A]/10 text-[#703A3A]">{{ $roleLabel }}</span>
+                            <span class="px-2.5 py-1 text-[11px] font-bold rounded-full bg-[#1F2B45]/10 text-[#1F2B45]">{{ $roleLabel }}</span>
                         </div>
-                        <a href="{{ route($roleRoute) }}" class="w-full bg-[#703A3A] hover:bg-[#561D1E] text-white py-2.5 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
+                        <a href="{{ route($roleRoute) }}" class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-2.5 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
                             <span class="material-symbols-outlined text-[16px]">dashboard</span>
                             <span>Buka Ruang Kerja</span>
                         </a>
@@ -181,10 +181,10 @@
                             <span class="text-[11px] text-gray-500">Akses akun sekolah, universitas, peneliti, dan mitra tapak.</span>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <a href="{{ route('login') }}" class="w-full bg-[#703A3A] hover:bg-[#561D1E] text-white py-2.5 rounded-full text-xs font-bold transition-all text-center shadow-sm">
+                            <a href="{{ route('login') }}" class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-2.5 rounded-full text-xs font-bold transition-all text-center shadow-sm">
                                 Masuk ke Sistem
                             </a>
-                            <a href="{{ route('register') }}" class="w-full border border-gray-200 hover:border-[#703A3A] text-gray-700 hover:text-[#703A3A] py-2.5 rounded-full text-xs font-bold transition-all text-center">
+                            <a href="{{ route('register') }}" class="w-full border border-gray-200 hover:border-[#1F2B45] text-gray-700 hover:text-[#1F2B45] py-2.5 rounded-full text-xs font-bold transition-all text-center">
                                 Daftarkan Akun Baru
                             </a>
                         </div>
@@ -194,15 +194,15 @@
                 <!-- Navigation Links List -->
                 <div class="space-y-1">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-3 block mb-2">Navigasi Utama</span>
-                    <a href="{{ route('destinasi.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('destinasi.*') ? 'bg-[#703A3A]/10 text-[#703A3A]' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <a href="{{ route('destinasi.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-colors {{ request()->routeIs('destinasi.*') ? 'bg-[#1F2B45]/10 text-[#1F2B45]' : 'text-gray-700 hover:bg-gray-50' }}">
                         <span>Katalog Destinasi</span>
                         <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                     </a>
-                    <a href="{{ route('cara-kerja') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('cara-kerja') ? 'bg-[#703A3A]/10 text-[#703A3A]' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <a href="{{ route('cara-kerja') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-colors {{ request()->routeIs('cara-kerja') ? 'bg-[#1F2B45]/10 text-[#1F2B45]' : 'text-gray-700 hover:bg-gray-50' }}">
                         <span>Alur &amp; Cara Kerja</span>
                         <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                     </a>
-                    <a href="{{ route('register') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('register') ? 'bg-[#703A3A]/10 text-[#703A3A]' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <a href="{{ route('register') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-colors {{ request()->routeIs('register') ? 'bg-[#1F2B45]/10 text-[#1F2B45]' : 'text-gray-700 hover:bg-gray-50' }}">
                         <span>Pendaftaran Kemitraan Adat</span>
                         <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                     </a>
@@ -212,12 +212,12 @@
             <!-- Drawer Bottom Help -->
             <div class="pt-6 border-t border-gray-100 text-xs text-gray-500 space-y-2">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[16px] text-[#703A3A]">call</span>
-                    <a href="https://wa.me/6282116200363" target="_blank" class="hover:text-[#703A3A] font-mono">+62 821-1620-0363</a>
+                    <span class="material-symbols-outlined text-[16px] text-[#1F2B45]">call</span>
+                    <a href="https://wa.me/6282116200363" target="_blank" class="hover:text-[#1F2B45] font-mono">+62 821-1620-0363</a>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[16px] text-[#703A3A]">mail</span>
-                    <a href="mailto:halo@destinara.id" class="hover:text-[#703A3A]">halo@destinara.id</a>
+                    <span class="material-symbols-outlined text-[16px] text-[#1F2B45]">mail</span>
+                    <a href="mailto:halo@destinara.id" class="hover:text-[#1F2B45]">halo@destinara.id</a>
                 </div>
                 <p class="text-[11px] text-gray-400 pt-2">&copy; {{ date('Y') }} Destinara. Inisiatif Ruang Belajar Tapak Nusantara.</p>
             </div>
@@ -234,7 +234,7 @@
     </main>
 
     <!-- ==================== FOOTER (DESTINARA OFFICIAL 4-COLUMN ARCHITECTURE — IDENTICAL TO COMPRO) ==================== -->
-    <footer class="w-full bg-[#FAF9F6] py-14 lg:py-18 mt-16 border-t border-gray-200/60 text-gray-600 transition-colors">
+    <footer class="w-full bg-[#FFFFFF] py-14 lg:py-18 mt-16 border-t border-gray-200/60 text-gray-600 transition-colors">
         <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Top Brand Strip -->
@@ -259,25 +259,25 @@
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-900">Perusahaan</h4>
                     <ul class="flex flex-col gap-2.5 text-xs text-gray-600">
                         <li>
-                            <a href="https://destinara.id/tentang-kami" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Tentang Destinara</a>
+                            <a href="https://destinara.id/tentang-kami" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Tentang Destinara</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/tentang-kami#filosofi" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Filosofi Pendidikan</a>
+                            <a href="https://destinara.id/tentang-kami#filosofi" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Filosofi Pendidikan</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/tentang-kami#rekam-jejak" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Rekam Jejak &amp; Dampak</a>
+                            <a href="https://destinara.id/tentang-kami#rekam-jejak" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Rekam Jejak &amp; Dampak</a>
                         </li>
                         <li>
-                            <a href="{{ route('destinasi.index') }}" class="hover:text-[#703A3A] transition-colors font-semibold text-[#703A3A]">Katalog Destinasi Tapak</a>
+                            <a href="{{ route('destinasi.index') }}" class="hover:text-[#1F2B45] transition-colors font-semibold text-[#1F2B45]">Katalog Destinasi Tapak</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/syarat-ketentuan" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Syarat &amp; Ketentuan</a>
+                            <a href="https://destinara.id/syarat-ketentuan" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Syarat &amp; Ketentuan</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/kebijakan-privasi" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Kebijakan Privasi</a>
+                            <a href="https://destinara.id/kebijakan-privasi" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Kebijakan Privasi</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/kebijakan-privasi/en" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Privacy Policy (EN)</a>
+                            <a href="https://destinara.id/kebijakan-privasi/en" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Privacy Policy (EN)</a>
                         </li>
                     </ul>
                 </div>
@@ -287,19 +287,19 @@
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-900">Untuk Pengguna</h4>
                     <ul class="flex flex-col gap-2.5 text-xs text-gray-600">
                         <li>
-                            <a href="https://destinara.id/untuk-sekolah" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Program Untuk Sekolah</a>
+                            <a href="https://destinara.id/untuk-sekolah" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Program Untuk Sekolah</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/untuk-peneliti" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Kolaborasi Riset Peneliti</a>
+                            <a href="https://destinara.id/untuk-peneliti" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Kolaborasi Riset Peneliti</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/mitra-desa" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Kemitraan Desa &amp; Adat</a>
+                            <a href="https://destinara.id/mitra-desa" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Kemitraan Desa &amp; Adat</a>
                         </li>
                         <li>
-                            <a href="{{ route('cara-kerja') }}" class="hover:text-[#703A3A] transition-colors">Alur &amp; Prosedur Kemitraan</a>
+                            <a href="{{ route('cara-kerja') }}" class="hover:text-[#1F2B45] transition-colors">Alur &amp; Prosedur Kemitraan</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/tentang-kami#fpic" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Etika Persetujuan FPIC</a>
+                            <a href="https://destinara.id/tentang-kami#fpic" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Etika Persetujuan FPIC</a>
                         </li>
                     </ul>
                 </div>
@@ -309,16 +309,16 @@
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-900">Publikasi &amp; Layanan</h4>
                     <ul class="flex flex-col gap-2.5 text-xs text-gray-600">
                         <li>
-                            <a href="https://destinara.id/cerita" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Cerita Lapangan Terbaru</a>
+                            <a href="https://destinara.id/cerita" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Cerita Lapangan Terbaru</a>
                         </li>
                         <li>
-                            <a href="{{ route('register') }}" class="hover:text-[#703A3A] transition-colors">Pendaftaran Akun Baru</a>
+                            <a href="{{ route('register') }}" class="hover:text-[#1F2B45] transition-colors">Pendaftaran Akun Baru</a>
                         </li>
                         <li>
-                            <a href="{{ route('login') }}" class="hover:text-[#703A3A] transition-colors">Masuk ke Portal Reservasi</a>
+                            <a href="{{ route('login') }}" class="hover:text-[#1F2B45] transition-colors">Masuk ke Portal Reservasi</a>
                         </li>
                         <li>
-                            <a href="https://destinara.id/untuk-sekolah#silabus" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors">Panduan Silabus &amp; Asesmen</a>
+                            <a href="https://destinara.id/untuk-sekolah#silabus" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors">Panduan Silabus &amp; Asesmen</a>
                         </li>
                     </ul>
                 </div>
@@ -331,22 +331,22 @@
                         <p>Menteng: Jl. Teuku Umar No. 12, Jakarta Pusat</p>
                         <div class="flex flex-col gap-1.5 pt-2">
                             <span class="text-gray-900 font-semibold text-[11px] uppercase tracking-wider">Narahubung WhatsApp:</span>
-                            <a href="https://wa.me/6282116200363" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-mono">
+                            <a href="https://wa.me/6282116200363" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-mono">
                                 Maya: +62 821-1620-0363
                             </a>
-                            <a href="https://wa.me/6285894860696" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-mono">
+                            <a href="https://wa.me/6285894860696" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-mono">
                                 Azki: +62 858-9486-0696
                             </a>
-                            <a href="https://wa.me/6285774410978" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-mono">
+                            <a href="https://wa.me/6285774410978" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-mono">
                                 Ryan: +62 857-7441-0978
                             </a>
                         </div>
                         <div class="flex flex-col gap-1 pt-2">
                             <span class="text-gray-900 font-semibold text-[11px] uppercase tracking-wider">Surel Resmi:</span>
-                            <a href="mailto:partnership@destinara.id" class="hover:text-[#703A3A] transition-colors">
+                            <a href="mailto:partnership@destinara.id" class="hover:text-[#1F2B45] transition-colors">
                                 partnership@destinara.id
                             </a>
-                            <a href="mailto:hello@destinara.id" class="hover:text-[#703A3A] transition-colors">
+                            <a href="mailto:hello@destinara.id" class="hover:text-[#1F2B45] transition-colors">
                                 hello@destinara.id
                             </a>
                         </div>
@@ -359,13 +359,13 @@
             <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 text-center sm:text-left">
                 <p>&copy; {{ date('Y') }} PT DESTINARA CHAKRAWAL ARTHA. Hak cipta dilindungi undang-undang. | Dikembangkan oleh vexahostcloud</p>
                 <div class="flex items-center justify-center gap-3 text-xs">
-                    <a href="https://destinara.id/syarat-ketentuan" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-medium">Syarat &amp; Ketentuan</a>
+                    <a href="https://destinara.id/syarat-ketentuan" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-medium">Syarat &amp; Ketentuan</a>
                     <span>•</span>
-                    <a href="https://destinara.id/kebijakan-privasi" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-medium">Kebijakan Privasi</a>
+                    <a href="https://destinara.id/kebijakan-privasi" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-medium">Kebijakan Privasi</a>
                     <span>•</span>
-                    <a href="https://destinara.id/kebijakan-privasi/en" target="_blank" rel="noopener noreferrer" class="hover:text-[#703A3A] transition-colors font-medium">Privacy Policy (EN)</a>
+                    <a href="https://destinara.id/kebijakan-privasi/en" target="_blank" rel="noopener noreferrer" class="hover:text-[#1F2B45] transition-colors font-medium">Privacy Policy (EN)</a>
                 </div>
-                <p class="italic text-[#703A3A]">Menghubungkan ruang kelas dengan kearifan tapak dan pengetahuan lokal.</p>
+                <p class="italic text-[#1F2B45]">Menghubungkan ruang kelas dengan kearifan tapak dan pengetahuan lokal.</p>
             </div>
         </div>
     </footer>

@@ -4,14 +4,14 @@
 @section('meta_description', 'Ketentuan hukum, hak, kewajiban, dan tata kelola transaksi di platform Destinara.')
 
 @section('content')
-<main class="w-full bg-[#FAF7F5] pt-24 pb-20">
+<main class="w-full bg-[#FFFFFF] pt-24 pb-20">
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     
     <div class="text-center mb-12">
       <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#51634b]/10 text-[#51634b] text-xs font-bold uppercase tracking-wider rounded-full mb-3">
         <span>Ketentuan Legal & Perlindungan Pengguna</span>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-[#1E1B1B] tracking-tight">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-[#111827] tracking-tight">
         Syarat & Ketentuan Layanan
       </h1>
       <p class="text-sm text-gray-500 mt-2 max-w-xl mx-auto">

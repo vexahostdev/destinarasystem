@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-xl mx-auto">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-[#8C5151]">DESTINARA</h1>
+            <h1 class="text-3xl font-extrabold text-[#2E3D5C]">DESTINARA</h1>
             <p class="text-sm text-gray-500 mt-1">Sistem Verifikasi Keabsahan Dokumen Digital</p>
         </div>
 
@@ -78,7 +78,7 @@
             @endif
 
             <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 text-center">
-                <a href="{{ route('destinasi.index') }}" class="text-sm font-medium text-[#8C5151] hover:underline">
+                <a href="{{ route('destinasi.index') }}" class="text-sm font-medium text-[#2E3D5C] hover:underline">
                     &larr; Kembali ke Beranda
                 </a>
             </div>

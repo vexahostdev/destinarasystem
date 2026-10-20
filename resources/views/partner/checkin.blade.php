@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-[#8C5151] px-6 py-4 text-white">
+        <div class="bg-[#2E3D5C] px-6 py-4 text-white">
             <h1 class="text-xl font-bold">Verifikasi Check-in Masuk Tapak</h1>
             <p class="text-sm text-[#FED7D7]">Pindai e-Pass resmi rombongan belajar</p>
         </div>
@@ -67,16 +67,16 @@
                     @csrf
                     <div>
                         <label for="actual_participant_count" class="block text-sm font-medium text-gray-700">Jumlah Peserta Aktual yang Hadir di Lokasi</label>
-                        <input type="number" id="actual_participant_count" name="actual_participant_count" value="{{ old('actual_participant_count', $booking->participant_count) }}" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8C5151] focus:ring-[#8C5151] sm:text-sm">
+                        <input type="number" id="actual_participant_count" name="actual_participant_count" value="{{ old('actual_participant_count', $booking->participant_count) }}" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2E3D5C] focus:ring-[#2E3D5C] sm:text-sm">
                     </div>
 
                     <div>
                         <label for="note" class="block text-sm font-medium text-gray-700">Catatan Kedatangan (Opsional)</label>
-                        <textarea id="note" name="note" rows="2" placeholder="Kondisi rombongan, waktu tiba, dll." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#8C5151] focus:ring-[#8C5151] sm:text-sm">{{ old('note') }}</textarea>
+                        <textarea id="note" name="note" rows="2" placeholder="Kondisi rombongan, waktu tiba, dll." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#2E3D5C] focus:ring-[#2E3D5C] sm:text-sm">{{ old('note') }}</textarea>
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" class="w-full bg-[#8C5151] hover:bg-[#723f3f] text-white font-bold py-3 px-4 rounded-lg shadow transition">
+                        <button type="submit" class="w-full bg-[#1F2B45] hover:bg-[#2E3D5C] text-white font-bold py-3 px-4 rounded-2xl shadow transition">
                             Konfirmasi Masuk Tapak (Check-in)
                         </button>
                     </div>

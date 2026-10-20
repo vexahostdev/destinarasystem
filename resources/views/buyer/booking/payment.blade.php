@@ -28,11 +28,11 @@
     <!-- Header Breadcrumb & Checkout -->
     <div class="pb-4 border-b border-slate-200">
         <div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#8C5151]">Dashboard</a>
+            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#2E3D5C]">Dashboard</a>
             <span>/</span>
-            <a href="{{ route('buyer.booking.show', $booking->booking_code) }}" class="hover:text-[#8C5151]">Pesanan #{{ $booking->booking_code }}</a>
+            <a href="{{ route('buyer.booking.show', $booking->booking_code) }}" class="hover:text-[#2E3D5C]">Pesanan #{{ $booking->booking_code }}</a>
             <span>/</span>
-            <span class="text-[#8C5151] font-semibold">Kasir & Pembayaran</span>
+            <span class="text-[#2E3D5C] font-semibold">Kasir & Pembayaran</span>
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -63,7 +63,7 @@
     <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[#8C5151] block">Destinasi Rombongan:</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#2E3D5C] block">Destinasi Rombongan:</span>
                 <h2 class="font-serif text-xl font-bold text-slate-900">{{ $booking->destination->name }}</h2>
                 <div class="text-xs text-slate-500 mt-0.5">
                     {{ $booking->participant_count }} Siswa • {{ \Carbon\Carbon::parse($booking->planned_date_start)->translatedFormat('d M Y') }}
@@ -72,7 +72,7 @@
 
             <div class="text-left sm:text-right">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Tagihan (Invoice):</span>
-                <div class="text-2xl font-black text-[#8C5151]">
+                <div class="text-2xl font-black text-[#2E3D5C]">
                     Rp {{ number_format($booking->total_amount, 0, ',', '.') }}
                 </div>
                 <span class="text-[10px] text-slate-400 font-mono">Kode: {{ $booking->booking_code }}</span>
@@ -121,13 +121,13 @@
             @if(in_array('xendit', $enabledGateways))
             <!-- Xendit Online -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
-                   :class="gateway === 'xendit' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
+                   :class="gateway === 'xendit' ? 'border-[#2E3D5C] bg-[#2E3D5C]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="font-bold text-sm text-slate-900 block">Xendit Invoice</span>
                         <span class="text-xs text-slate-500">VA Otomatis, QRIS, e-Wallet</span>
                     </div>
-                    <input type="radio" name="gateway" value="xendit" x-model="gateway" class="text-[#8C5151] focus:ring-[#8C5151]">
+                    <input type="radio" name="gateway" value="xendit" x-model="gateway" class="text-[#2E3D5C] focus:ring-[#2E3D5C]">
                 </div>
                 <div class="mt-4 flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -139,13 +139,13 @@
             @if(in_array('midtrans', $enabledGateways))
             <!-- Midtrans Snap -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
-                   :class="gateway === 'midtrans' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
+                   :class="gateway === 'midtrans' ? 'border-[#2E3D5C] bg-[#2E3D5C]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="font-bold text-sm text-slate-900 block">Midtrans Snap</span>
                         <span class="text-xs text-slate-500">Transfer Bank & Kartu</span>
                     </div>
-                    <input type="radio" name="gateway" value="midtrans" x-model="gateway" class="text-[#8C5151] focus:ring-[#8C5151]">
+                    <input type="radio" name="gateway" value="midtrans" x-model="gateway" class="text-[#2E3D5C] focus:ring-[#2E3D5C]">
                 </div>
                 <div class="mt-4 flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -157,13 +157,13 @@
             @if(in_array('manual_transfer', $enabledGateways))
             <!-- Transfer Manual Bank Destinara -->
             <label class="cursor-pointer p-4 rounded-2xl border-2 transition flex flex-col justify-between"
-                   :class="gateway === 'manual_transfer' ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
+                   :class="gateway === 'manual_transfer' ? 'border-[#2E3D5C] bg-[#2E3D5C]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300'">
                 <div class="flex items-start justify-between">
                     <div>
                         <span class="font-bold text-sm text-slate-900 block">Transfer Manual</span>
                         <span class="text-xs text-slate-500">Rekening Resmi Destinara</span>
                     </div>
-                    <input type="radio" name="gateway" value="manual_transfer" x-model="gateway" class="text-[#8C5151] focus:ring-[#8C5151]">
+                    <input type="radio" name="gateway" value="manual_transfer" x-model="gateway" class="text-[#2E3D5C] focus:ring-[#2E3D5C]">
                 </div>
                 <div class="mt-4 flex items-center gap-1.5 text-[11px] text-amber-700 font-semibold">
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
@@ -182,7 +182,7 @@
                 @forelse($manualAccounts as $acc)
                     <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs shadow-xs">
                         <span class="font-bold text-slate-900 block">{{ $acc['bank'] ?? 'Bank Transfer' }}</span>
-                        <span class="font-mono text-sm font-black text-[#8C5151] block my-1 tracking-wider">{{ $acc['number'] ?? '-' }}</span>
+                        <span class="font-mono text-sm font-black text-[#2E3D5C] block my-1 tracking-wider">{{ $acc['number'] ?? '-' }}</span>
                         <span class="text-slate-500 text-[11px]">a.n. {{ $acc['holder'] ?? config('app.name') }}</span>
                     </div>
                 @empty
@@ -194,7 +194,7 @@
 
             <div class="pt-2">
                 <label class="block text-xs font-bold text-slate-700 mb-1.5">Unggah Bukti Transfer (JPG/PNG/PDF, maks 5MB) <span class="text-rose-500">*</span></label>
-                <input type="file" name="proof_file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#8C5151] file:text-white hover:file:bg-[#734040]">
+                <input type="file" name="proof_file" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-[#2E3D5C] file:text-white hover:file:bg-[#2E3D5C]">
                 @error('proof_file') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -204,7 +204,7 @@
                 Kembali ke Ringkasan Dossier
             </a>
 
-            <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-[#8C5151] hover:bg-[#734040] text-white rounded-full text-xs font-bold uppercase tracking-wider transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-[16px]">lock</span>
                 <span>Lanjutkan Pembayaran Resmi</span>
             </button>

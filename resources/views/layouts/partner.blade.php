@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-[#fbf8f5]">
+<html lang="id" class="h-full bg-[#FFFFFF]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    <meta name="theme-color" content="#703A3A">
+    <meta name="theme-color" content="#1F2B45">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,7 +48,7 @@
         .rgs-btn-outline {
             border: 1px solid rgba(0, 0, 0, 0.12);
             border-radius: 9999px;
-            color: #1E1B1B;
+            color: #111827;
             background-color: transparent;
             transition: all 0.2s ease;
         }
@@ -57,7 +57,7 @@
         }
     </style>
 </head>
-<body class="min-h-full bg-[#fbf8f5] text-[#2B211E] antialiased flex" x-data="{ mobileSidebarOpen: false }">
+<body class="min-h-full bg-[#FFFFFF] text-[#1F2937] antialiased flex" x-data="{ mobileSidebarOpen: false }">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="mobileSidebarOpen" 
@@ -68,24 +68,24 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="mobileSidebarOpen = false" 
-         class="fixed inset-0 z-40 bg-[#2B211E]/60 backdrop-blur-xs md:hidden" 
+         class="fixed inset-0 z-40 bg-[#1F2937]/60 backdrop-blur-xs md:hidden" 
          style="display: none;"></div>
 
     <!-- Sidebar Kiri Tetap Mitra (Fixed Desktop w-64, Drawer on Mobile) -->
     <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-           class="fixed inset-y-0 left-0 z-50 w-64 bg-[#ffffff] border-r border-[#2B211E]/12 flex flex-col transition-transform duration-300 ease-in-out shadow-xs">
+           class="fixed inset-y-0 left-0 z-50 w-64 bg-[#ffffff] border-r border-[#1F2937]/12 flex flex-col transition-transform duration-300 ease-in-out shadow-xs">
         
         <!-- Sidebar Header & Logo -->
-        <div class="h-16 px-5 border-b border-[#2B211E]/12 flex items-center justify-between shrink-0">
+        <div class="h-16 px-5 border-b border-[#1F2937]/12 flex items-center justify-between shrink-0">
             <a href="{{ route('mitra.dashboard') }}" class="flex items-center gap-3">
                 <img src="{{ asset('assets/img/logo-mark-tight.png') }}" alt="Logo Destinara" class="h-9 w-auto object-contain flex-shrink-0 drop-shadow-xs">
                 <div class="flex flex-col">
-                    <span class="font-serif text-lg font-bold tracking-tight text-[#2B211E] leading-none">DESTINARA</span>
+                    <span class="font-serif text-lg font-bold tracking-tight text-[#1F2937] leading-none">DESTINARA</span>
                     <span class="text-[9px] tracking-wider uppercase font-semibold text-[#51634b]">Portal Pengelola Tapak</span>
                 </div>
             </a>
             <!-- Mobile Close Button -->
-            <button @click="mobileSidebarOpen = false" class="md:hidden text-[#2B211E]/60 hover:text-[#2B211E] p-1">
+            <button @click="mobileSidebarOpen = false" class="md:hidden text-[#1F2937]/60 hover:text-[#1F2937] p-1">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
@@ -96,7 +96,7 @@
                 <span class="material-symbols-outlined text-[14px]">verified</span>
                 <span>Lembaga Adat</span>
             </div>
-            <div class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->partnerProfile->organization_name ?? (Auth::user()->name ?? 'Pengelola Tapak') }}</div>
+            <div class="text-xs font-bold text-[#111827] truncate">{{ Auth::user()->partnerProfile->organization_name ?? (Auth::user()->name ?? 'Pengelola Tapak') }}</div>
             <div class="text-[10px] text-gray-500 mt-0.5">Hak Adat 90% • Protokol FPIC Resmi</div>
         </div>
 
@@ -107,49 +107,49 @@
             </div>
 
             <a href="{{ route('mitra.dashboard') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.dashboard') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.dashboard') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">dashboard</span>
                 <span>Dashboard</span>
             </a>
 
             <a href="{{ route('mitra.bookings') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.bookings*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.bookings*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">inbox</span>
                 <span>Booking Masuk</span>
             </a>
 
             <a href="{{ route('mitra.availability') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.availability*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.availability*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">calendar_month</span>
                 <span>Kalender Slot</span>
             </a>
 
             <a href="{{ route('mitra.destinations') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.destinations*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.destinations*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">holiday_village</span>
                 <span>Tapak Kelolaan</span>
             </a>
 
             <a href="{{ route('mitra.income') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.income*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.income*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">payments</span>
                 <span>Pendapatan</span>
             </a>
 
             <a href="{{ route('mitra.profile') }}" 
-               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.profile*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center gap-3 px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.profile*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[18px]">badge</span>
                 <span>Profil Adat</span>
             </a>
 
             <a href="{{ route('mitra.notifications') }}" 
-               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-full transition-all {{ request()->routeIs('mitra.notifications*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+               class="flex items-center justify-between px-3.5 py-2.5 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('mitra.notifications*') ? 'text-white bg-[#51634b] shadow-xs' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-[18px]">notifications</span>
                     <span>Notifikasi</span>
                 </div>
                 @if(Auth::check() && Auth::user()->unreadNotifications()->count() > 0)
-                    <span class="px-2 py-0.5 text-[10px] font-bold bg-[#703A3A] text-white rounded-full">
+                    <span class="px-2 py-0.5 text-[10px] font-bold bg-[#1F2B45] text-white rounded-full">
                         {{ Auth::user()->unreadNotifications()->count() }}
                     </span>
                 @endif
@@ -157,20 +157,20 @@
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
-        <div class="p-3 border-t border-gray-100 bg-[#FAF7F5] shrink-0">
+        <div class="p-3 border-t border-gray-100 bg-[#FFFFFF] shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#51634b] text-white flex items-center justify-center text-xs font-bold">
                         {{ strtoupper(substr(Auth::user()->name ?? 'P', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-bold text-[#1E1B1B] truncate">{{ Auth::user()->name ?? 'Pengelola Tapak' }}</span>
+                        <span class="text-xs font-bold text-[#111827] truncate">{{ Auth::user()->name ?? 'Pengelola Tapak' }}</span>
                         <span class="text-[10px] text-[#51634b] font-medium truncate">{{ Auth::user()->partnerProfile->organization_type ? ucwords(str_replace('_', ' ', Auth::user()->partnerProfile->organization_type)) : (Auth::user()->email ?? 'Mitra Adat') }}</span>
                     </div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#703A3A] hover:bg-white rounded-full transition-colors cursor-pointer">
+                    <button type="submit" title="Keluar dari Portal" class="p-2 text-gray-400 hover:text-[#1F2B45] hover:bg-white rounded-full transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                     </button>
                 </form>
@@ -182,16 +182,16 @@
     <div class="flex-1 md:pl-64 flex flex-col min-w-0 min-h-screen">
         
         <!-- Topbar 1 Baris Ringkas & Bersih -->
-        <header class="sticky top-0 z-30 bg-[#ffffff] border-b border-[#2B211E]/12 shadow-xs h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <header class="sticky top-0 z-30 bg-[#ffffff] border-b border-[#1F2937]/12 shadow-xs h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
             <!-- Left: Mobile Menu Toggle & Context Breadcrumb -->
             <div class="flex items-center gap-3">
-                <button @click="mobileSidebarOpen = true" class="md:hidden p-2 text-[#2B211E]/70 hover:text-[#2B211E] border border-[#2B211E]/15">
+                <button @click="mobileSidebarOpen = true" class="md:hidden p-2 text-[#1F2937]/70 hover:text-[#1F2937] border border-[#1F2937]/15">
                     <span class="material-symbols-outlined text-[20px]">menu</span>
                 </button>
-                <div class="flex items-center gap-2 text-xs text-[#2B211E]/70">
+                <div class="flex items-center gap-2 text-xs text-[#1F2937]/70">
                     <span class="font-serif font-semibold text-[#51634b]">Portal Mitra Adat</span>
                     <span>/</span>
-                    <span class="font-medium text-[#2B211E]">@yield('title', 'Dashboard')</span>
+                    <span class="font-medium text-[#1F2937]">@yield('title', 'Dashboard')</span>
                 </div>
             </div>
 
@@ -202,8 +202,8 @@
                         ->where('eligible_at', '<=', now())
                         ->sum('net_amount') : 0;
                 @endphp
-                <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#faf6f0] border border-[#2B211E]/15 text-xs hover:border-[#51634b] transition-colors">
-                    <span class="text-[10px] text-[#2B211E]/60 uppercase font-bold">Menunggu Payout:</span>
+                <a href="{{ route('mitra.income') }}" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F6F9] border border-[#1F2937]/15 text-xs hover:border-[#51634b] transition-colors">
+                    <span class="text-[10px] text-[#1F2937]/60 uppercase font-bold">Menunggu Payout:</span>
                     <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($readyBalance, 0, ',', '.') }}</span>
                 </a>
 
@@ -229,7 +229,7 @@
         </main>
 
         <!-- Footer Archival Terroir -->
-        <footer class="mt-auto border-t border-[#2B211E]/12 bg-[#ffffff] py-4 text-xs text-[#2B211E]/60">
+        <footer class="mt-auto border-t border-[#1F2937]/12 bg-[#ffffff] py-4 text-xs text-[#1F2937]/60">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span class="font-serif font-bold text-[#51634b]">DESTINARA MITRA</span>

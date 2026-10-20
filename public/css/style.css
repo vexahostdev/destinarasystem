@@ -2,12 +2,12 @@
 
 :root {
   /* Material 3 & Destinara Editorial Tokens (RGB channels for Tailwind alpha support) */
-  --color-primary: 112 58 58; /* #703a3a */
-  --color-primary-container: 140 81 81; /* #8c5151 */
+  --color-primary: 31 43 69;
+  --color-primary-container: 46 61 92;
   --color-on-primary: 255 255 255;
-  --color-on-primary-container: 255 211 210; /* #ffd3d2 */
-  --color-primary-fixed: 255 218 217; /* #ffdad9 */
-  --color-primary-fixed-dim: 255 179 178; /* #ffb3b2 */
+  --color-on-primary-container: 220 228 239;
+  --color-primary-fixed: 226 232 241;
+  --color-primary-fixed-dim: 175 192 216;
 
   --color-secondary: 81 99 75; /* #51634b */
   --color-secondary-container: 212 233 202; /* #d4e9ca */
@@ -23,35 +23,35 @@
   --color-tertiary-fixed: 255 221 181; /* #ffddb5 */
   --color-tertiary-fixed-dim: 248 187 106; /* #f8bb6a */
 
-  --color-surface: 255 248 246; /* #fff8f6 */
-  --color-surface-dim: 232 214 209; /* #e8d6d1 */
-  --color-surface-bright: 255 248 246;
+  --color-surface: 255 255 255;
+  --color-surface-dim: 226 231 238;
+  --color-surface-bright: 255 255 255;
   --color-surface-container-lowest: 255 255 255;
-  --color-surface-container-low: 255 241 237; /* #fff1ed */
-  --color-surface-container: 253 234 229; /* #fdeae5 */
-  --color-surface-container-high: 247 228 223; /* #f7e4df */
-  --color-surface-container-highest: 241 223 217; /* #f1dfd9 */
+  --color-surface-container-low: 247 249 251;
+  --color-surface-container: 238 241 245;
+  --color-surface-container-high: 230 234 240;
+  --color-surface-container-highest: 222 227 235;
 
-  --color-on-surface: 35 25 23; /* #231917 */
-  --color-on-surface-variant: 82 67 67; /* #524343 */
-  --color-inverse-surface: 57 46 43; /* #392e2b */
-  --color-inverse-on-surface: 255 237 232; /* #ffede8 */
-  --color-outline: 132 115 114; /* #847372 */
-  --color-outline-variant: 215 194 193; /* #d7c2c1 */
-  --color-background: 255 248 246;
-  --color-on-background: 35 25 23;
+  --color-on-surface: 31 41 55;
+  --color-on-surface-variant: 75 85 99;
+  --color-inverse-surface: 31 43 69;
+  --color-inverse-on-surface: 238 241 245;
+  --color-outline: 136 147 163;
+  --color-outline-variant: 210 217 227;
+  --color-background: 255 255 255;
+  --color-on-background: 31 41 55;
 }
 
 html.dark {
   color-scheme: dark;
 
-  /* Material 3 & Destinara Deep Warm Obsidian Dark Palette */
-  --color-primary: 255 179 178; /* #ffb3b2 */
-  --color-primary-container: 140 81 81; /* #8c5151 */
-  --color-on-primary: 86 29 30; /* #561d1e */
-  --color-on-primary-container: 255 211 210;
-  --color-primary-fixed: 255 218 217;
-  --color-primary-fixed-dim: 255 179 178;
+  /* Material 3 & Destinara Charcoal Netral Dark Palette */
+  --color-primary: 143 168 208;
+  --color-primary-container: 46 61 92;
+  --color-on-primary: 14 20 34;
+  --color-on-primary-container: 220 228 239;
+  --color-primary-fixed: 226 232 241;
+  --color-primary-fixed-dim: 175 192 216;
 
   --color-secondary: 184 204 175; /* #b8ccaf */
   --color-secondary-container: 58 75 53; /* #3a4b35 */
@@ -67,23 +67,23 @@ html.dark {
   --color-tertiary-fixed: 255 221 181;
   --color-tertiary-fixed-dim: 248 187 106;
 
-  --color-surface: 24 18 17; /* #181211 */
-  --color-surface-dim: 20 14 13; /* #140e0d */
-  --color-surface-bright: 56 46 44; /* #382e2c */
-  --color-surface-container-lowest: 16 10 9; /* #100a09 */
-  --color-surface-container-low: 30 23 22; /* #1e1716 */
-  --color-surface-container: 36 28 26; /* #241c1a */
-  --color-surface-container-high: 46 37 35; /* #2e2523 */
-  --color-surface-container-highest: 56 46 44; /* #382e2c */
+  --color-surface: 17 19 21;
+  --color-surface-dim: 13 15 17;
+  --color-surface-bright: 44 48 54;
+  --color-surface-container-lowest: 11 12 14;
+  --color-surface-container-low: 26 29 33;
+  --color-surface-container: 32 36 41;
+  --color-surface-container-high: 38 42 48;
+  --color-surface-container-highest: 44 48 54;
 
-  --color-on-surface: 241 223 217; /* #f1dfd9 */
-  --color-on-surface-variant: 215 194 193; /* #d7c2c1 */
-  --color-inverse-surface: 241 223 217;
-  --color-inverse-on-surface: 57 46 43;
-  --color-outline: 160 140 138; /* #a08c8a */
-  --color-outline-variant: 82 67 67; /* #524343 */
-  --color-background: 24 18 17;
-  --color-on-background: 241 223 217;
+  --color-on-surface: 236 237 239;
+  --color-on-surface-variant: 158 163 170;
+  --color-inverse-surface: 236 237 239;
+  --color-inverse-on-surface: 26 29 33;
+  --color-outline: 110 116 125;
+  --color-outline-variant: 58 63 70;
+  --color-background: 17 19 21;
+  --color-on-background: 236 237 239;
 }
 
 html {
@@ -115,22 +115,22 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f7e4df;
+  background: #EEF1F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #8c5151;
+  background: #2E3D5C;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #703a3a;
+  background: #1F2B45;
 }
 
 /* Selection */
 ::selection {
-  background-color: #ffd3d2;
-  color: #703a3a;
+  background-color: #DCE4EF;
+  color: #1F2B45;
 }
 
 /* Card & Image Transitions */
@@ -140,7 +140,7 @@ body {
 
 .card-interactive:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px -5px rgba(112, 58, 58, 0.08), 0 8px 10px -6px rgba(112, 58, 58, 0.04);
+  box-shadow: 0 10px 25px -5px rgba(31, 43, 69, 0.08), 0 8px 10px -6px rgba(31, 43, 69, 0.04);
 }
 
 /* Underline Animation on Links */
@@ -177,21 +177,21 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 
 /* Crisp Hairline Borders */
 .border-hairline {
-  border-color: rgba(140, 81, 81, 0.2);
+  border-color: rgba(46, 61, 92, 0.2);
 }
 
 .border-hairline-subtle {
-  border-color: rgba(43, 33, 30, 0.12);
+  border-color: rgba(31, 41, 55, 0.12);
 }
 
 /* Modern Destinara Hero Content Panel */
 .rgs-hero-panel {
   background-color: #ffffff;
   border-radius: 28px !important;
-  box-shadow: 0 20px 40px -15px rgba(112, 58, 58, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 20px 40px -15px rgba(31, 43, 69, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04) !important;
   position: relative;
   z-index: 20;
-  border: 1px solid rgba(140, 81, 81, 0.12);
+  border: 1px solid rgba(46, 61, 92, 0.12);
 }
 
 @media (min-width: 640px) {
@@ -235,18 +235,18 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 }
 
 .rgs-btn-primary {
-  background-color: #703a3a;
+  background-color: #1F2B45;
   color: #ffffff;
-  border: 1.5px solid #703a3a;
-  box-shadow: 0 4px 14px rgba(112, 58, 58, 0.25);
+  border: 1.5px solid #1F2B45;
+  box-shadow: 0 4px 14px rgba(31, 43, 69, 0.25);
 }
 
 .rgs-btn-primary:hover {
-  background-color: #561d1e;
-  border-color: #561d1e;
+  background-color: #16203A;
+  border-color: #16203A;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(112, 58, 58, 0.35);
+  box-shadow: 0 8px 22px rgba(31, 43, 69, 0.35);
 }
 
 .rgs-btn-secondary {
@@ -266,24 +266,24 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 
 .rgs-btn-outline {
   background-color: #ffffff;
-  color: #2b211e;
-  border: 1.5px solid rgba(43, 33, 30, 0.18);
+  color: #1F2937;
+  border: 1.5px solid rgba(31, 41, 55, 0.18);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .rgs-btn-outline:hover {
-  background-color: #faf7f5;
-  border-color: #703a3a;
-  color: #703a3a;
+  background-color: #FFFFFF;
+  border-color: #1F2B45;
+  color: #1F2B45;
   transform: translateY(-1px);
 }
 
 /* Modern Clean Travel Cards */
 .rgs-card {
   border-radius: 24px !important;
-  border: 1px solid rgba(43, 33, 30, 0.08) !important;
+  border: 1px solid rgba(31, 41, 55, 0.08) !important;
   background-color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(43, 33, 30, 0.05) !important;
+  box-shadow: 0 4px 20px -2px rgba(31, 41, 55, 0.05) !important;
   padding: 1.25rem !important;
   position: relative;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -292,13 +292,13 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 
 .rgs-card:hover {
   transform: translateY(-4px) !important;
-  box-shadow: 0 16px 36px -8px rgba(112, 58, 58, 0.16) !important;
-  border-color: rgba(140, 81, 81, 0.25) !important;
+  box-shadow: 0 16px 36px -8px rgba(31, 43, 69, 0.16) !important;
+  border-color: rgba(46, 61, 92, 0.25) !important;
 }
 
 .rgs-card-alt {
   border-radius: 24px !important;
-  border: 1px solid rgba(43, 33, 30, 0.06) !important;
+  border: 1px solid rgba(31, 41, 55, 0.06) !important;
   background-color: #ffffff !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
   padding: 1.25rem !important;
@@ -321,7 +321,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
     left: -2.5rem;
     right: -2.5rem;
     height: 2px;
-    background-color: rgba(140, 81, 81, 0.35);
+    background-color: rgba(46, 61, 92, 0.35);
     z-index: 0;
     pointer-events: none;
   }
@@ -333,7 +333,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
     left: -2rem;
     right: -2rem;
     height: 2px;
-    background-color: rgba(43, 33, 30, 0.2);
+    background-color: rgba(31, 41, 55, 0.2);
     z-index: 0;
     pointer-events: none;
   }
@@ -342,13 +342,13 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 /* Continuous Grid Baseline Connection (RGS Style: seamless connected line under & beside cards) */
 .rgs-grid-connected {
   align-items: stretch;
-  border-bottom: 2px solid rgba(140, 81, 81, 0.35);
+  border-bottom: 2px solid rgba(46, 61, 92, 0.35);
   overflow: hidden;
 }
 
 .rgs-grid-connected-alt {
   align-items: stretch;
-  border-bottom: 2px solid rgba(43, 33, 30, 0.2);
+  border-bottom: 2px solid rgba(31, 41, 55, 0.2);
   overflow: hidden;
 }
 
@@ -360,15 +360,15 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 /* Active Nav State Highlight */
 .nav-link.active,
 .mobile-nav-link.active {
-  color: #703a3a !important;
+  color: #1F2B45 !important;
   font-weight: 700 !important;
-  border-bottom: 2px solid #703a3a;
+  border-bottom: 2px solid #1F2B45;
 }
 
 .mobile-nav-link.active {
   background-color: #fff1ed;
   border-bottom: none;
-  border-left: 4px solid #703a3a;
+  border-left: 4px solid #1F2B45;
 }
 
 /* Back to Top Button */
@@ -415,7 +415,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
   max-width: 100vw !important;
   height: 100vh !important;
   height: 100dvh !important;
-  background-color: #fff8f6 !important;
+  background-color: #FFFFFF !important;
   z-index: 9999 !important;
   display: flex !important;
   flex-direction: column !important;
@@ -476,7 +476,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
   min-width: 320px;
   max-width: 440px;
   background: #ffffff;
-  border-left: 5px solid #8c5151;
+  border-left: 5px solid #2E3D5C;
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 12px 30px rgba(35, 25, 23, 0.15);
@@ -524,7 +524,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 }
 
 .modal-dialog {
-  background: #fff8f6;
+  background: #FFFFFF;
   border-radius: 12px;
   max-width: 640px;
   width: 100%;
@@ -578,7 +578,7 @@ html.dark ::-webkit-scrollbar-thumb {
   background: #5c2c2c;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #8c5151;
+  background: #3A3F46;
 }
 
 /* Dark Mode Text Selection */
@@ -589,14 +589,14 @@ html.dark ::selection {
 
 /* RGS Hero Panel in Dark Mode */
 html.dark .rgs-hero-panel {
-  background-color: #241c1a !important;
-  border-left-color: #ffb3b2 !important;
+  background-color: #202429 !important;
+  border-left-color: #8FA8D0 !important;
 }
 html.dark .rgs-hero-panel h1 {
-  color: #f1dfd9 !important;
+  color: #ECEDEF !important;
 }
 html.dark .rgs-hero-panel p {
-  color: #d7c2c1 !important;
+  color: #9EA3AA !important;
 }
 
 /* RGS Outline Button in Dark Mode */
@@ -606,7 +606,7 @@ html.dark .rgs-btn-outline {
 }
 html.dark .rgs-btn-outline:hover {
   background-color: #ede0dc !important;
-  color: #181211 !important;
+  color: #111315 !important;
   border-color: #ede0dc !important;
 }
 
@@ -615,7 +615,7 @@ html.dark .rgs-card-alt {
   border-bottom-color: rgba(215, 194, 193, 0.2) !important;
 }
 html.dark .rgs-card-alt:hover {
-  border-bottom-color: #ffb3b2 !important;
+  border-bottom-color: #8FA8D0 !important;
 }
 @media (min-width: 768px) {
   html.dark .rgs-card-alt::after {
@@ -628,33 +628,33 @@ html.dark .rgs-grid-connected-alt {
 
 /* Mobile Menu Drawer in Dark Mode */
 html.dark #mobileMenuDrawer {
-  background-color: #181211 !important;
-  color: #f1dfd9 !important;
+  background-color: #111315 !important;
+  color: #ECEDEF !important;
 }
 
 /* Dossier Modal Popup in Dark Mode */
 html.dark .modal-dialog {
-  background: #241c1a !important;
-  color: #f1dfd9 !important;
+  background: #202429 !important;
+  color: #ECEDEF !important;
   border-color: rgba(215, 194, 193, 0.15) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Toast Notifications in Dark Mode */
 html.dark .toast {
-  background: #241c1a !important;
-  color: #f1dfd9 !important;
-  border-left-color: #ffb3b2 !important;
+  background: #202429 !important;
+  color: #ECEDEF !important;
+  border-left-color: #8FA8D0 !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5) !important;
 }
 html.dark .toast.toast-success {
   border-left-color: #b8ccaf !important;
 }
 html.dark .toast p.font-semibold {
-  color: #f1dfd9 !important;
+  color: #ECEDEF !important;
 }
 html.dark .toast p.text-xs {
-  color: #d7c2c1 !important;
+  color: #9EA3AA !important;
 }
 
 /* Form Controls (Inputs, Selects, Textareas) in Dark Mode */
@@ -662,22 +662,22 @@ html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"])
 html.dark textarea,
 html.dark select {
   background-color: #1e1716 !important;
-  color: #f1dfd9 !important;
+  color: #ECEDEF !important;
   border-color: rgba(82, 67, 67, 0.8) !important;
 }
 html.dark input:focus,
 html.dark textarea:focus,
 html.dark select:focus {
-  border-color: #ffb3b2 !important;
-  background-color: #241c1a !important;
+  border-color: #8FA8D0 !important;
+  background-color: #202429 !important;
 }
 html.dark input::placeholder,
 html.dark textarea::placeholder {
   color: #847372 !important;
 }
 html.dark select option {
-  background-color: #241c1a !important;
-  color: #f1dfd9 !important;
+  background-color: #202429 !important;
+  color: #ECEDEF !important;
 }
 
 /* Destinara Logo Filter in Dark Mode */
@@ -688,29 +688,29 @@ html.dark .destinara-logo {
 
 /* Dark Mode Overrides for Hardcoded Text & Borders */
 html.dark .text-\[\#231917\] {
-  color: #f1dfd9 !important;
+  color: #ECEDEF !important;
 }
-html.dark .text-\[\#2B211E\] {
-  color: #f1dfd9 !important;
+html.dark .text-\[\#1F2937\] {
+  color: #ECEDEF !important;
 }
-html.dark .text-\[\#2B211E\]\/80 {
-  color: rgba(241, 223, 217, 0.8) !important;
+html.dark .text-\[\#1F2937\]\/80 {
+  color: rgba(236, 237, 239, 0.8) !important;
 }
-html.dark .border-\[\#2B211E\]\/10,
-html.dark .border-\[\#2B211E\]\/15,
-html.dark .border-\[\#2B211E\]\/20 {
+html.dark .border-\[\#1F2937\]\/10,
+html.dark .border-\[\#1F2937\]\/15,
+html.dark .border-\[\#1F2937\]\/20 {
   border-color: rgba(215, 194, 193, 0.15) !important;
 }
-html.dark .border-\[\#8C5151\]\/10,
-html.dark .border-\[\#8C5151\]\/15,
-html.dark .border-\[\#8C5151\]\/20,
-html.dark .border-\[\#8C5151\]\/30,
-html.dark .border-\[\#8C5151\]\/35 {
+html.dark .border-\[\#2E3D5C\]\/10,
+html.dark .border-\[\#2E3D5C\]\/15,
+html.dark .border-\[\#2E3D5C\]\/20,
+html.dark .border-\[\#2E3D5C\]\/30,
+html.dark .border-\[\#2E3D5C\]\/35 {
   border-color: rgba(255, 179, 178, 0.25) !important;
 }
-html.dark .divide-\[\#8C5151\]\/10 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-\[\#8C5151\]\/15 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-\[\#8C5151\]\/20 > :not([hidden]) ~ :not([hidden]) {
+html.dark .divide-\[\#2E3D5C\]\/10 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-\[\#2E3D5C\]\/15 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-\[\#2E3D5C\]\/20 > :not([hidden]) ~ :not([hidden]) {
   border-color: rgba(255, 179, 178, 0.15) !important;
 }
 

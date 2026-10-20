@@ -5,30 +5,30 @@
 @section('content')
 <div class="space-y-6" x-data="{ tab: '{{ $tab }}' }">
     <div>
-        <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Master Data Platform</h1>
+        <h1 class="text-2xl font-extrabold text-[#111827]">Master Data Platform</h1>
         <p class="text-sm text-gray-500">Kelola taksonomi kategori, fasilitas, daftar bank, dan kebijakan pembatalan</p>
     </div>
 
     <!-- Tabs Navigation -->
     <div class="border-b border-gray-200">
         <nav class="flex space-x-6 overflow-x-auto text-xs font-bold uppercase tracking-wider">
-            <button @click="tab = 'categories'" :class="tab === 'categories' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'categories'" :class="tab === 'categories' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Kategori Destinasi ({{ $categories->count() }})
             </button>
-            <button @click="tab = 'facilities'" :class="tab === 'facilities' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'facilities'" :class="tab === 'facilities' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Fasilitas ({{ $facilities->count() }})
             </button>
-            <button @click="tab = 'banks'" :class="tab === 'banks' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'banks'" :class="tab === 'banks' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Daftar Bank ({{ $banks->count() }})
             </button>
-            <button @click="tab = 'policies'" :class="tab === 'policies' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'policies'" :class="tab === 'policies' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Kebijakan Pembatalan ({{ $cancellationPolicies->count() }})
             </button>
-            <button @click="tab = 'provinces'" :class="tab === 'provinces' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'provinces'" :class="tab === 'provinces' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Provinsi ({{ $provinces->count() }})
             </button>
@@ -43,18 +43,18 @@
                 @csrf
                 <div>
                     <input type="text" name="name" required placeholder="Nama Kategori..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <input type="text" name="icon" placeholder="Material Icon (misal: landscape)..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <input type="text" name="description" placeholder="Deskripsi singkat..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
-                    <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                    <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                         + Tambah Kategori
                     </button>
                 </div>
@@ -76,7 +76,7 @@
                     @forelse($categories as $cat)
                     <tr class="hover:bg-gray-50">
                         <td class="py-3 font-bold text-gray-800 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px] text-[#703A3A]">{{ $cat->icon ?? 'nature' }}</span>
+                            <span class="material-symbols-outlined text-[18px] text-[#1F2B45]">{{ $cat->icon ?? 'nature' }}</span>
                             <span>{{ $cat->name }}</span>
                         </td>
                         <td class="py-3 font-mono text-gray-500">{{ $cat->slug }}</td>
@@ -89,7 +89,7 @@
                         <td class="py-3 text-right">
                             <form action="{{ route('admin.master.update', ['type' => 'categories', 'id' => $cat->id]) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-700">
+                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700">
                                     {{ $cat->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </button>
                             </form>
@@ -113,14 +113,14 @@
                 @csrf
                 <div>
                     <input type="text" name="name" required placeholder="Nama Fasilitas (misal: Toilet Standar Difabel)..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <input type="text" name="icon" placeholder="Material Icon (misal: wc)..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
-                    <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                    <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                         + Tambah Fasilitas
                     </button>
                 </div>
@@ -151,7 +151,7 @@
                         <td class="py-3 text-right">
                             <form action="{{ route('admin.master.update', ['type' => 'facilities', 'id' => $fac->id]) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-700">
+                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700">
                                     {{ $fac->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </button>
                             </form>
@@ -175,14 +175,14 @@
                 @csrf
                 <div>
                     <input type="text" name="name" required placeholder="Nama Bank (misal: Bank Mandiri)..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <input type="text" name="code" required placeholder="Kode Bank (misal: MANDIRI)..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
-                    <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                    <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                         + Tambah Bank
                     </button>
                 </div>
@@ -203,7 +203,7 @@
                     @forelse($banks as $b)
                     <tr class="hover:bg-gray-50">
                         <td class="py-3 font-bold text-gray-800">{{ $b->name }}</td>
-                        <td class="py-3 font-mono text-[#703A3A] font-bold">{{ $b->code }}</td>
+                        <td class="py-3 font-mono text-[#1F2B45] font-bold">{{ $b->code }}</td>
                         <td class="py-3 text-center">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $b->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500' }}">
                                 {{ $b->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -212,7 +212,7 @@
                         <td class="py-3 text-right">
                             <form action="{{ route('admin.master.update', ['type' => 'banks', 'id' => $b->id]) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-700">
+                                <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700">
                                     {{ $b->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </button>
                             </form>

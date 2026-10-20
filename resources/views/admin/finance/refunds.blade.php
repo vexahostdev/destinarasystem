@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <div>
-        <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Pengembalian Dana (Refund)</h1>
+        <h1 class="text-2xl font-extrabold text-[#111827]">Pengembalian Dana (Refund)</h1>
         <p class="text-sm text-gray-500">Antrean dan proses eksekusi refund pembatalan reservasi sesuai kebijakan</p>
     </div>
 
@@ -28,7 +28,7 @@
                     @forelse($refunds as $r)
                     <tr class="hover:bg-gray-50/70 transition-colors">
                         <td class="py-3.5 pr-2 font-mono">
-                            <span class="font-bold text-[#703A3A] block">#REF-{{ $r->id }}</span>
+                            <span class="font-bold text-[#1F2B45] block">#REF-{{ $r->id }}</span>
                             <a href="{{ route('admin.bookings.show', $r->booking->booking_code) }}" class="text-gray-500 hover:underline">
                                 {{ $r->booking->booking_code }}
                             </a>
@@ -55,7 +55,7 @@
                             @if($r->status === \App\Enums\RefundStatus::PENDING)
                                 @can('refunds.process')
                                 <button type="button" @click="activeRefund = {{ $r->id }}; openProcessModal = true"
-                                        class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                                        class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
                                     Proses
                                 </button>
                                 <button type="button" @click="activeRefund = {{ $r->id }}; openRejectModal = true"
@@ -64,7 +64,7 @@
                                 </button>
                                 @endcan
                             @elseif($r->proof_file)
-                                <a href="{{ asset('storage/' . $r->proof_file) }}" target="_blank" class="text-xs text-[#703A3A] hover:underline font-semibold">
+                                <a href="{{ asset('storage/' . $r->proof_file) }}" target="_blank" class="text-xs text-[#1F2B45] hover:underline font-semibold">
                                     Lihat Bukti
                                 </a>
                             @endif
@@ -94,7 +94,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Bukti Transfer (JPG/PNG/PDF) *</label>
                         <input type="file" name="proof_file" required accept="image/*,application/pdf"
-                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200">
+                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200">
                         @error('proof_file')
                             <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                         @enderror
@@ -103,7 +103,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
                         <textarea name="note" rows="2" placeholder="Catatan internal penyelesaian refund..."
-                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                         @error('note')
                             <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                         @enderror
@@ -113,7 +113,7 @@
                         <button type="button" @click="openProcessModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#703A3A] text-white rounded-xl hover:bg-[#561D1E]">
+                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#1F2B45] text-white rounded-2xl hover:bg-[#16203A]">
                             Selesaikan Refund
                         </button>
                     </div>
@@ -131,14 +131,14 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alasan Penolakan *</label>
                         <textarea name="reason" required rows="3" placeholder="Jelaskan alasan penolakan pengembalian dana..."
-                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button type="button" @click="openRejectModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-xl hover:bg-rose-700">
+                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-2xl hover:bg-rose-700">
                             Tolak Refund
                         </button>
                     </div>

@@ -7,7 +7,7 @@
                    name="search" 
                    value="{{ request('search') }}" 
                    placeholder="{{ $searchPlaceholder }}" 
-                   class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#8C5151] focus:border-transparent outline-none">
+                   class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-[#2E3D5C] focus:border-transparent outline-none">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -16,7 +16,7 @@
         <div class="w-full md:w-auto flex flex-wrap items-center gap-3">
             {{ $slot }}
 
-            <button type="submit" class="px-4 py-2 bg-[#8C5151] hover:bg-[#734040] text-white rounded-lg text-sm font-medium transition shadow-sm">
+            <button type="submit" class="px-4 py-2 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white rounded-2xl text-sm font-medium transition shadow-sm">
                 Filter
             </button>
 

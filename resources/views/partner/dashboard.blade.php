@@ -21,18 +21,18 @@
                     <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold border border-gray-200">Belum Terverifikasi</span>
                 @endif
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B] tracking-tight">Panel Pengelola Tapak Adat</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">Panel Pengelola Tapak Adat</h1>
             <p class="text-xs sm:text-sm text-gray-500 mt-1">
                 Pantau kedatangan rombongan delegasi belajar, kontrol kalender slot harian, dan pantau pencairan dana komunal adat.
             </p>
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('mitra.availability') }}" class="px-5 py-2.5 rounded-full border border-gray-300 hover:border-gray-400 text-gray-700 bg-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs">
+            <a href="{{ route('mitra.availability') }}" class="px-5 py-2.5 rounded-2xl border border-gray-300 hover:border-gray-400 text-gray-700 bg-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs">
                 <span class="material-symbols-outlined text-[18px]">calendar_month</span>
                 <span>Kalender Slot</span>
             </a>
-            <a href="{{ route('mitra.destinations.create') }}" class="bg-[#51634b] hover:bg-[#3f4f3a] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:shadow-md transition-all">
+            <a href="{{ route('mitra.destinations.create') }}" class="bg-[#51634b] hover:bg-[#3f4f3a] text-white px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:shadow-md transition-all">
                 <span class="material-symbols-outlined text-[18px]">add_circle</span>
                 <span>Ajukan Tapak Baru</span>
             </a>
@@ -65,7 +65,7 @@
                 </p>
             </div>
         </div>
-        <a href="{{ route('mitra.profile') }}" class="px-4 py-2 bg-[#703A3A] hover:bg-[#5a2e2e] text-white rounded-full text-xs font-bold uppercase tracking-wider shrink-0 text-center shadow-xs">
+        <a href="{{ route('mitra.profile') }}" class="px-4 py-2 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white rounded-2xl text-xs font-bold uppercase tracking-wider shrink-0 text-center shadow-xs">
             Lengkapi Profil & Berkas
         </a>
     </div>
@@ -101,11 +101,11 @@
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs hover:shadow-md transition-all">
             <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-2">
                 <span>Payout Menunggu Proses</span>
-                <div class="w-8 h-8 rounded-full bg-[#703A3A]/10 text-[#703A3A] flex items-center justify-center">
+                <div class="w-8 h-8 rounded-full bg-[#1F2B45]/10 text-[#1F2B45] flex items-center justify-center">
                     <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                 </div>
             </div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-[#703A3A]">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#1F2B45]">
                 Rp {{ number_format($readyBalance, 0, ',', '.') }}
             </div>
             <div class="text-[11px] text-[#51634b] font-semibold mt-1">Ditransfer otomatis oleh admin sesuai jadwal rekonsiliasi (H+{{ (int) setting('payout_delay_days', 3) }} kunjungan selesai)</div>
@@ -119,7 +119,7 @@
                     <span class="material-symbols-outlined text-[18px]">savings</span>
                 </div>
             </div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B]">
+            <div class="text-2xl sm:text-3xl font-extrabold text-[#111827]">
                 Rp {{ number_format($totalPaidOut, 0, ',', '.') }}
             </div>
             <div class="text-[11px] text-gray-400 mt-1">Rekonsiliasi bersih komunal</div>
@@ -131,20 +131,20 @@
         <div class="flex items-center justify-between pb-3 border-b border-gray-100">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-amber-600 text-[22px]">error</span>
-                <h2 class="text-lg font-bold text-[#1E1B1B]">Permohonan Rombongan Masuk (Perlu Tindakan)</h2>
+                <h2 class="text-lg font-bold text-[#111827]">Permohonan Rombongan Masuk (Perlu Tindakan)</h2>
             </div>
             <span class="text-xs font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">Maks. {{ (int) setting('partner_confirm_sla_hours', 48) }} Jam</span>
         </div>
 
         <div class="space-y-3">
             @forelse($urgentBookings as $booking)
-            <div class="p-4 rounded-2xl bg-[#FAF7F5] border border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="p-4 rounded-2xl bg-[#FFFFFF] border border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div class="space-y-1.5 flex-1">
                     <div class="flex flex-wrap items-center gap-2 text-xs">
-                        <span class="font-mono font-bold text-[#703A3A] bg-white px-2.5 py-0.5 rounded-full border border-gray-200">{{ $booking->booking_code }}</span>
+                        <span class="font-mono font-bold text-[#1F2B45] bg-white px-2.5 py-0.5 rounded-full border border-gray-200">{{ $booking->booking_code }}</span>
                         <span class="text-gray-300">•</span>
-                        <span class="font-bold text-[#1E1B1B]">{{ $booking->institution->institution_name }}</span>
-                        <span class="px-2.5 py-0.5 rounded-full bg-[#703A3A]/10 text-[#703A3A] text-[10px] font-bold uppercase">
+                        <span class="font-bold text-[#111827]">{{ $booking->institution->institution_name }}</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#1F2B45]/10 text-[#1F2B45] text-[10px] font-bold uppercase">
                             {{ $booking->inquiry_type->label() }}
                         </span>
                     </div>
@@ -168,7 +168,7 @@
                 <div class="flex items-center gap-2 shrink-0">
                     <form action="{{ route('mitra.booking.confirm', $booking->id) }}" method="POST">
                         @csrf
-                        <button type="submit" class="px-5 py-2.5 rounded-full bg-[#51634b] text-white hover:bg-[#3f4f3a] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
+                        <button type="submit" class="px-5 py-2.5 rounded-2xl bg-[#51634b] text-white hover:bg-[#3f4f3a] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">check_circle</span>
                             <span>Konfirmasi</span>
                         </button>
@@ -185,7 +185,7 @@
                 </div>
             </div>
             @empty
-            <div class="p-6 text-center text-xs text-gray-400 bg-[#FAF7F5] rounded-2xl border border-gray-100">
+            <div class="p-6 text-center text-xs text-gray-400 bg-[#FFFFFF] rounded-2xl border border-gray-100">
                 Tidak ada permohonan rombongan baru yang menunggu respon saat ini. Seluruh jadwal telah terkoordinasi.
             </div>
             @endforelse
@@ -199,10 +199,10 @@
         <div class="lg:col-span-7 space-y-4">
             <div class="flex items-center justify-between pb-2 border-b border-gray-200">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#703A3A] text-[20px]">date_range</span>
-                    <span class="text-lg font-bold text-[#1E1B1B]">Ketersediaan Slot 7 Hari Ke Depan</span>
+                    <span class="material-symbols-outlined text-[#1F2B45] text-[20px]">date_range</span>
+                    <span class="text-lg font-bold text-[#111827]">Ketersediaan Slot 7 Hari Ke Depan</span>
                 </div>
-                <a href="{{ route('mitra.availability') }}" class="text-xs font-bold text-[#703A3A] hover:underline flex items-center gap-0.5">
+                <a href="{{ route('mitra.availability') }}" class="text-xs font-bold text-[#1F2B45] hover:underline flex items-center gap-0.5">
                     <span>Kalender Penuh</span>
                     <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                 </a>
@@ -211,12 +211,12 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 @foreach($upcomingSlots as $slot)
                 <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs text-xs space-y-2">
-                    <div class="font-bold text-[#1E1B1B]">
+                    <div class="font-bold text-[#111827]">
                         {{ \Carbon\Carbon::parse($slot->date)->translatedFormat('D, d M') }}
                     </div>
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="text-gray-400">Terisi:</span>
-                        <span class="font-bold font-mono text-[#1E1B1B]">{{ $slot->booked_count }} / {{ $slot->capacity }}</span>
+                        <span class="font-bold font-mono text-[#111827]">{{ $slot->booked_count }} / {{ $slot->capacity }}</span>
                     </div>
                     <div class="pt-1">
                         @if($slot->status === 'open')
@@ -241,7 +241,7 @@
         <!-- Kolom Kanan: Tapak Pembelajaran Aktif (5 Kolom) -->
         <div class="lg:col-span-5 space-y-4">
             <div class="flex items-center justify-between pb-2 border-b border-gray-200">
-                <span class="text-lg font-bold text-[#1E1B1B]">Tapak Kelolaan</span>
+                <span class="text-lg font-bold text-[#111827]">Tapak Kelolaan</span>
                 <a href="{{ route('mitra.destinations') }}" class="text-xs font-bold text-[#51634b] hover:underline flex items-center gap-0.5">
                     <span>Lihat Semua</span>
                     <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -257,12 +257,12 @@
                     </div>
                 </div>
                 <div class="p-5 space-y-2 text-xs">
-                    <h3 class="text-base font-bold text-[#1E1B1B]">{{ $primaryDest->name }}</h3>
+                    <h3 class="text-base font-bold text-[#111827]">{{ $primaryDest->name }}</h3>
                     <p class="text-[11px] text-gray-500 line-clamp-2">
                         {{ $primaryDest->description }}
                     </p>
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <span class="text-[11px] text-gray-600">Tarif: <strong class="text-[#1E1B1B]">Rp {{ number_format($primaryDest->price_per_pax, 0, ',', '.') }} / pax</strong></span>
+                        <span class="text-[11px] text-gray-600">Tarif: <strong class="text-[#111827]">Rp {{ number_format($primaryDest->price_per_pax, 0, ',', '.') }} / pax</strong></span>
                         <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#51634b] text-[10px] font-bold uppercase">
                             Tayang & Aktif
                         </span>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FAF7F5]">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#FFFFFF]">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,20 +15,20 @@
     @livewireStyles
     <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#703A3A] selection:text-white bg-[#FAF7F5]">
+<body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-[#1F2B45] selection:text-white bg-[#FFFFFF]">
 
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(112,58,58,0.1)] border border-gray-100 relative z-10 space-y-6 text-center">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(31, 43, 69,0.1)] border border-gray-100 relative z-10 space-y-6 text-center">
         
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 text-amber-600 mb-2">
             <span class="material-symbols-outlined text-3xl">mark_email_unread</span>
         </div>
 
         <div class="space-y-2">
-            <h2 class="text-xl font-bold text-[#1E1B1B]">Verifikasi Alamat Email</h2>
+            <h2 class="text-xl font-bold text-[#111827]">Verifikasi Alamat Email</h2>
             <p class="text-xs text-gray-500 leading-relaxed">
                 Terima kasih telah mendaftar di Destinara! Sebelum mulai menjelajah atau memesan, silakan klik tautan verifikasi yang baru saja kami kirimkan ke email Anda:
             </p>
-            <p class="text-xs font-bold text-[#703A3A]">{{ auth()->user()?->email }}</p>
+            <p class="text-xs font-bold text-[#1F2B45]">{{ auth()->user()?->email }}</p>
         </div>
 
         @if (session('status') == 'verification-link-sent')
@@ -41,7 +41,7 @@
         <div class="space-y-3 pt-2">
             <form method="POST" action="{{ route('verification.send') }}">
                 @csrf
-                <button type="submit" class="w-full bg-[#703A3A] hover:bg-[#561D1E] text-white py-3 px-6 rounded-full font-bold text-xs shadow-md transition-all cursor-pointer">
+                <button type="submit" class="w-full bg-[#1F2B45] hover:bg-[#16203A] text-white py-3 px-6 rounded-2xl font-bold text-xs shadow-md transition-all cursor-pointer">
                     Kirim Ulang Tautan Verifikasi
                 </button>
             </form>

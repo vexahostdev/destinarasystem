@@ -8,9 +8,9 @@
     <!-- Header Breadcrumb & Judul -->
     <div class="pb-4 border-b border-slate-200">
         <div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#8C5151]">Dashboard</a>
+            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#2E3D5C]">Dashboard</a>
             <span>/</span>
-            <span class="text-[#8C5151] font-semibold">Pengajuan Rombongan Baru</span>
+            <span class="text-[#2E3D5C] font-semibold">Pengajuan Rombongan Baru</span>
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -30,10 +30,10 @@
 
     <!-- Stepper Tracker Visual -->
     <div class="grid grid-cols-3 border border-slate-200 bg-white rounded-2xl overflow-hidden text-xs shadow-xs">
-        <div class="p-3 sm:p-4 border-r border-slate-200 bg-[#8C5151]/10 flex items-center gap-2.5">
-            <span class="w-6 h-6 rounded-full bg-[#8C5151] text-white flex items-center justify-center font-bold text-xs shrink-0">1</span>
+        <div class="p-3 sm:p-4 border-r border-slate-200 bg-[#2E3D5C]/10 flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-[#2E3D5C] text-white flex items-center justify-center font-bold text-xs shrink-0">1</span>
             <div>
-                <span class="font-bold text-[#8C5151] block">Pilih Paket & Tanggal</span>
+                <span class="font-bold text-[#2E3D5C] block">Pilih Paket & Tanggal</span>
                 <span class="text-[10px] text-slate-500 hidden sm:inline">Konfirmasi kuota & live slot</span>
             </div>
         </div>

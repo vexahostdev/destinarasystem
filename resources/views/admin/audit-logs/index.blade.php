@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6" x-data="{ openDiffModal: false, activeLog: null, loadingDiff: false }">
     <div>
-        <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Audit Trail Ekosistem</h1>
+        <h1 class="text-2xl font-extrabold text-[#111827]">Audit Trail Ekosistem</h1>
         <p class="text-sm text-gray-500">Log jejak digital seluruh tindakan operasional, perubahan status, dan intervensi data sensitif</p>
     </div>
 
@@ -13,7 +13,7 @@
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
         <form method="GET" action="{{ route('admin.auditLogs.index') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-                <select name="user_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="user_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Operator</option>
                     @foreach($users as $u)
                         <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>
@@ -24,17 +24,17 @@
             </div>
             <div>
                 <input type="text" name="action" value="{{ request('action') }}" placeholder="Filter aksi (misal: booking, update)..."
-                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             </div>
             <div>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" placeholder="Dari tanggal..."
-                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                     Filter Log
                 </button>
-                <a href="{{ route('admin.auditLogs.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl">
+                <a href="{{ route('admin.auditLogs.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-2xl">
                     Reset
                 </a>
             </div>
@@ -81,7 +81,7 @@
                         </td>
                         <td class="py-3 text-right">
                             <button type="button" @click="loadingDiff = true; openDiffModal = true; fetch('/admin/audit-logs/' + {{ $log->id }}).then(r => r.json()).then(d => { activeLog = d; loadingDiff = false; })"
-                                    class="text-xs text-[#703A3A] font-bold hover:underline">
+                                    class="text-xs text-[#1F2B45] font-bold hover:underline">
                                 Lihat Diff
                             </button>
                         </td>

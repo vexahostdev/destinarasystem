@@ -6,17 +6,17 @@
 <div class="space-y-8">
 
     <!-- Header Dossier & Aksi -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2B211E]/12">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F2937]/12">
         <div>
-            <div class="flex items-center gap-2 text-xs text-[#2B211E]/60 mb-2">
-                <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#703A3A]">Dashboard</a>
+            <div class="flex items-center gap-2 text-xs text-[#1F2937]/60 mb-2">
+                <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#1F2B45]">Dashboard</a>
                 <span>/</span>
-                <a href="{{ route('buyer.history') }}" class="hover:text-[#703A3A]">Riwayat</a>
+                <a href="{{ route('buyer.history') }}" class="hover:text-[#1F2B45]">Riwayat</a>
                 <span>/</span>
-                <span class="text-[#703A3A] font-semibold">{{ $booking->booking_code }}</span>
+                <span class="text-[#1F2B45] font-semibold">{{ $booking->booking_code }}</span>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#2B211E]">
+                <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1F2937]">
                     Dossier Pesanan: {{ $booking->destination->name }}
                 </h1>
 
@@ -37,7 +37,7 @@
                         <span class="w-2 h-2 rounded-full bg-[#b87a38]"></span> Menunggu Pembayaran
                     </span>
                 @elseif($bSt === 'selesai')
-                    <span class="px-3 py-1 bg-[#2B211E]/15 text-[#2B211E] text-xs font-bold uppercase tracking-wider border border-[#2B211E]/30">
+                    <span class="px-3 py-1 bg-[#1F2937]/15 text-[#1F2937] text-xs font-bold uppercase tracking-wider border border-[#1F2937]/30">
                         Ekskursi Selesai
                     </span>
                 @else
@@ -46,7 +46,7 @@
                     </span>
                 @endif
             </div>
-            <div class="text-xs text-[#2B211E]/60 mt-1 font-mono">
+            <div class="text-xs text-[#1F2937]/60 mt-1 font-mono">
                 ID SISTEM: {{ $booking->booking_code }} • DIAJUKAN: {{ $booking->created_at->translatedFormat('d F Y, H:i') }} WIB
             </div>
         </div>
@@ -76,7 +76,7 @@
             @endif
 
             @if(isset($canCancel) && $canCancel)
-                <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.remove('hidden')" class="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-300 rounded-full flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.remove('hidden')" class="px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-300 rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[18px]">cancel</span>
                     <span>Batalkan</span>
                 </button>
@@ -107,9 +107,9 @@
             <form action="{{ route('buyer.booking.reuploadProof', $booking->booking_code) }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3 pt-3 border-t border-rose-200">
                 @csrf
                 <div class="flex-1 min-w-[200px]">
-                    <input type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required class="w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-rose-700 file:text-white hover:file:bg-rose-800">
+                    <input type="file" name="proof_file" accept=".jpg,.jpeg,.png,.pdf" required class="w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-rose-700 file:text-white hover:file:bg-rose-800">
                 </div>
-                <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-xs flex items-center gap-1.5">
+                <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-xs flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">upload_file</span>
                     <span>Unggah Ulang Bukti</span>
                 </button>
@@ -118,8 +118,8 @@
     @endif
 
     <!-- 5-Stage Visual Progress Tracker -->
-    <div class="rgs-card p-6 border-t-4 border-t-[#703A3A]">
-        <h3 class="font-serif text-sm font-bold text-[#2B211E] uppercase tracking-wider mb-5">
+    <div class="rgs-card p-6 border-t-4 border-t-[#1F2B45]">
+        <h3 class="font-serif text-sm font-bold text-[#1F2937] uppercase tracking-wider mb-5">
             Tahapan Verifikasi & Status Pelaksanaan
         </h3>
 
@@ -137,8 +137,8 @@
                     <span class="font-bold text-[#51634b] text-[10px] uppercase">Langkah 1</span>
                     <span class="material-symbols-outlined text-[#51634b] text-[16px]">check_circle</span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Pengajuan Masuk</div>
-                <div class="text-[10px] text-[#2B211E]/70">Diterima sistem</div>
+                <div class="font-bold text-[#1F2937]">Pengajuan Masuk</div>
+                <div class="text-[10px] text-[#1F2937]/70">Diterima sistem</div>
             </div>
 
             <!-- Step 2: Pembayaran -->
@@ -149,8 +149,8 @@
                         {{ $isPaid ? 'check_circle' : ($hasPendingProof ? 'hourglass_top' : 'pending') }}
                     </span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Pembayaran Tagihan</div>
-                <div class="text-[10px] text-[#2B211E]/70">
+                <div class="font-bold text-[#1F2937]">Pembayaran Tagihan</div>
+                <div class="text-[10px] text-[#1F2937]/70">
                     @if($isPaid)
                         Lunas terverifikasi
                     @elseif($hasPendingProof)
@@ -162,15 +162,15 @@
             </div>
 
             <!-- Step 3: Konfirmasi Mitra -->
-            <div class="p-3 border {{ $isConfirmed ? 'border-[#51634b]/30 bg-[#51634b]/10' : ($isPaid ? 'border-[#b87a38]/40 bg-[#b87a38]/10 ring-1 ring-[#b87a38]' : 'border-[#2B211E]/15 bg-[#faf6f0]') }} text-xs space-y-1">
+            <div class="p-3 border {{ $isConfirmed ? 'border-[#51634b]/30 bg-[#51634b]/10' : ($isPaid ? 'border-[#b87a38]/40 bg-[#b87a38]/10 ring-1 ring-[#b87a38]' : 'border-[#1F2937]/15 bg-[#F4F6F9]') }} text-xs space-y-1">
                 <div class="flex items-center justify-between">
-                    <span class="font-bold {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#2B211E]/50') }} text-[10px] uppercase">Langkah 3</span>
-                    <span class="material-symbols-outlined {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#2B211E]/40') }} text-[16px]">
+                    <span class="font-bold {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#1F2937]/50') }} text-[10px] uppercase">Langkah 3</span>
+                    <span class="material-symbols-outlined {{ $isConfirmed ? 'text-[#51634b]' : ($isPaid ? 'text-[#b87a38]' : 'text-[#1F2937]/40') }} text-[16px]">
                         {{ $isConfirmed ? 'check_circle' : ($isPaid ? 'pending' : 'hourglass_empty') }}
                     </span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Konfirmasi Mitra</div>
-                <div class="text-[10px] text-[#2B211E]/70">
+                <div class="font-bold text-[#1F2937]">Konfirmasi Mitra</div>
+                <div class="text-[10px] text-[#1F2937]/70">
                     @if($isConfirmed)
                         Kuota resmi disetujui
                     @elseif($isPaid)
@@ -182,29 +182,29 @@
             </div>
 
             <!-- Step 4: Dokumen & Izin -->
-            <div class="p-3 border {{ $isConfirmed ? 'border-[#51634b]/30 bg-[#51634b]/10' : 'border-[#2B211E]/15 bg-[#faf6f0]' }} text-xs space-y-1">
+            <div class="p-3 border {{ $isConfirmed ? 'border-[#51634b]/30 bg-[#51634b]/10' : 'border-[#1F2937]/15 bg-[#F4F6F9]' }} text-xs space-y-1">
                 <div class="flex items-center justify-between">
-                    <span class="font-bold {{ $isConfirmed ? 'text-[#51634b]' : 'text-[#2B211E]/50' }} text-[10px] uppercase">Langkah 4</span>
-                    <span class="material-symbols-outlined {{ $isConfirmed ? 'text-[#51634b]' : 'text-[#2B211E]/40' }} text-[16px]">
+                    <span class="font-bold {{ $isConfirmed ? 'text-[#51634b]' : 'text-[#1F2937]/50' }} text-[10px] uppercase">Langkah 4</span>
+                    <span class="material-symbols-outlined {{ $isConfirmed ? 'text-[#51634b]' : 'text-[#1F2937]/40' }} text-[16px]">
                         {{ $isConfirmed ? 'check_circle' : 'hourglass_empty' }}
                     </span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Dokumen & e-Pass</div>
-                <div class="text-[10px] text-[#2B211E]/70">
+                <div class="font-bold text-[#1F2937]">Dokumen & e-Pass</div>
+                <div class="text-[10px] text-[#1F2937]/70">
                     {{ $isConfirmed ? 'Siap diunduh' : 'Menunggu konfirmasi' }}
                 </div>
             </div>
 
             <!-- Step 5: Pelaksanaan -->
-            <div class="p-3 border {{ $isCompleted ? 'border-[#51634b]/30 bg-[#51634b]/10' : 'border-[#2B211E]/15 bg-[#faf6f0]' }} text-xs space-y-1">
+            <div class="p-3 border {{ $isCompleted ? 'border-[#51634b]/30 bg-[#51634b]/10' : 'border-[#1F2937]/15 bg-[#F4F6F9]' }} text-xs space-y-1">
                 <div class="flex items-center justify-between">
-                    <span class="font-bold {{ $isCompleted ? 'text-[#51634b]' : 'text-[#2B211E]/50' }} text-[10px] uppercase">Langkah 5</span>
-                    <span class="material-symbols-outlined {{ $isCompleted ? 'text-[#51634b]' : 'text-[#2B211E]/40' }} text-[16px]">
+                    <span class="font-bold {{ $isCompleted ? 'text-[#51634b]' : 'text-[#1F2937]/50' }} text-[10px] uppercase">Langkah 5</span>
+                    <span class="material-symbols-outlined {{ $isCompleted ? 'text-[#51634b]' : 'text-[#1F2937]/40' }} text-[16px]">
                         {{ $isCompleted ? 'verified' : 'flag' }}
                     </span>
                 </div>
-                <div class="font-bold text-[#2B211E]">Ekskursi Lapangan</div>
-                <div class="text-[10px] text-[#2B211E]/70">
+                <div class="font-bold text-[#1F2937]">Ekskursi Lapangan</div>
+                <div class="text-[10px] text-[#1F2937]/70">
                     {{ $isCompleted ? 'Selesai terlaksana' : 'Jadwal kunjungan' }}
                 </div>
             </div>
@@ -218,29 +218,29 @@
         <div class="lg:col-span-7 space-y-6">
 
             <!-- Card Informasi Tapak & PIC Pengelola -->
-            <div class="rgs-card p-6 border-t-4 border-t-[#703A3A] space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+            <div class="rgs-card p-6 border-t-4 border-t-[#1F2B45] space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-[#1F2937]/10">
                     <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[#703A3A] text-[20px]">nature_people</span>
-                        <h2 class="font-serif text-lg font-bold text-[#2B211E]">Informasi Destinasi & Pengelola</h2>
+                        <span class="material-symbols-outlined text-[#1F2B45] text-[20px]">nature_people</span>
+                        <h2 class="font-serif text-lg font-bold text-[#1F2937]">Informasi Destinasi & Pengelola</h2>
                     </div>
-                    <span class="text-xs font-semibold text-[#703A3A] uppercase">{{ $booking->destination->city }}, {{ $booking->destination->province?->name ?? $booking->destination->province }}</span>
+                    <span class="text-xs font-semibold text-[#1F2B45] uppercase">{{ $booking->destination->city }}, {{ $booking->destination->province?->name ?? $booking->destination->province }}</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                    <div class="sm:col-span-1 aspect-video sm:aspect-square bg-gray-100 border border-[#2B211E]/15 overflow-hidden">
+                    <div class="sm:col-span-1 aspect-video sm:aspect-square bg-gray-100 border border-[#1F2937]/15 overflow-hidden">
                         <img src="{{ asset($booking->destination->cover_image) }}" alt="{{ $booking->destination->name }}" class="w-full h-full object-cover">
                     </div>
                     <div class="sm:col-span-2 space-y-2">
-                        <h3 class="font-serif text-base font-bold text-[#2B211E]">{{ $booking->destination->name }}</h3>
-                        <p class="text-xs text-[#2B211E]/75 leading-relaxed">
+                        <h3 class="font-serif text-base font-bold text-[#1F2937]">{{ $booking->destination->name }}</h3>
+                        <p class="text-xs text-[#1F2937]/75 leading-relaxed">
                             {{ $booking->destination->description }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Kontak PIC Pengelola (Sesuai PRD: Terbuka Sesuai Aturan contact_reveal_status) -->
-                <div class="p-4 bg-[#faf6f0] border border-[#2B211E]/15 space-y-2 text-xs">
+                <div class="p-4 bg-[#F4F6F9] border border-[#1F2937]/15 space-y-2 text-xs">
                     @php
                         $canReveal = Auth::user() && Auth::user()->can('revealContact', $booking);
                         $revealSetting = setting('contact_reveal_status', 'dikonfirmasi');
@@ -251,7 +251,7 @@
                         };
                     @endphp
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-[#703A3A] uppercase tracking-wider text-[10px] flex items-center gap-1">
+                        <span class="font-bold text-[#1F2B45] uppercase tracking-wider text-[10px] flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">contacts</span>
                             <span>Kontak Resmi Penanggung Jawab Tapak Adat</span>
                         </span>
@@ -273,18 +273,18 @@
                     @if($contact)
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                         <div>
-                            <span class="text-[#2B211E]/60 text-[11px] block">Nama Koordinator Tapak:</span>
-                            <span class="font-bold text-[#2B211E]">{{ $contact->contact_name }} ({{ $contact->role }})</span>
+                            <span class="text-[#1F2937]/60 text-[11px] block">Nama Koordinator Tapak:</span>
+                            <span class="font-bold text-[#1F2937]">{{ $contact->contact_name }} ({{ $contact->role }})</span>
                         </div>
                         <div>
-                            <span class="text-[#2B211E]/60 text-[11px] block">WhatsApp / Telepon Resmi:</span>
+                            <span class="text-[#1F2937]/60 text-[11px] block">WhatsApp / Telepon Resmi:</span>
                             @if($canReveal)
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contact->phone) }}" target="_blank" class="font-bold text-[#51634b] hover:underline flex items-center gap-1">
                                     <span>{{ $contact->phone }}</span>
                                     <span class="material-symbols-outlined text-[14px]">open_in_new</span>
                                 </a>
                             @else
-                                <span class="font-mono text-[#2B211E]/50">{{ substr($contact->phone, 0, 4) }}-xxxx-{{ substr($contact->phone, -4) }} (Disamarkan)</span>
+                                <span class="font-mono text-[#1F2937]/50">{{ substr($contact->phone, 0, 4) }}-xxxx-{{ substr($contact->phone, -4) }} (Disamarkan)</span>
                             @endif
                         </div>
                     </div>
@@ -293,45 +293,45 @@
             </div>
 
             <!-- Card Spesifikasi Rombongan Belajar -->
-            <div class="rgs-card p-6 border-t-4 border-t-[#703A3A] space-y-4">
-                <div class="flex items-center gap-2 pb-3 border-b border-[#2B211E]/10">
-                    <span class="material-symbols-outlined text-[#703A3A] text-[20px]">badge</span>
-                    <h2 class="font-serif text-lg font-bold text-[#2B211E]">Rincian Delegasi Rombongan</h2>
+            <div class="rgs-card p-6 border-t-4 border-t-[#1F2B45] space-y-4">
+                <div class="flex items-center gap-2 pb-3 border-b border-[#1F2937]/10">
+                    <span class="material-symbols-outlined text-[#1F2B45] text-[20px]">badge</span>
+                    <h2 class="font-serif text-lg font-bold text-[#1F2937]">Rincian Delegasi Rombongan</h2>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">Institusi Pemohon</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->institution->institution_name }}</span>
+                        <span class="text-[#1F2937]/60 block text-[11px]">Institusi Pemohon</span>
+                        <span class="font-bold text-[#1F2937]">{{ $booking->institution->institution_name }}</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">PIC Institusi</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->user->name }}</span>
+                        <span class="text-[#1F2937]/60 block text-[11px]">PIC Institusi</span>
+                        <span class="font-bold text-[#1F2937]">{{ $booking->user->name }}</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">Kategori Ekskursi</span>
-                        <span class="font-bold text-[#703A3A] uppercase">{{ $booking->inquiry_type instanceof \App\Enums\InquiryType ? $booking->inquiry_type->label() : str_replace('_', ' ', (string)$booking->inquiry_type) }}</span>
+                        <span class="text-[#1F2937]/60 block text-[11px]">Kategori Ekskursi</span>
+                        <span class="font-bold text-[#1F2B45] uppercase">{{ $booking->inquiry_type instanceof \App\Enums\InquiryType ? $booking->inquiry_type->label() : str_replace('_', ' ', (string)$booking->inquiry_type) }}</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">Tanggal Pelaksanaan</span>
-                        <span class="font-bold text-[#2B211E]">
+                        <span class="text-[#1F2937]/60 block text-[11px]">Tanggal Pelaksanaan</span>
+                        <span class="font-bold text-[#1F2937]">
                             {{ \Carbon\Carbon::parse($booking->planned_date_start)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($booking->planned_date_end)->translatedFormat('d M Y') }}
                         </span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">Jumlah Siswa</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->participant_count }} Orang</span>
+                        <span class="text-[#1F2937]/60 block text-[11px]">Jumlah Siswa</span>
+                        <span class="font-bold text-[#1F2937]">{{ $booking->participant_count }} Orang</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 block text-[11px]">Guru / Dosen Pendamping</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->companion_count }} Orang</span>
+                        <span class="text-[#1F2937]/60 block text-[11px]">Guru / Dosen Pendamping</span>
+                        <span class="font-bold text-[#1F2937]">{{ $booking->companion_count }} Orang</span>
                     </div>
                 </div>
 
                 @if($booking->purpose_notes)
-                <div class="pt-3 border-t border-[#2B211E]/10 text-xs">
-                    <span class="text-[#2B211E]/60 block text-[11px] mb-1">Catatan Kurikulum / Kebutuhan Khusus:</span>
-                    <div class="p-3 bg-[#faf6f0] border border-[#2B211E]/10 italic text-[#2B211E]/80">
+                <div class="pt-3 border-t border-[#1F2937]/10 text-xs">
+                    <span class="text-[#1F2937]/60 block text-[11px] mb-1">Catatan Kurikulum / Kebutuhan Khusus:</span>
+                    <div class="p-3 bg-[#F4F6F9] border border-[#1F2937]/10 italic text-[#1F2937]/80">
                         "{{ $booking->purpose_notes }}"
                     </div>
                 </div>
@@ -340,10 +340,10 @@
 
             <!-- Card Pusat Dokumen Resmi Destinara (#dokumen) -->
             <div id="dokumen" class="rgs-card p-6 border-t-4 border-t-[#51634b] space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+                <div class="flex items-center justify-between pb-3 border-b border-[#1F2937]/10">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-[#51634b] text-[20px]">folder_special</span>
-                        <h2 class="font-serif text-lg font-bold text-[#2B211E]">Dokumen Resmi Berstempel Destinara</h2>
+                        <h2 class="font-serif text-lg font-bold text-[#1F2937]">Dokumen Resmi Berstempel Destinara</h2>
                     </div>
                     <span class="text-[11px] text-[#51634b] font-bold uppercase">Sah untuk SPK & BOS</span>
                 </div>
@@ -369,14 +369,14 @@
 
                 <div class="space-y-3">
                     @forelse($booking->documents as $doc)
-                    <div class="p-3.5 bg-white border border-[#2B211E]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-3.5 bg-white border border-[#1F2937]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-[#703A3A]/10 text-[#703A3A] flex items-center justify-center shrink-0">
+                            <div class="w-10 h-10 bg-[#1F2B45]/10 text-[#1F2B45] flex items-center justify-center shrink-0">
                                 <span class="material-symbols-outlined text-[22px]">description</span>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-xs text-[#2B211E]">{{ $doc->title }}</span>
+                                    <span class="font-bold text-xs text-[#1F2937]">{{ $doc->title }}</span>
                                     @if($doc->status === \App\Enums\DocumentStatus::VOID)
                                         <span class="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold uppercase rounded border border-rose-300">
                                             Void (Tidak Berlaku)
@@ -387,19 +387,19 @@
                                         </span>
                                     @endif
                                 </div>
-                                <div class="text-[11px] text-[#2B211E]/60">
+                                <div class="text-[11px] text-[#1F2937]/60">
                                     Diterbitkan: {{ $doc->generated_at ? $doc->generated_at->translatedFormat('d M Y, H:i') : $booking->created_at->translatedFormat('d M Y') }}
                                 </div>
                             </div>
                         </div>
 
-                        <a href="{{ route('documents.download', ['document' => $doc->id]) }}" target="_blank" class="px-3.5 py-1.5 bg-[#faf6f0] hover:bg-[#703A3A] hover:text-white text-[#2B211E] text-xs font-bold uppercase tracking-wider border border-[#2B211E]/20 flex items-center justify-center gap-1.5 transition-colors">
+                        <a href="{{ route('documents.download', ['document' => $doc->id]) }}" target="_blank" class="px-3.5 py-1.5 bg-[#F4F6F9] hover:bg-[#1F2B45] hover:text-white text-[#1F2937] text-xs font-bold uppercase tracking-wider border border-[#1F2937]/20 flex items-center justify-center gap-1.5 transition-colors">
                             <span class="material-symbols-outlined text-[16px]">visibility</span>
                             <span>Pratinjau / Unduh</span>
                         </a>
                     </div>
                     @empty
-                    <div class="p-4 bg-[#faf6f0] text-center text-xs text-[#2B211E]/60">
+                    <div class="p-4 bg-[#F4F6F9] text-center text-xs text-[#1F2937]/60">
                         Dokumen resmi akan otomatis diterbitkan begitu pembayaran diselesaikan.
                     </div>
                     @endforelse
@@ -409,10 +409,10 @@
             <!-- Card Ulasan Kunjungan Selesai -->
             @if($booking->status === \App\Enums\BookingStatus::SELESAI)
                 <div class="rgs-card p-6 border-t-4 border-t-amber-500 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-[#2B211E]/10">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#1F2937]/10">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-amber-500 text-[20px]">star</span>
-                            <h2 class="font-serif text-lg font-bold text-[#2B211E]">Ulasan & Penilaian Ekskursi</h2>
+                            <h2 class="font-serif text-lg font-bold text-[#1F2937]">Ulasan & Penilaian Ekskursi</h2>
                         </div>
                     </div>
 
@@ -451,9 +451,9 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Komentar / Masukan Pembelajaran</label>
-                                <textarea name="comment" rows="3" required class="w-full text-xs border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#8C5151]" placeholder="Ceritakan bagaimana kegiatan berlangsung, kesesuaian modul edukasi, keramahan pemandu..."></textarea>
+                                <textarea name="comment" rows="3" required class="w-full text-xs border border-slate-300 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-[#2E3D5C]" placeholder="Ceritakan bagaimana kegiatan berlangsung, kesesuaian modul edukasi, keramahan pemandu..."></textarea>
                             </div>
-                            <button type="submit" class="px-4 py-2 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold uppercase rounded-lg transition">
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white text-xs font-bold uppercase rounded-2xl transition">
                                 Kirim Ulasan Resmi
                             </button>
                         </form>
@@ -467,8 +467,8 @@
         <div class="lg:col-span-5 space-y-6">
 
             <!-- Card Plinth Keuangan Transaksi -->
-            <div class="rgs-card border border-[#2B211E]/20 shadow-sm overflow-hidden">
-                <div class="bg-[#703A3A] text-white p-4">
+            <div class="rgs-card border border-[#1F2937]/20 shadow-sm overflow-hidden">
+                <div class="bg-[#1F2B45] text-white p-4">
                     <div class="text-[10px] font-bold uppercase tracking-widest text-white/70">Rincian Pembayaran Resmi</div>
                     <div class="font-serif text-xl font-bold">Total: Rp {{ number_format($booking->total_amount, 0, ',', '.') }}</div>
                 </div>
@@ -476,43 +476,43 @@
                 <div class="p-5 space-y-3 text-xs">
                     @if($booking->items->isNotEmpty())
                         @foreach($booking->items as $item)
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10">
                             <div>
-                                <span class="text-[#2B211E]/80 font-medium block">{{ $item->name }}</span>
+                                <span class="text-[#1F2937]/80 font-medium block">{{ $item->name }}</span>
                                 @if($item->quantity > 1 && $item->unit_price > 0)
-                                <span class="text-[10px] text-[#2B211E]/50 font-mono">{{ $item->quantity }} x Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
+                                <span class="text-[10px] text-[#1F2937]/50 font-mono">{{ $item->quantity }} x Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
                                 @endif
                             </div>
-                            <span class="font-bold {{ $item->total < 0 ? 'text-emerald-800' : 'text-[#2B211E]' }} font-mono">
+                            <span class="font-bold {{ $item->total < 0 ? 'text-emerald-800' : 'text-[#1F2937]' }} font-mono">
                                 {{ $item->total < 0 ? '-' : '' }}Rp {{ number_format(abs($item->total), 0, ',', '.') }}
                             </span>
                         </div>
                         @endforeach
                     @else
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                            <span class="text-[#2B211E]/70">Biaya Paket Tapak ({{ $booking->participant_count }} Siswa)</span>
-                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format(max(0, $booking->subtotal_amount - $booking->addons_amount), 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10">
+                            <span class="text-[#1F2937]/70">Biaya Paket Tapak ({{ $booking->participant_count }} Siswa)</span>
+                            <span class="font-bold text-[#1F2937] font-mono">Rp {{ number_format(max(0, $booking->subtotal_amount - $booking->addons_amount), 0, ',', '.') }}</span>
                         </div>
 
                         @if($booking->addons_amount > 0)
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                            <span class="text-[#2B211E]/70">Layanan Tambahan (Add-ons)</span>
-                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10">
+                            <span class="text-[#1F2937]/70">Layanan Tambahan (Add-ons)</span>
+                            <span class="font-bold text-[#1F2937] font-mono">Rp {{ number_format($booking->addons_amount, 0, ',', '.') }}</span>
                         </div>
                         @endif
 
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                            <span class="text-[#2B211E]/70">Premi Asuransi Siswa</span>
-                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10">
+                            <span class="text-[#1F2937]/70">Premi Asuransi Siswa</span>
+                            <span class="font-bold text-[#1F2937] font-mono">Rp {{ number_format($booking->insurance_amount, 0, ',', '.') }}</span>
                         </div>
 
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10">
-                            <span class="text-[#2B211E]/70">Administrasi & Verifikasi Dokumen</span>
-                            <span class="font-bold text-[#2B211E] font-mono">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10">
+                            <span class="text-[#1F2937]/70">Administrasi & Verifikasi Dokumen</span>
+                            <span class="font-bold text-[#1F2937] font-mono">Rp {{ number_format($booking->platform_fee_amount, 0, ',', '.') }}</span>
                         </div>
 
                         @if($booking->discount_amount > 0)
-                        <div class="flex items-center justify-between pb-2 border-b border-[#2B211E]/10 text-emerald-800">
+                        <div class="flex items-center justify-between pb-2 border-b border-[#1F2937]/10 text-emerald-800">
                             <span>Diskon Voucher</span>
                             <span class="font-bold font-mono">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</span>
                         </div>
@@ -522,7 +522,7 @@
                     <!-- Status Pembayaran Plinth -->
                     <div class="p-3.5 {{ $isPaid ? 'bg-[#51634b]/10 border-[#51634b]/30' : 'bg-[#b87a38]/10 border-[#b87a38]/30' }} border flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] uppercase font-bold tracking-wider text-[#2B211E]/60 block">Status Transaksi</span>
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-[#1F2937]/60 block">Status Transaksi</span>
                             <span class="font-bold text-sm {{ $isPaid ? 'text-[#51634b]' : 'text-[#b87a38]' }}">
                                 {{ $isPaid ? 'LUNAS TERVERIFIKASI' : 'BELUM DIBAYAR' }}
                             </span>
@@ -555,8 +555,8 @@
 
             <!-- Callout Kebijakan Lapangan & Kepatuhan Adat -->
             <div class="rgs-card p-4 space-y-2 text-xs border-l-4 border-l-[#51634b]">
-                <span class="font-bold text-[#2B211E] block">Protokol FPIC & Keselamatan Lapangan</span>
-                <p class="text-[11px] text-[#2B211E]/70 leading-relaxed">
+                <span class="font-bold text-[#1F2937] block">Protokol FPIC & Keselamatan Lapangan</span>
+                <p class="text-[11px] text-[#1F2937]/70 leading-relaxed">
                     Setiap rombongan wajib menaati panduan kearifan lokal yang telah disepakati, menjaga kebersihan area adat, serta menggunakan e-Pass resmi saat tiba di lokasi.
                 </p>
             </div>
@@ -584,7 +584,7 @@
                 <div class="flex items-center justify-between font-bold text-amber-900">
                     <span>Estimasi Pengembalian Dana (Refund):</span>
                     @if($refundCalc['percent'] > 0)
-                        <span class="text-sm font-black text-[#703A3A]">{{ $refundCalc['percent'] }}% (Rp {{ number_format($refundCalc['amount'], 0, ',', '.') }})</span>
+                        <span class="text-sm font-black text-[#1F2B45]">{{ $refundCalc['percent'] }}% (Rp {{ number_format($refundCalc['amount'], 0, ',', '.') }})</span>
                     @else
                         <span class="text-sm font-black text-rose-700">Tidak ada refund (0%)</span>
                     @endif
@@ -603,7 +603,7 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Alasan Pembatalan <span class="text-rose-500">*</span></label>
-                    <textarea name="reason" rows="3" required minlength="5" maxlength="500" class="w-full text-xs border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-[#703A3A] outline-none" placeholder="Tuliskan alasan pembatalan kegiatan ekskursi..."></textarea>
+                    <textarea name="reason" rows="3" required minlength="5" maxlength="500" class="w-full text-xs border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-[#1F2B45] outline-none" placeholder="Tuliskan alasan pembatalan kegiatan ekskursi..."></textarea>
                 </div>
 
                 @if($refundCalc['percent'] > 0)
@@ -611,7 +611,7 @@
                         <span class="text-xs font-bold text-slate-900 block">Informasi Rekening Pengembalian Dana</span>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Bank Tujuan <span class="text-rose-500">*</span></label>
-                            <select name="bank_id" required class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-[#703A3A]">
+                            <select name="bank_id" required class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-[#1F2B45]">
                                 <option value="">-- Pilih Bank --</option>
                                 @foreach($banks as $b)
                                     <option value="{{ $b->id }}">{{ $b->name }} ({{ $b->code }})</option>
@@ -621,21 +621,21 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Rekening <span class="text-rose-500">*</span></label>
-                                <input type="text" name="bank_account_number" required maxlength="50" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#703A3A]" placeholder="1234567890">
+                                <input type="text" name="bank_account_number" required maxlength="50" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#1F2B45]" placeholder="1234567890">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Pemilik Rekening <span class="text-rose-500">*</span></label>
-                                <input type="text" name="bank_account_holder" required maxlength="255" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#703A3A]" placeholder="a.n. Sekolah / Lembaga">
+                                <input type="text" name="bank_account_holder" required maxlength="255" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-[#1F2B45]" placeholder="a.n. Sekolah / Lembaga">
                             </div>
                         </div>
                     </div>
                 @endif
 
                 <div class="pt-2 flex items-center justify-end gap-3">
-                    <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.add('hidden')" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase rounded-full hover:bg-slate-100">
+                    <button type="button" onclick="document.getElementById('modal-cancel-booking').classList.add('hidden')" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold uppercase rounded-2xl hover:bg-slate-100">
                         Kembali
                     </button>
-                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini secara permanen?')" class="px-5 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-full transition shadow-sm">
+                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini secara permanen?')" class="px-5 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold uppercase tracking-wider rounded-2xl transition shadow-sm">
                         Ya, Batalkan Pesanan
                     </button>
                 </div>

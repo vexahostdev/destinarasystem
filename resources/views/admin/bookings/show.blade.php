@@ -11,7 +11,7 @@
                 <span>Kembali ke Daftar Reservasi</span>
             </a>
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-extrabold text-[#1E1B1B] font-mono">#{{ $booking->booking_code }}</h1>
+                <h1 class="text-2xl font-extrabold text-[#111827] font-mono">#{{ $booking->booking_code }}</h1>
                 <x-status-badge :enum="$booking->status" />
             </div>
             <p class="text-sm text-gray-500 mt-1">Dipesan pada {{ $booking->created_at->translatedFormat('d F Y H:i') }}</p>
@@ -23,14 +23,14 @@
                 <form action="{{ route('admin.bookings.updateStatus', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Konfirmasi reservasi ini sekarang?')">
                     @csrf
                     <input type="hidden" name="action" value="force_confirm">
-                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
                         Konfirmasi Booking
                     </button>
                 </form>
             @endif
 
             @if(in_array($booking->status, [\App\Enums\BookingStatus::DIBAYAR, \App\Enums\BookingStatus::DIKONFIRMASI]))
-                <button type="button" @click="openRescheduleModal = true" class="border border-stone-300 text-stone-700 hover:bg-stone-50 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                <button type="button" @click="openRescheduleModal = true" class="border border-stone-300 text-stone-700 hover:bg-stone-50 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
                     Jadwal Ulang
                 </button>
             @endif
@@ -39,14 +39,14 @@
                 <form action="{{ route('admin.bookings.updateStatus', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Tandai kunjungan rombongan ini telah selesai?')">
                     @csrf
                     <input type="hidden" name="action" value="complete">
-                    <button type="submit" class="bg-[#51634b] hover:bg-[#3d4b38] text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                    <button type="submit" class="bg-[#51634b] hover:bg-[#3d4b38] text-white px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
                         Tandai Selesai
                     </button>
                 </form>
             @endif
 
             @if(!in_array($booking->status, [\App\Enums\BookingStatus::BATAL, \App\Enums\BookingStatus::KEDALUWARSA, \App\Enums\BookingStatus::SELESAI]))
-                <button type="button" @click="openCancelModal = true" class="border border-rose-300 text-rose-700 hover:bg-rose-50 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider">
+                <button type="button" @click="openCancelModal = true" class="border border-rose-300 text-rose-700 hover:bg-rose-50 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
                     Batalkan Reservasi
                 </button>
             @endif
@@ -59,7 +59,7 @@
         <div class="lg:col-span-2 space-y-6">
             <!-- Informasi Tapak & Institusi -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
-                <h3 class="text-base font-bold text-[#1E1B1B]">Detail Pesanan & Destinasi</h3>
+                <h3 class="text-base font-bold text-[#111827]">Detail Pesanan & Destinasi</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
                         <span class="text-gray-400 block font-semibold">Destinasi Tapak:</span>
@@ -95,7 +95,7 @@
 
             <!-- Rincian Item Layanan -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
-                <h3 class="text-base font-bold text-[#1E1B1B]">Rincian Item Pembayaran</h3>
+                <h3 class="text-base font-bold text-[#111827]">Rincian Item Pembayaran</h3>
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="border-b border-gray-100 text-gray-400 uppercase font-semibold">
@@ -155,7 +155,7 @@
                         @endforelse
                         <tr class="font-bold text-gray-900 border-t border-gray-200">
                             <td colspan="3" class="pt-3 text-right">Total Transaksi:</td>
-                            <td class="pt-3 text-right font-mono text-[#703A3A] text-sm">Rp {{ number_format($booking->total_amount, 0, ',', '.') }}</td>
+                            <td class="pt-3 text-right font-mono text-[#1F2B45] text-sm">Rp {{ number_format($booking->total_amount, 0, ',', '.') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -163,18 +163,18 @@
 
             <!-- Dokumen Resmi Terkait -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-3">
-                <h3 class="text-base font-bold text-[#1E1B1B]">Dokumen Resmi Terbit</h3>
+                <h3 class="text-base font-bold text-[#111827]">Dokumen Resmi Terbit</h3>
                 <div class="space-y-2">
                     @forelse($booking->documents as $doc)
                     <div class="p-3 rounded-2xl bg-stone-50 border border-stone-200/60 flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[#703A3A]">description</span>
+                            <span class="material-symbols-outlined text-[#1F2B45]">description</span>
                             <div>
                                 <span class="font-bold text-gray-800 block">{{ $doc->title }}</span>
                                 <span class="text-[10px] text-gray-400 font-mono">{{ $doc->document_number }} • Versi {{ $doc->version }}</span>
                             </div>
                         </div>
-                        <a href="{{ route('admin.documents.preview', $doc->id) }}" target="_blank" class="text-xs font-bold text-[#703A3A] hover:underline">
+                        <a href="{{ route('admin.documents.preview', $doc->id) }}" target="_blank" class="text-xs font-bold text-[#1F2B45] hover:underline">
                             Preview PDF
                         </a>
                     </div>
@@ -188,11 +188,11 @@
         <!-- Right Side: Timeline & Riwayat Status -->
         <div class="space-y-6">
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
-                <h3 class="text-base font-bold text-[#1E1B1B]">Riwayat Perubahan Status</h3>
+                <h3 class="text-base font-bold text-[#111827]">Riwayat Perubahan Status</h3>
                 <div class="relative border-l-2 border-stone-200 ml-3 space-y-4 text-xs">
                     @foreach($booking->statusHistories as $hist)
                     <div class="ml-4 relative">
-                        <span class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-[#703A3A] border-2 border-white"></span>
+                        <span class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-[#1F2B45] border-2 border-white"></span>
                         <div class="font-bold text-gray-800 uppercase">{{ $hist->to_status->value ?? $hist->to_status }}</div>
                         <div class="text-[10px] text-gray-400 font-mono">{{ $hist->created_at->translatedFormat('d M Y, H:i') }} • {{ $hist->actor?->name ?? 'System' }}</div>
                         @if($hist->note)
@@ -218,20 +218,20 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alasan Pembatalan *</label>
                     <textarea name="reason" required rows="2" placeholder="Sebutkan alasan pembatalan..."
-                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Override Persentase Refund (%)</label>
                     <input type="number" name="refund_percent" min="0" max="100" placeholder="Kosongkan untuk otomatis hitung kebijakan"
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="openCancelModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-xl hover:bg-rose-700">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-2xl hover:bg-rose-700">
                         Konfirmasi Batalkan
                     </button>
                 </div>
@@ -268,20 +268,20 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tanggal Mulai Baru *</label>
                     <input type="date" name="new_date" required min="{{ now()->format('Y-m-d') }}"
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alasan Penjadwalan Ulang *</label>
                     <textarea name="reschedule_reason" required rows="2" placeholder="Catatan alasan perubahan tanggal..."
-                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="openRescheduleModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#703A3A] text-white rounded-xl hover:bg-[#561D1E]">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#1F2B45] text-white rounded-2xl hover:bg-[#16203A]">
                         Simpan Jadwal Baru
                     </button>
                 </div>

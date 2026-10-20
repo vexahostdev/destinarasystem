@@ -14,7 +14,7 @@
                 <span>•</span>
                 <span>{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1E1B1B] tracking-tight">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">
                 Dashboard Operasional & Kurasi
             </h1>
             <p class="text-sm text-gray-500 max-w-2xl leading-relaxed">
@@ -23,11 +23,11 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <a href="{{ route('admin.destinations.verify') }}" class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all">
+            <a href="{{ route('admin.destinations.verify') }}" class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all">
                 <span class="material-symbols-outlined text-[18px]">verified</span>
                 <span>Telaah Tapak ({{ $pendingDestinations }})</span>
             </a>
-            <a href="{{ route('admin.bookings.index') }}" class="px-5 py-2.5 rounded-full border border-gray-300 hover:border-gray-400 text-gray-700 bg-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-xs">
+            <a href="{{ route('admin.bookings.index') }}" class="px-5 py-2.5 rounded-2xl border border-gray-300 hover:border-gray-400 text-gray-700 bg-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-xs">
                 <span class="material-symbols-outlined text-[18px]">calendar_month</span>
                 <span>Pantau Reservasi</span>
             </a>
@@ -45,11 +45,11 @@
                 </div>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $pendingDestinations }}</span>
+                <span class="text-3xl font-extrabold text-[#111827]">{{ $pendingDestinations }}</span>
                 <span class="text-xs text-amber-800 font-medium">Tapak Baru</span>
             </div>
             <p class="text-[11px] text-gray-400 mt-2">Standar keselamatan & modul P5</p>
-            <a href="{{ route('admin.destinations.verify') }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#703A3A] mt-3 hover:underline">
+            <a href="{{ route('admin.destinations.verify') }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#1F2B45] mt-3 hover:underline">
                 <span>Buka antrian kurasi</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
             </a>
@@ -64,11 +64,11 @@
                 </div>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $pendingVerifications }}</span>
+                <span class="text-3xl font-extrabold text-[#111827]">{{ $pendingVerifications }}</span>
                 <span class="text-xs text-blue-800 font-medium">Menunggu Validasi</span>
             </div>
             <p class="text-[11px] text-gray-500 mt-2">{{ $unverifiedTotal }} akun terdaftar belum mengajukan berkas</p>
-            <div class="flex items-center gap-3 mt-3 text-xs font-bold text-[#703A3A]">
+            <div class="flex items-center gap-3 mt-3 text-xs font-bold text-[#1F2B45]">
                 <a href="{{ route('admin.users.verify', ['tab' => 'partners', 'status' => 'pending']) }}" class="hover:underline flex items-center gap-1">
                     <span>Validasi</span>
                     <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -89,11 +89,11 @@
                 </div>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $activeBookings }}</span>
+                <span class="text-3xl font-extrabold text-[#111827]">{{ $activeBookings }}</span>
                 <span class="text-xs text-[#51634b] font-medium">Rombongan</span>
             </div>
             <p class="text-[11px] text-gray-400 mt-2">{{ $urgentBookings }} reservasi menunggu respon</p>
-            <a href="{{ route('admin.bookings.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#703A3A] mt-3 hover:underline">
+            <a href="{{ route('admin.bookings.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#1F2B45] mt-3 hover:underline">
                 <span>Kelola jadwal</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
             </a>
@@ -108,11 +108,11 @@
                 </div>
             </div>
             <div class="flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-[#1E1B1B]">{{ $failedNotifs }}</span>
+                <span class="text-3xl font-extrabold text-[#111827]">{{ $failedNotifs }}</span>
                 <span class="text-xs text-rose-700 font-medium">Gagal Kirim</span>
             </div>
             <p class="text-[11px] text-gray-400 mt-2">Gateway VexaHost & Brevo</p>
-            <a href="{{ route('admin.notifications.index', ['status' => 'failed']) }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#703A3A] mt-3 hover:underline">
+            <a href="{{ route('admin.notifications.index', ['status' => 'failed']) }}" class="inline-flex items-center gap-1 text-xs font-bold text-[#1F2B45] mt-3 hover:underline">
                 <span>Tinjau queue error</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
             </a>
@@ -123,7 +123,7 @@
     @if(count($urgentItems) > 0)
     <div class="space-y-3">
         <div class="flex items-center justify-between">
-            <h2 class="text-lg font-bold text-[#1E1B1B] flex items-center gap-2">
+            <h2 class="text-lg font-bold text-[#111827] flex items-center gap-2">
                 <span class="material-symbols-outlined text-amber-600">priority_high</span>
                 <span>Tindakan Prioritas (SLA Alert)</span>
             </h2>
@@ -138,11 +138,11 @@
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $item['badge_color'] }}">
                             {{ $item['badge'] }}
                         </span>
-                        <h3 class="text-sm font-bold text-[#1E1B1B]">{{ $item['title'] }}</h3>
+                        <h3 class="text-sm font-bold text-[#111827]">{{ $item['title'] }}</h3>
                     </div>
                     <p class="text-xs text-gray-600 leading-relaxed">{{ $item['desc'] }}</p>
                 </div>
-                <a href="{{ $item['link'] }}" class="px-3.5 py-1.5 rounded-full border border-gray-300 text-xs font-bold uppercase tracking-wider bg-white hover:bg-gray-50 transition-all shrink-0">
+                <a href="{{ $item['link'] }}" class="px-3.5 py-1.5 rounded-2xl border border-gray-300 text-xs font-bold uppercase tracking-wider bg-white hover:bg-gray-50 transition-all shrink-0">
                     {{ $item['action_label'] }}
                 </a>
             </div>
@@ -159,10 +159,10 @@
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
                     <div>
-                        <h2 class="text-lg font-bold text-[#1E1B1B]">Arus Reservasi Terkini</h2>
+                        <h2 class="text-lg font-bold text-[#111827]">Arus Reservasi Terkini</h2>
                         <p class="text-xs text-gray-400">Daftar booking sekolah dan institusi yang baru masuk sistem</p>
                     </div>
-                    <a href="{{ route('admin.bookings.index') }}" class="text-xs font-bold text-[#703A3A] hover:underline flex items-center gap-1">
+                    <a href="{{ route('admin.bookings.index') }}" class="text-xs font-bold text-[#1F2B45] hover:underline flex items-center gap-1">
                         <span>Lihat Semua</span>
                         <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </a>
@@ -184,24 +184,24 @@
                             @forelse($recentBookings as $b)
                             <tr class="hover:bg-gray-50/70 transition-colors">
                                 <td class="py-3.5 pr-2">
-                                    <span class="font-mono font-bold text-[#703A3A] block">{{ $b->booking_code }}</span>
-                                    <span class="text-[#1E1B1B] font-medium">{{ $b->user?->institution?->institution_name ?? $b->user?->name }}</span>
+                                    <span class="font-mono font-bold text-[#1F2B45] block">{{ $b->booking_code }}</span>
+                                    <span class="text-[#111827] font-medium">{{ $b->user?->institution?->institution_name ?? $b->user?->name }}</span>
                                 </td>
                                 <td class="py-3.5 pr-2">
-                                    <span class="font-semibold text-[#1E1B1B] block">{{ $b->destination?->name ?? '-' }}</span>
+                                    <span class="font-semibold text-[#111827] block">{{ $b->destination?->name ?? '-' }}</span>
                                     <span class="text-[11px] text-gray-400">{{ $b->destination?->city ?? '' }}</span>
                                 </td>
                                 <td class="py-3.5 pr-2 font-mono text-gray-600">
                                     {{ $b->planned_date_start?->translatedFormat('d M Y') ?? '-' }}
                                 </td>
-                                <td class="py-3.5 pr-2 text-right font-mono font-bold text-[#1E1B1B]">
+                                <td class="py-3.5 pr-2 text-right font-mono font-bold text-[#111827]">
                                     {{ $b->participant_count }} Pax
                                 </td>
                                 <td class="py-3.5 text-center">
                                     <x-status-badge :enum="$b->status" />
                                 </td>
                                 <td class="py-3.5 text-right">
-                                    <a href="{{ route('admin.bookings.show', $b->booking_code) }}" class="text-[#703A3A] font-bold hover:underline">
+                                    <a href="{{ route('admin.bookings.show', $b->booking_code) }}" class="text-[#1F2B45] font-bold hover:underline">
                                         Detail
                                     </a>
                                 </td>
@@ -218,13 +218,13 @@
 
             <!-- Ringkasan Finansial Makro Riil -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
-                <h3 class="text-base font-bold text-[#1E1B1B] mb-1">Performa Transaksi Riil</h3>
+                <h3 class="text-base font-bold text-[#111827] mb-1">Performa Transaksi Riil</h3>
                 <p class="text-xs text-gray-400 mb-4">Total nilai transaksi bruto (GMV) terverifikasi dalam sistem</p>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60">
                         <span class="text-xs text-stone-500 font-semibold block">GMV Hari Ini</span>
-                        <span class="text-xl font-extrabold text-[#703A3A] font-mono mt-1 block">
+                        <span class="text-xl font-extrabold text-[#1F2B45] font-mono mt-1 block">
                             Rp {{ number_format($gmvToday, 0, ',', '.') }}
                         </span>
                         <span class="text-[11px] text-stone-400 mt-1 block">{{ $bookingsToday }} reservasi dibuat hari ini</span>
@@ -268,8 +268,8 @@
             <!-- Rekam Jejak Aktivitas Operasional (Audit Trail) -->
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
-                    <h3 class="text-base font-bold text-[#1E1B1B] flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[18px] text-[#703A3A]">history</span>
+                    <h3 class="text-base font-bold text-[#111827] flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px] text-[#1F2B45]">history</span>
                         <span>Audit Trail</span>
                     </h3>
                     <span class="text-[10px] font-mono text-gray-400 uppercase">Live Log</span>
@@ -279,11 +279,11 @@
                     @foreach($auditTrail as $a)
                     <div class="text-xs space-y-1 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-[#1E1B1B]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</span>
+                            <span class="font-bold text-[#111827]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</span>
                             <span class="text-[10px] text-gray-400 font-mono">{{ $a->created_at->diffForHumans() }}</span>
                         </div>
                         <p class="text-gray-600 leading-relaxed">{{ $a->description }}</p>
-                        <div class="flex items-center gap-2 text-[10px] font-mono text-[#703A3A]">
+                        <div class="flex items-center gap-2 text-[10px] font-mono text-[#1F2B45]">
                             <span>{{ strtoupper($a->action) }}</span>
                             <span>•</span>
                             <span class="text-gray-400">{{ $a->ip_address }}</span>
@@ -293,7 +293,7 @@
                 </div>
 
                 <div class="mt-4 pt-3 border-t border-gray-100 text-center">
-                    <a href="{{ route('admin.notifications.index') }}" class="text-xs font-bold text-[#703A3A] hover:underline">
+                    <a href="{{ route('admin.notifications.index') }}" class="text-xs font-bold text-[#1F2B45] hover:underline">
                         Lihat Log Sistem Lengkap &rarr;
                     </a>
                 </div>

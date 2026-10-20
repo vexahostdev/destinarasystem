@@ -14,17 +14,17 @@
 }">
 
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2B211E]/12 pb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1F2937]/12 pb-6">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#703A3A] mb-1">
+            <div class="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#1F2B45] mb-1">
                 <span>Manajemen Transaksi & Rombongan</span>
                 <span>•</span>
                 <span>Seluruh Indonesia</span>
             </div>
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#2B211E]">
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1F2937]">
                 Manajemen Booking Lintas Destinasi
             </h1>
-            <p class="text-sm text-[#2B211E]/70 max-w-2xl">
+            <p class="text-sm text-[#1F2937]/70 max-w-2xl">
                 Pantau seluruh reservasi rombongan sekolah dan kampus, track status pembayaran resmi SP2D/BOS, serta lakukan intervensi jadwal operasional jika terjadi kendala lapangan.
             </p>
         </div>
@@ -42,27 +42,27 @@
         <!-- Status Filter Pills -->
         <div class="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 text-xs font-semibold uppercase tracking-wider">
             <a href="{{ route('admin.bookings.index', ['status' => 'all', 'search' => $search]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'all' ? 'bg-[#703A3A] text-white shadow-xs' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'all' ? 'bg-[#1F2B45] text-white shadow-xs' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Semua</span>
                 <span class="px-1.5 py-0.2 bg-black/10 text-[10px] font-mono">{{ $statusCounts['all'] }}</span>
             </a>
             <a href="{{ route('admin.bookings.index', ['status' => 'pending_confirmation', 'search' => $search]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'pending_confirmation' ? 'bg-[#703A3A] text-white shadow-xs' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'pending_confirmation' ? 'bg-[#1F2B45] text-white shadow-xs' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Review Mitra</span>
                 <span class="px-1.5 py-0.2 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-mono">{{ $statusCounts['pending_confirmation'] }}</span>
             </a>
             <a href="{{ route('admin.bookings.index', ['status' => 'awaiting_payment', 'search' => $search]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'awaiting_payment' ? 'bg-[#703A3A] text-white shadow-xs' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'awaiting_payment' ? 'bg-[#1F2B45] text-white shadow-xs' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Menunggu Bayar</span>
                 <span class="px-1.5 py-0.2 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-mono">{{ $statusCounts['awaiting_payment'] }}</span>
             </a>
             <a href="{{ route('admin.bookings.index', ['status' => 'confirmed', 'search' => $search]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'confirmed' ? 'bg-[#703A3A] text-white shadow-xs' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'confirmed' ? 'bg-[#1F2B45] text-white shadow-xs' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Lunas / Sah</span>
                 <span class="px-1.5 py-0.2 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-mono">{{ $statusCounts['confirmed'] }}</span>
             </a>
             <a href="{{ route('admin.bookings.index', ['status' => 'completed', 'search' => $search]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'completed' ? 'bg-[#703A3A] text-white shadow-xs' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $status === 'completed' ? 'bg-[#1F2B45] text-white shadow-xs' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Selesai</span>
                 <span class="px-1.5 py-0.2 bg-gray-100 text-gray-900 border border-gray-300 text-[10px] font-mono">{{ $statusCounts['completed'] }}</span>
             </a>
@@ -73,14 +73,14 @@
             <input type="hidden" name="status" value="{{ $status }}">
             <div class="relative w-full sm:w-72">
                 <input type="text" name="search" value="{{ $search }}" placeholder="Cari kode, sekolah, tapak..." 
-                       class="w-full pl-9 pr-3 py-2 text-xs border border-[#2B211E]/20 bg-white focus:ring-1 focus:ring-[#703A3A] outline-none">
-                <span class="material-symbols-outlined text-[16px] absolute left-2.5 top-2.5 text-[#2B211E]/40">search</span>
+                       class="w-full pl-9 pr-3 py-2 text-xs border border-[#1F2937]/20 bg-white focus:ring-1 focus:ring-[#1F2B45] outline-none">
+                <span class="material-symbols-outlined text-[16px] absolute left-2.5 top-2.5 text-[#1F2937]/40">search</span>
             </div>
             <button type="submit" class="rgs-btn-primary px-3 py-2 text-xs font-semibold uppercase">
                 Filter
             </button>
             @if(!empty($search))
-                <a href="{{ route('admin.bookings.index', ['status' => $status]) }}" class="text-xs text-[#703A3A] hover:underline">Reset</a>
+                <a href="{{ route('admin.bookings.index', ['status' => $status]) }}" class="text-xs text-[#1F2B45] hover:underline">Reset</a>
             @endif
         </form>
     </div>
@@ -90,7 +90,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead>
-                    <tr class="bg-[#faf6f0] border-b border-[#2B211E]/12 text-[#2B211E]/60 uppercase tracking-wider font-mono">
+                    <tr class="bg-[#F4F6F9] border-b border-[#1F2937]/12 text-[#1F2937]/60 uppercase tracking-wider font-mono">
                         <th class="py-3 px-4 font-semibold">Kode Reservasi</th>
                         <th class="py-3 px-4 font-semibold">Institusi Pemesan</th>
                         <th class="py-3 px-4 font-semibold">Destinasi Tapak</th>
@@ -101,30 +101,30 @@
                         <th class="py-3 px-4 font-semibold text-center">Intervensi Operasional</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#2B211E]/08">
+                <tbody class="divide-y divide-[#1F2937]/08">
                     @forelse($bookings as $b)
-                    <tr class="hover:bg-[#faf6f0]/60 transition-colors">
+                    <tr class="hover:bg-[#F4F6F9]/60 transition-colors">
                         <td class="py-4 px-4">
-                            <span class="font-mono font-bold text-[#703A3A] text-sm block">{{ $b->booking_code }}</span>
-                            <span class="text-[10px] text-[#2B211E]/50 font-mono">{{ $b->created_at->format('d/m/Y H:i') }}</span>
+                            <span class="font-mono font-bold text-[#1F2B45] text-sm block">{{ $b->booking_code }}</span>
+                            <span class="text-[10px] text-[#1F2937]/50 font-mono">{{ $b->created_at->format('d/m/Y H:i') }}</span>
                         </td>
                         <td class="py-4 px-4">
-                            <span class="font-semibold text-[#2B211E] block">{{ $b->user->institution->institution_name ?? $b->user->name }}</span>
-                            <span class="text-[11px] text-[#2B211E]/60">PIC: {{ $b->user->institution->pic_name ?? $b->user->name }} ({{ $b->user->phone ?? '-' }})</span>
+                            <span class="font-semibold text-[#1F2937] block">{{ $b->user->institution->institution_name ?? $b->user->name }}</span>
+                            <span class="text-[11px] text-[#1F2937]/60">PIC: {{ $b->user->institution->pic_name ?? $b->user->name }} ({{ $b->user->phone ?? '-' }})</span>
                         </td>
                         <td class="py-4 px-4">
-                            <span class="font-medium text-[#2B211E] block">{{ $b->destination->name ?? '-' }}</span>
-                            <span class="text-[11px] text-[#2B211E]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province?->name ?? (is_string($b->destination->province) ? $b->destination->province : '') }}</span>
+                            <span class="font-medium text-[#1F2937] block">{{ $b->destination->name ?? '-' }}</span>
+                            <span class="text-[11px] text-[#1F2937]/60">{{ $b->destination->city ?? '' }}, {{ $b->destination->province?->name ?? (is_string($b->destination->province) ? $b->destination->province : '') }}</span>
                         </td>
-                        <td class="py-4 px-4 font-mono font-semibold text-[#2B211E]">
+                        <td class="py-4 px-4 font-mono font-semibold text-[#1F2937]">
                             {{ \Carbon\Carbon::parse($b->planned_date_start ?? $b->visit_date)->translatedFormat('d M Y') }}
                         </td>
                         <td class="py-4 px-4 text-center">
                             <span class="font-mono font-bold text-sm block">{{ $b->participant_count ?? $b->total_pax }} Pax</span>
-                            <span class="text-[10px] uppercase font-mono text-[#2B211E]/60">{{ $b->destination->category?->name ?? $b->destination->category ?? 'studi' }}</span>
+                            <span class="text-[10px] uppercase font-mono text-[#1F2937]/60">{{ $b->destination->category?->name ?? $b->destination->category ?? 'studi' }}</span>
                         </td>
                         <td class="py-4 px-4 text-right">
-                            <span class="font-mono font-bold text-sm text-[#2B211E] block">
+                            <span class="font-mono font-bold text-sm text-[#1F2937] block">
                                 Rp {{ number_format($b->total_amount ?? $b->total_price ?? 0, 0, ',', '.') }}
                             </span>
                             @if($b->payment && ($b->payment->status === \App\Enums\PaymentStatus::PAID || $b->payment->isPaid()))
@@ -202,8 +202,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-12 text-center text-[#2B211E]/60">
-                            <span class="material-symbols-outlined text-3xl mb-1 text-[#2B211E]/30">search_off</span>
+                        <td colspan="8" class="py-12 text-center text-[#1F2937]/60">
+                            <span class="material-symbols-outlined text-3xl mb-1 text-[#1F2937]/30">search_off</span>
                             <p class="font-medium">Tidak ada booking yang cocok dengan kriteria filter.</p>
                         </td>
                     </tr>
@@ -219,10 +219,10 @@
          class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs"
          @keydown.escape.window="rescheduleModal = false">
         
-        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#2B211E]/20 shadow-xl" @click.away="rescheduleModal = false">
-            <div class="flex items-center justify-between border-b border-[#2B211E]/10 pb-3">
-                <h3 class="font-serif text-lg font-bold text-[#2B211E]">Jadwalkan Ulang Kunjungan</h3>
-                <button @click="rescheduleModal = false" class="text-[#2B211E]/60 hover:text-[#2B211E]">
+        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#1F2937]/20 shadow-xl" @click.away="rescheduleModal = false">
+            <div class="flex items-center justify-between border-b border-[#1F2937]/10 pb-3">
+                <h3 class="font-serif text-lg font-bold text-[#1F2937]">Jadwalkan Ulang Kunjungan</h3>
+                <button @click="rescheduleModal = false" class="text-[#1F2937]/60 hover:text-[#1F2937]">
                     <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
             </div>
@@ -231,44 +231,44 @@
                 @csrf
                 <input type="hidden" name="action" value="reschedule">
 
-                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 text-xs space-y-1">
+                <div class="bg-[#F4F6F9] p-3 border border-[#1F2937]/10 text-xs space-y-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-[#2B211E]/70">Kode Reservasi:</span>
-                        <span class="font-mono font-bold text-[#703A3A] text-sm" x-text="selectedBookingCode"></span>
+                        <span class="text-[#1F2937]/70">Kode Reservasi:</span>
+                        <span class="font-mono font-bold text-[#1F2B45] text-sm" x-text="selectedBookingCode"></span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80 pt-1 border-t border-[#2B211E]/10">
+                    <div class="flex items-center justify-between text-[11px] text-[#1F2937]/80 pt-1 border-t border-[#1F2937]/10">
                         <span>Sisa Kuota Reschedule:</span>
                         <strong x-text="maxReschedule === 0 ? 'Tanpa Batas' : Math.max(0, maxReschedule - selectedRescheduleCount) + ' kali'"></strong>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-[#2B211E]/80">
+                    <div class="flex items-center justify-between text-[11px] text-[#1F2937]/80">
                         <span>Batas Waktu Pengajuan:</span>
                         <span>Maksimal H-{{ (int) setting('reschedule_cutoff_days', 3) }} sebelum jadwal lama</span>
                     </div>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#1F2937]/70">
                         Tanggal Kunjungan Baru *
                     </label>
-                    <input type="date" name="new_date" :value="currentDate" required min="{{ now()->addDays((int) setting('min_lead_days', 3))->format('Y-m-d') }}" class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none">
+                    <input type="date" name="new_date" :value="currentDate" required min="{{ now()->addDays((int) setting('min_lead_days', 3))->format('Y-m-d') }}" class="w-full p-2.5 border border-[#1F2937]/20 text-xs focus:ring-1 focus:ring-[#1F2B45] outline-none">
                     @error('new_date')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
-                    <p class="text-[10px] text-[#2B211E]/60">Sistem akan otomatis menyesuaikan slot ketersediaan pada tapak tujuan.</p>
+                    <p class="text-[10px] text-[#1F2937]/60">Sistem akan otomatis menyesuaikan slot ketersediaan pada tapak tujuan.</p>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-[#2B211E]/70">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-[#1F2937]/70">
                         Alasan Penjadwalan Ulang *
                     </label>
                     <textarea name="reschedule_reason" required rows="2" placeholder="Catatan alasan perubahan tanggal kunjungan..."
-                              class="w-full p-2.5 border border-[#2B211E]/20 text-xs focus:ring-1 focus:ring-[#703A3A] outline-none"></textarea>
+                              class="w-full p-2.5 border border-[#1F2937]/20 text-xs focus:ring-1 focus:ring-[#1F2B45] outline-none"></textarea>
                     @error('reschedule_reason')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#2B211E]/10">
+                <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#1F2937]/10">
                     <button type="button" @click="rescheduleModal = false" class="rgs-btn-outline px-4 py-2 text-xs font-semibold uppercase">
                         Batal
                     </button>
@@ -286,10 +286,10 @@
          class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-xs"
          @keydown.escape.window="cancelModal = false">
         
-        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#2B211E]/20 shadow-xl" @click.away="cancelModal = false">
-            <div class="flex items-center justify-between border-b border-[#2B211E]/10 pb-3">
+        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#1F2937]/20 shadow-xl" @click.away="cancelModal = false">
+            <div class="flex items-center justify-between border-b border-[#1F2937]/10 pb-3">
                 <h3 class="font-serif text-lg font-bold text-red-700">Batalkan Reservasi Rombongan</h3>
-                <button @click="cancelModal = false" class="text-[#2B211E]/60 hover:text-[#2B211E]">
+                <button @click="cancelModal = false" class="text-[#1F2937]/60 hover:text-[#1F2937]">
                     <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
             </div>
@@ -298,11 +298,11 @@
                 @csrf
                 <input type="hidden" name="action" value="cancel">
 
-                <p class="text-xs text-[#2B211E]/80 leading-relaxed">
-                    Apakah Anda yakin ingin membatalkan reservasi <strong class="font-mono text-[#703A3A]" x-text="selectedBookingCode"></strong>? Slot kuota harian akan dikembalikan ke tapak dan pemberitahuan pembatalan akan dikirimkan ke pihak sekolah dan mitra.
+                <p class="text-xs text-[#1F2937]/80 leading-relaxed">
+                    Apakah Anda yakin ingin membatalkan reservasi <strong class="font-mono text-[#1F2B45]" x-text="selectedBookingCode"></strong>? Slot kuota harian akan dikembalikan ke tapak dan pemberitahuan pembatalan akan dikirimkan ke pihak sekolah dan mitra.
                 </p>
 
-                <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#2B211E]/10">
+                <div class="flex items-center justify-end gap-3 pt-2 border-t border-[#1F2937]/10">
                     <button type="button" @click="cancelModal = false" class="rgs-btn-outline px-4 py-2 text-xs font-semibold uppercase">
                         Kembali
                     </button>

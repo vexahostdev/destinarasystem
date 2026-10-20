@@ -6,7 +6,7 @@
 <div class="space-y-8">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Analitik Bisnis & Reporting Makro</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Analitik Bisnis & Reporting Makro</h1>
             <p class="text-sm text-gray-500">Pemantauan funnel reservasi, pertumbuhan GMV, destinasi terlaris, dan retensi institusi</p>
         </div>
         <div class="flex items-center gap-3">
@@ -23,11 +23,11 @@
         <form method="GET" action="{{ route('admin.analytics.index') }}" class="flex flex-wrap items-center gap-3">
             <span class="text-xs font-bold uppercase text-gray-700">Rentang Waktu:</span>
             <input type="date" name="start_date" value="{{ $startDate->format('Y-m-d') }}"
-                   class="text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                   class="text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             <span class="text-xs text-gray-400">s/d</span>
             <input type="date" name="end_date" value="{{ $endDate->format('Y-m-d') }}"
-                   class="text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
-            <button type="submit" class="bg-[#703A3A] text-white rounded-xl px-4 py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                   class="text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
+            <button type="submit" class="bg-[#1F2B45] text-white rounded-2xl px-4 py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                 Terapkan
             </button>
             <span class="text-xs font-mono text-gray-400 ml-auto">{{ $startDate->format('d M Y') }} - {{ $endDate->format('d M Y') }}</span>
@@ -38,7 +38,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Total GMV Periode</span>
-            <span class="text-2xl font-extrabold text-[#703A3A] font-mono">
+            <span class="text-2xl font-extrabold text-[#1F2B45] font-mono">
                 Rp {{ number_format($gmv, 0, ',', '.') }}
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">Nilai reservasi berhasil</span>
@@ -72,7 +72,7 @@
     <!-- Funnel Konversi Reservasi (SPEC §14.4) -->
     <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
         <div>
-            <h3 class="text-base font-bold text-[#1E1B1B]">Funnel Konversi Reservasi</h3>
+            <h3 class="text-base font-bold text-[#111827]">Funnel Konversi Reservasi</h3>
             <p class="text-xs text-gray-400">Perjalanan pemesanan dari tahap draf s.d. kunjungan lapangan selesai</p>
         </div>
 
@@ -114,7 +114,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Monthly Trends Table -->
         <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
-            <h3 class="text-base font-bold text-[#1E1B1B]">Tren Nilai Transaksi Bulanan</h3>
+            <h3 class="text-base font-bold text-[#111827]">Tren Nilai Transaksi Bulanan</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
@@ -130,7 +130,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="py-3 font-mono font-bold text-gray-800">{{ $t->month }}</td>
                             <td class="py-3 text-center font-mono font-bold text-gray-600">{{ $t->total_bookings }}</td>
-                            <td class="py-3 text-right font-mono font-bold text-[#703A3A]">
+                            <td class="py-3 text-right font-mono font-bold text-[#1F2B45]">
                                 Rp {{ number_format($t->monthly_gmv, 0, ',', '.') }}
                             </td>
                             <td class="py-3 text-right font-mono text-emerald-700 font-semibold">
@@ -149,7 +149,7 @@
 
         <!-- Top Destinations -->
         <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
-            <h3 class="text-base font-bold text-[#1E1B1B]">Destinasi Tapak Terpopuler</h3>
+            <h3 class="text-base font-bold text-[#111827]">Destinasi Tapak Terpopuler</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
@@ -169,7 +169,7 @@
                             <td class="py-3 text-center font-mono font-bold text-emerald-800">
                                 {{ $td->completed_bookings }} Rombongan
                             </td>
-                            <td class="py-3 text-right font-mono font-bold text-[#703A3A]">
+                            <td class="py-3 text-right font-mono font-bold text-[#1F2B45]">
                                 Rp {{ number_format($td->total_gmv ?? 0, 0, ',', '.') }}
                             </td>
                         </tr>
