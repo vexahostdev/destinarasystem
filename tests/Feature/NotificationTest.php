@@ -381,4 +381,152 @@ class NotificationTest extends TestCase
             'error' => 'Penerima tidak ditemukan',
         ]);
     }
+
+    public function test_booking_rescheduled_notifications_for_paid_and_confirmed_status_v8_2(): void
+    {
+        $partner = User::factory()->create([
+            'account_type' => 'partner',
+            'status' => 'active',
+            'name' => 'Mitra Pengelola Merapi',
+            'phone' => '081234567890',
+        ]);
+        \App\Models\PartnerProfile::create([
+            'user_id' => $partner->id,
+            'organization_name' => 'Pokdarwis Merapi Indah',
+            'status' => 'approved',
+        ]);
+
+        $buyer = User::factory()->create([
+            'account_type' => 'buyer',
+            'status' => 'active',
+            'name' => 'Ketua Rombongan',
+            'phone' => '081234567891',
+        ]);
+        $institution = \App\Models\Institution::create([
+            'user_id' => $buyer->id,
+            'institution_name' => 'SMA Negeri 1 Jogja',
+            'pic_name' => 'Bambang Sudiro',
+            'pic_phone' => '081234567891',
+            'pic_email' => 'bambang@sma1.sch.id',
+            'pic_position' => 'Wakasek Kesiswaan',
+            'address' => 'Jl. C. Simanjuntak',
+            'city' => 'Yogyakarta',
+            'province' => 'DI Yogyakarta',
+        ]);
+
+        $admin = User::factory()->create([
+            'account_type' => 'internal',
+            'status' => 'active',
+        ]);
+
+        $province = \App\Models\Province::first() ?? \App\Models\Province::create(['code' => 'DIY', 'name' => 'DI Yogyakarta']);
+        $cat = \App\Models\DestinationCategory::first() ?? \App\Models\DestinationCategory::create(['name' => 'Alam', 'slug' => 'alam']);
+
+        $destination = \App\Models\Destination::create([
+            'partner_id' => $partner->id,
+            'province_id' => $province->id,
+            'category_id' => $cat->id,
+            'name' => 'Wisata Bunker Kaliadem',
+            'slug' => 'wisata-bunker-kaliadem',
+            'city' => 'Sleman',
+            'address' => 'Kinahrejo, Hargobinangun, Pakem',
+            'status' => \App\Enums\DestinationStatus::PUBLISHED,
+        ]);
+
+        $package = \App\Models\Package::create([
+            'destination_id' => $destination->id,
+            'name' => 'Paket Edukasi Merapi',
+            'slug' => 'paket-edukasi-merapi',
+            'inquiry_types' => ['study_tour'],
+            'price_per_pax' => 100000,
+            'min_pax' => 10,
+            'max_pax' => 50,
+            'duration_days' => 1,
+            'is_active' => true,
+        ]);
+
+        $booking = \App\Models\Booking::create([
+            'booking_code' => 'DST-2610-TEST82',
+            'user_id' => $buyer->id,
+            'institution_id' => $institution->id,
+            'destination_id' => $destination->id,
+            'package_id' => $package->id,
+            'inquiry_type' => 'study_tour',
+            'planned_date_start' => now()->addDays(10)->toDateString(),
+            'planned_date_end' => now()->addDays(10)->toDateString(),
+            'participant_count' => 20,
+            'subtotal_amount' => 2000000,
+            'total_amount' => 2000000,
+            'platform_fee_amount' => 0,
+            'insurance_amount' => 0,
+            'discount_amount' => 0,
+            'commission_amount' => 200000,
+            'partner_net_amount' => 1800000,
+            'status' => \App\Enums\BookingStatus::DIBAYAR,
+        ]);
+
+        // 1. Condition: Booking DIBAYAR
+        event(new \App\Events\BookingRescheduled($booking, '10/11/2026 - 10/11/2026', $admin));
+
+        $buyerLogsPaid = NotificationLog::where('event_key', 'booking.rescheduled')
+            ->where('recipient', '!=', (string) $admin->id)
+            ->where(function ($q) use ($buyer) {
+                $q->where('notifiable_id', $buyer->id)
+                    ->orWhere('recipient', $buyer->email)
+                    ->orWhere('recipient', '6281234567891');
+            })->get();
+
+        $this->assertNotEmpty($buyerLogsPaid);
+        foreach ($buyerLogsPaid as $log) {
+            $this->assertStringContainsString('menunggu konfirmasi pengelola', $log->body);
+            $this->assertStringNotContainsString('telah diterbitkan', $log->body);
+        }
+
+        $partnerLogsPaid = NotificationLog::where('event_key', 'booking.rescheduled')
+            ->where('recipient', '!=', (string) $admin->id)
+            ->where(function ($q) use ($partner) {
+                $q->where('notifiable_id', $partner->id)
+                    ->orWhere('recipient', $partner->email)
+                    ->orWhere('recipient', '6281234567890');
+            })->get();
+
+        $this->assertNotEmpty($partnerLogsPaid);
+        foreach ($partnerLogsPaid as $log) {
+            $this->assertStringContainsString('menunggu konfirmasi pengelola', $log->body);
+            $this->assertStringContainsString('konfirmasi', strtolower($log->body));
+        }
+
+        // 2. Condition: Booking DIKONFIRMASI
+        NotificationLog::query()->delete();
+        $booking->status = \App\Enums\BookingStatus::DIKONFIRMASI;
+        $booking->save();
+
+        event(new \App\Events\BookingRescheduled($booking, '10/11/2026 - 10/11/2026', $admin));
+
+        $buyerLogsConfirmed = NotificationLog::where('event_key', 'booking.rescheduled')
+            ->where('recipient', '!=', (string) $admin->id)
+            ->where(function ($q) use ($buyer) {
+                $q->where('notifiable_id', $buyer->id)
+                    ->orWhere('recipient', $buyer->email)
+                    ->orWhere('recipient', '6281234567891');
+            })->get();
+
+        $this->assertNotEmpty($buyerLogsConfirmed);
+        foreach ($buyerLogsConfirmed as $log) {
+            $this->assertStringContainsString('dokumen baru telah diterbitkan', strtolower($log->body));
+        }
+
+        $partnerLogsConfirmed = NotificationLog::where('event_key', 'booking.rescheduled')
+            ->where('recipient', '!=', (string) $admin->id)
+            ->where(function ($q) use ($partner) {
+                $q->where('notifiable_id', $partner->id)
+                    ->orWhere('recipient', $partner->email)
+                    ->orWhere('recipient', '6281234567890');
+            })->get();
+
+        $this->assertNotEmpty($partnerLogsConfirmed);
+        foreach ($partnerLogsConfirmed as $log) {
+            $this->assertStringContainsString('dokumen baru telah diterbitkan', strtolower($log->body));
+        }
+    }
 }

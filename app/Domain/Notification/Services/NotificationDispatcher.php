@@ -46,6 +46,9 @@ class NotificationDispatcher
                 $audienceContext['partner_name'] ??= ($recipientData['user']?->name ?? 'Mitra Pengelola');
                 $audienceContext['organization_name'] ??= ($recipientData['user']?->partnerProfile?->organization_name ?? $recipientData['user']?->name ?? 'Mitra Pengelola');
                 $audienceContext['user_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
+                if (isset($context['partner_note'])) {
+                    $audienceContext['documents_note'] = $context['partner_note'];
+                }
             } elseif ($audience === 'buyer') {
                 $audienceContext['pic_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');
                 $audienceContext['user_name'] ??= ($recipientData['user']?->name ?? 'Pengguna');

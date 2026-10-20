@@ -121,6 +121,14 @@ class SendDomainNotificationListener
             ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingRescheduled) {
             $b = $event->booking;
+            $isConfirmed = $b->status === \App\Enums\BookingStatus::DIKONFIRMASI;
+            $documentsNote = $isConfirmed
+                ? 'Surat Konfirmasi dan E-Voucher baru telah diterbitkan (dokumen baru telah diterbitkan).'
+                : 'Jadwal menunggu konfirmasi pengelola.';
+            $partnerNote = $isConfirmed
+                ? 'Dokumen baru telah diterbitkan.'
+                : 'Jadwal menunggu konfirmasi pengelola. Silakan segera lakukan konfirmasi penerimaan rombongan sebelum batas SLA.';
+
             $this->dispatcher->send('booking.rescheduled', [
                 'booking' => $b,
                 'user' => $b->user,
@@ -133,6 +141,8 @@ class SendDomainNotificationListener
                 'planned_date_end' => $b->planned_date_end?->format('d/m/Y'),
                 'new_start_date' => $b->planned_date_start?->format('d/m/Y'),
                 'new_end_date' => $b->planned_date_end?->format('d/m/Y'),
+                'documents_note' => $documentsNote,
+                'partner_note' => $partnerNote,
             ], ['buyer', 'partner', 'admin']);
         } elseif ($event instanceof BookingExpired) {
             $b = $event->booking;
