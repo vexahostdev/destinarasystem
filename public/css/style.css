@@ -572,28 +572,28 @@ html, body {
 
 /* Dark Mode Scrollbar */
 html.dark ::-webkit-scrollbar-track {
-  background: #1A1D21;
+  background: #0A0A0A;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #3A3F46;
+  background: #404040;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3A3F46;
+  background: #404040;
 }
 
 /* Dark Mode Text Selection */
 html.dark ::selection {
-  background-color: #3A3F46;
+  background-color: #404040;
   color: #DCE4EF;
 }
 
 /* RGS Hero Panel in Dark Mode */
 html.dark .rgs-hero-panel {
-  background-color: #202429 !important;
+  background-color: #171717 !important;
   border-left-color: #8FA8D0 !important;
 }
 html.dark .rgs-hero-panel h1 {
-  color: #ECEDEF !important;
+  color: #FAFAFA !important;
 }
 html.dark .rgs-hero-panel p {
   color: #9EA3AA !important;
@@ -601,13 +601,13 @@ html.dark .rgs-hero-panel p {
 
 /* RGS Outline Button in Dark Mode */
 html.dark .rgs-btn-outline {
-  color: #ECEDEF !important;
+  color: #FAFAFA !important;
   border-color: rgba(236, 237, 239, 0.4) !important;
 }
 html.dark .rgs-btn-outline:hover {
-  background-color: #ECEDEF !important;
-  color: #111315 !important;
-  border-color: #ECEDEF !important;
+  background-color: #FAFAFA !important;
+  color: #0A0A0A !important;
+  border-color: #FAFAFA !important;
 }
 
 /* RGS Editorial Card & Grid Borders in Dark Mode */
@@ -628,22 +628,22 @@ html.dark .rgs-grid-connected-alt {
 
 /* Mobile Menu Drawer in Dark Mode */
 html.dark #mobileMenuDrawer {
-  background-color: #111315 !important;
-  color: #ECEDEF !important;
+  background-color: #0A0A0A !important;
+  color: #FAFAFA !important;
 }
 
 /* Dossier Modal Popup in Dark Mode */
 html.dark .modal-dialog {
-  background: #202429 !important;
-  color: #ECEDEF !important;
+  background: #171717 !important;
+  color: #FAFAFA !important;
   border-color: rgba(158, 163, 170, 0.15) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* Toast Notifications in Dark Mode */
 html.dark .toast {
-  background: #202429 !important;
-  color: #ECEDEF !important;
+  background: #171717 !important;
+  color: #FAFAFA !important;
   border-left-color: #8FA8D0 !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5) !important;
 }
@@ -651,7 +651,7 @@ html.dark .toast.toast-success {
   border-left-color: #b8ccaf !important;
 }
 html.dark .toast p.font-semibold {
-  color: #ECEDEF !important;
+  color: #FAFAFA !important;
 }
 html.dark .toast p.text-xs {
   color: #9EA3AA !important;
@@ -661,23 +661,23 @@ html.dark .toast p.text-xs {
 html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
 html.dark textarea,
 html.dark select {
-  background-color: #1A1D21 !important;
-  color: #ECEDEF !important;
+  background-color: #0A0A0A !important;
+  color: #FAFAFA !important;
   border-color: rgba(82, 67, 67, 0.8) !important;
 }
 html.dark input:focus,
 html.dark textarea:focus,
 html.dark select:focus {
   border-color: #8FA8D0 !important;
-  background-color: #202429 !important;
+  background-color: #171717 !important;
 }
 html.dark input::placeholder,
 html.dark textarea::placeholder {
   color: #847372 !important;
 }
 html.dark select option {
-  background-color: #202429 !important;
-  color: #ECEDEF !important;
+  background-color: #171717 !important;
+  color: #FAFAFA !important;
 }
 
 /* Destinara Logo Filter in Dark Mode */
@@ -688,10 +688,10 @@ html.dark .destinara-logo {
 
 /* Dark Mode Overrides for Hardcoded Text & Borders */
 html.dark .text-\[\#1F2937\] {
-  color: #ECEDEF !important;
+  color: #FAFAFA !important;
 }
 html.dark .text-\[\#1F2937\] {
-  color: #ECEDEF !important;
+  color: #FAFAFA !important;
 }
 html.dark .text-\[\#1F2937\]\/80 {
   color: rgba(236, 237, 239, 0.8) !important;
