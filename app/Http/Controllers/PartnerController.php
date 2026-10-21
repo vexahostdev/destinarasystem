@@ -57,7 +57,8 @@ class PartnerController extends Controller
      */
     private function ensurePartnerProfile(\App\Models\User $user): PartnerProfile
     {
-        $profile = $user->partnerProfile;
+        // Selalu baca ulang dari DB (bukan relasi yang mungkin sudah ter-cache di objek user).
+        $profile = $user->partnerProfile()->first();
 
         if (! $profile) {
             $profile = PartnerProfile::withTrashed()->firstOrNew(['user_id' => $user->id], [
@@ -65,8 +66,9 @@ class PartnerController extends Controller
                 'verification_status' => VerificationStatus::UNVERIFIED,
             ]);
             $profile->trashed() ? $profile->restore() : $profile->save();
-            $user->setRelation('partnerProfile', $profile);
         }
+
+        $user->setRelation('partnerProfile', $profile);
 
         return $profile;
     }
