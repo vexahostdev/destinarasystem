@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-[#FFFFFF]">
+<html lang="id" class="h-full">
 <head>
     <meta charset="UTF-8">
     <x-theme-script />
@@ -58,7 +58,9 @@
         }
     </style>
 </head>
-<body class="min-h-full bg-[#FFFFFF] text-[#1F2937] antialiased flex" x-data="{ mobileSidebarOpen: false }">
+<body class="app-shell text-[#1F2937] antialiased" x-data="{ mobileSidebarOpen: false, sidebarOpen: (() => { try { return localStorage.getItem('destinara-sidebar') !== '0' } catch (e) { return true } })() }"
+      x-init="$watch('sidebarOpen', v => { try { localStorage.setItem('destinara-sidebar', v ? '1' : '0') } catch (e) {} })"
+      :class="sidebarOpen && 'sidebar-open'">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="mobileSidebarOpen" 
@@ -73,8 +75,8 @@
          style="display: none;"></div>
 
     <!-- Sidebar Kiri Tetap Mitra (Fixed Desktop w-64, Drawer on Mobile) -->
-    <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-           class="fixed inset-y-0 left-0 z-50 w-64 bg-[#ffffff] border-r border-[#1F2937]/12 flex flex-col transition-transform duration-300 ease-in-out shadow-xs">
+    <aside :class="(mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0') + (sidebarOpen ? '' : ' md:-ml-64')"
+           class="fixed inset-y-0 left-0 z-50 w-64 shrink-0 md:static md:z-auto md:h-full md:transition-[margin] md:duration-200 bg-[#ffffff] border-r border-[#1F2937]/12 flex flex-col transition-transform duration-300 ease-in-out shadow-xs">
         
         <!-- Sidebar Header & Logo -->
         <div class="h-16 px-5 border-b border-[#1F2937]/12 flex items-center justify-between shrink-0">
@@ -158,7 +160,7 @@
         </nav>
 
         <!-- Sidebar Footer: Profil Pengguna & Logout -->
-        <div class="p-3 border-t border-gray-100 bg-[#FFFFFF] shrink-0">
+        <div class="p-3 border-t border-gray-100 shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#51634b] text-white flex items-center justify-center text-xs font-bold">
@@ -180,15 +182,14 @@
     </aside>
 
     <!-- Main Content Area (Berada di kanan Sidebar, margin kiri w-64 pada desktop) -->
-    <div class="flex-1 md:pl-64 flex flex-col min-w-0 min-h-screen">
+    <div class="sidebar-inset">
         
         <!-- Topbar 1 Baris Ringkas & Bersih -->
-        <header class="sticky top-0 z-30 bg-[#ffffff] border-b border-[#1F2937]/12 shadow-xs h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <header class="sticky top-0 z-30 bg-[#ffffff] border-b border-[#1F2937]/12 h-16 shrink-0 flex items-center justify-between px-4 sm:px-6 lg:px-8">
             <!-- Left: Mobile Menu Toggle & Context Breadcrumb -->
             <div class="flex items-center gap-3">
-                <button @click="mobileSidebarOpen = true" class="md:hidden p-2 text-[#1F2937]/70 hover:text-[#1F2937] border border-[#1F2937]/15">
-                    <span class="material-symbols-outlined text-[20px]">menu</span>
-                </button>
+                <x-sidebar-toggle />
+                <span class="h-4 w-px bg-[#1F2937]/15" aria-hidden="true"></span>
                 <div class="flex items-center gap-2 text-xs text-[#1F2937]/70">
                     <span class="font-serif font-semibold text-[#51634b]">Portal Mitra Adat</span>
                     <span>/</span>

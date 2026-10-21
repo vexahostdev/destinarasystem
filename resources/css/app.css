@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '../../public/css/style.css';
 @import './dark.css';
+@import './shell.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
