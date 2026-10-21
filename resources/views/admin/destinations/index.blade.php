@@ -78,7 +78,7 @@
                                 @if($dest->cover_image)
                                     <img src="{{ asset('storage/' . $dest->cover_image) }}" alt="{{ $dest->name }}" class="w-10 h-10 rounded-xl object-cover shrink-0">
                                 @else
-                                    <div class="w-10 h-10 rounded-xl bg-stone-100 text-stone-400 flex items-center justify-center shrink-0">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
                                         <span class="material-symbols-outlined text-[20px]">image</span>
                                     </div>
                                 @endif
@@ -92,7 +92,7 @@
                             <span class="font-medium text-[#111827]">{{ $dest->partner?->name ?? 'Internal Platform' }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
-                            <span class="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-semibold">
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
                                 {{ $dest->category?->name ?? '-' }}
                             </span>
                         </td>

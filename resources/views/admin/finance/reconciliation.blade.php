@@ -75,7 +75,7 @@
 
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Estimasi Biaya Gateway</span>
-            <span class="text-2xl font-extrabold text-stone-700 font-mono">
+            <span class="text-2xl font-extrabold text-slate-700 font-mono">
                 Rp {{ number_format($recon['gateway_fees'] ?? 0, 0, ',', '.') }}
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">Biaya processing payment</span>

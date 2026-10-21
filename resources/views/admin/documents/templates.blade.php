@@ -16,7 +16,7 @@
         <div class="bg-white rounded-3xl p-4 border border-gray-100 shadow-xs space-y-1">
             @foreach($templates as $tmpl)
             <button type="button" @click="selectedTemplate = {{ $tmpl->id }}"
-                    :class="selectedTemplate === {{ $tmpl->id }} ? 'bg-[#1F2B45] text-white' : 'text-gray-700 hover:bg-stone-50'"
+                    :class="selectedTemplate === {{ $tmpl->id }} ? 'bg-[#1F2B45] text-white' : 'text-gray-700 hover:bg-slate-50'"
                     class="w-full text-left p-3 rounded-2xl transition-all">
                 <span class="font-bold text-xs block">{{ $tmpl->title }}</span>
                 <span class="text-[10px] font-mono opacity-80 uppercase block mt-0.5">{{ $tmpl->type }}</span>
@@ -37,7 +37,7 @@
                             <span class="text-xs font-mono text-gray-400 uppercase">Tipe: {{ $tmpl->type }}</span>
                         </div>
                         <a href="{{ route('admin.documents.templates.preview', $tmpl->id) }}" target="_blank"
-                           class="border border-stone-300 text-stone-700 hover:bg-stone-50 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                           class="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                             <span>Preview PDF Contoh</span>
                         </a>

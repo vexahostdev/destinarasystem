@@ -103,7 +103,7 @@
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs hover:shadow-md transition-all">
             <div class="flex items-center justify-between text-gray-500 text-xs font-semibold mb-2">
                 <span>Notifikasi Gateway</span>
-                <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-700 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-full bg-[#EEF1F5] text-[#1F2B45] flex items-center justify-center">
                     <span class="material-symbols-outlined text-[18px]">notifications_active</span>
                 </div>
             </div>
@@ -222,19 +222,19 @@
                 <p class="text-xs text-gray-400 mb-4">Total nilai transaksi bruto (GMV) terverifikasi dalam sistem</p>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60">
-                        <span class="text-xs text-stone-500 font-semibold block">GMV Hari Ini</span>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
+                        <span class="text-xs text-slate-500 font-semibold block">GMV Hari Ini</span>
                         <span class="text-xl font-extrabold text-[#1F2B45] font-mono mt-1 block">
                             Rp {{ number_format($gmvToday, 0, ',', '.') }}
                         </span>
-                        <span class="text-[11px] text-stone-400 mt-1 block">{{ $bookingsToday }} reservasi dibuat hari ini</span>
+                        <span class="text-[11px] text-slate-400 mt-1 block">{{ $bookingsToday }} reservasi dibuat hari ini</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60">
-                        <span class="text-xs text-stone-500 font-semibold block">GMV Bulan Ini</span>
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
+                        <span class="text-xs text-slate-500 font-semibold block">GMV Bulan Ini</span>
                         <span class="text-xl font-extrabold text-[#2B3A4A] font-mono mt-1 block">
                             Rp {{ number_format($gmvMonth, 0, ',', '.') }}
                         </span>
-                        <span class="text-[11px] text-stone-400 mt-1 block">{{ now()->translatedFormat('F Y') }}</span>
+                        <span class="text-[11px] text-slate-400 mt-1 block">{{ now()->translatedFormat('F Y') }}</span>
                     </div>
                 </div>
             </div>

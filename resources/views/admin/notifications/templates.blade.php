@@ -55,7 +55,7 @@
                 @foreach($templates as $tmpl)
                 <div x-show="!searchQuery || '{{ strtolower($tmpl->event_key.' '.$tmpl->channel->value.' '.$tmpl->audience) }}'.includes(searchQuery.toLowerCase())">
                     <button type="button" @click="selectedTemplate = {{ $tmpl->id }}"
-                            :class="selectedTemplate === {{ $tmpl->id }} ? 'bg-[#1F2B45] text-white' : 'text-gray-700 hover:bg-stone-50'"
+                            :class="selectedTemplate === {{ $tmpl->id }} ? 'bg-[#1F2B45] text-white' : 'text-gray-700 hover:bg-slate-50'"
                             class="w-full text-left p-3 rounded-2xl transition-all flex items-center justify-between group">
                         <div>
                             <span class="font-bold text-xs block font-mono">{{ $tmpl->event_key }}</span>
@@ -81,7 +81,7 @@
                             <span class="text-xs text-gray-400">Kanal: {{ strtoupper($tmpl->channel->value ?? $tmpl->channel) }} • Sasaran: {{ strtoupper($tmpl->audience) }}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button type="button" @click="loadPreview({{ $tmpl->id }})" class="border border-stone-200 text-gray-700 hover:bg-stone-50 px-3 py-1.5 rounded-full text-xs font-bold transition-all">
+                            <button type="button" @click="loadPreview({{ $tmpl->id }})" class="border border-slate-200 text-gray-700 hover:bg-slate-50 px-3 py-1.5 rounded-full text-xs font-bold transition-all">
                                 Preview Contoh
                             </button>
                             <form action="{{ route('admin.notifications.templates.toggle', $tmpl->id) }}" method="POST" class="inline">
@@ -114,7 +114,7 @@
                             <label class="block text-xs font-bold uppercase text-gray-700">Format Isi Pesan *</label>
                             <textarea name="body" rows="8" required
                                       class="w-full text-xs font-mono rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45] leading-relaxed">{{ $tmpl->body }}</textarea>
-                            <p class="text-[11px] text-gray-400">Gunakan tag kurung kurawal ganda seperti <code class="bg-stone-100 px-1 py-0.5 rounded">@{{ booking_code }}</code>, <code class="bg-stone-100 px-1 py-0.5 rounded">@{{ total_amount }}</code>, dsb.</p>
+                            <p class="text-[11px] text-gray-400">Gunakan tag kurung kurawal ganda seperti <code class="bg-slate-100 px-1 py-0.5 rounded">@{{ booking_code }}</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">@{{ total_amount }}</code>, dsb.</p>
                         </div>
 
                         <div class="flex items-center gap-2 pt-2">
@@ -191,7 +191,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-4 border-t border-gray-100">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-stone-50 rounded-full">Batal</button>
+                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-slate-50 rounded-full">Batal</button>
                     <button type="submit" class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">Simpan Template</button>
                 </div>
             </form>
@@ -211,7 +211,7 @@
                 </button>
             </div>
 
-            <div class="space-y-3 bg-stone-50 rounded-2xl p-4 border border-stone-200">
+            <div class="space-y-3 bg-slate-50 rounded-2xl p-4 border border-slate-200">
                 <template x-if="previewData.subject">
                     <div>
                         <span class="text-[10px] uppercase font-bold text-gray-400 block">Subjek</span>

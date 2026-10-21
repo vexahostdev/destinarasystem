@@ -108,19 +108,19 @@
         <nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
             @can('dashboard.view')
             <a href="{{ route('admin.dashboard') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.dashboard') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.dashboard') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">dashboard</span>
                 <span>Dashboard</span>
             </a>
             @endcan
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Operasional Tapak
             </div>
 
             @can('destinations.view')
             <a href="{{ route('admin.destinations.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.destinations.index*') || request()->routeIs('admin.destinations.create*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.destinations.index*') || request()->routeIs('admin.destinations.create*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">travel_explore</span>
                 <span>Destinasi</span>
             </a>
@@ -128,7 +128,7 @@
 
             @can('destinations.verify')
             <a href="{{ route('admin.destinations.verify') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.destinations.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.destinations.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">fact_check</span>
                 <span>Verifikasi Tapak</span>
             </a>
@@ -136,7 +136,7 @@
 
             @can('bookings.view')
             <a href="{{ route('admin.bookings.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.bookings*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.bookings*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">assignment</span>
                 <span>Kelola Booking</span>
             </a>
@@ -144,19 +144,19 @@
 
             @can('reviews.moderate')
             <a href="{{ route('admin.reviews.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.reviews*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.reviews*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">star_rate</span>
                 <span>Moderasi Ulasan</span>
             </a>
             @endcan
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Pengguna & Mitra
             </div>
 
             @canany(['institutions.verify', 'partners.verify'])
             <a href="{{ route('admin.users.verify') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.users.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.users.verify*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
                 <span>Verifikasi Legalitas</span>
             </a>
@@ -164,19 +164,19 @@
 
             @can('users.view')
             <a href="{{ route('admin.users.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.users.index*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.users.index*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">group</span>
                 <span>Manajemen Pengguna</span>
             </a>
             @endcan
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Keuangan & Transaksi
             </div>
 
             @can('payments.view')
             <a href="{{ route('admin.finance.payments') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.payments*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.payments*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">payments</span>
                 <span>Pembayaran</span>
             </a>
@@ -184,7 +184,7 @@
 
             @can('refunds.view')
             <a href="{{ route('admin.finance.refunds') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.refunds*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.refunds*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">currency_exchange</span>
                 <span>Refund</span>
             </a>
@@ -192,7 +192,7 @@
 
             @can('payouts.view')
             <a href="{{ route('admin.finance.payouts') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.payouts*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.payouts*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                 <span>Payout Mitra</span>
             </a>
@@ -200,19 +200,19 @@
 
             @can('reconciliation.view')
             <a href="{{ route('admin.finance.reconciliation') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.reconciliation*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.finance.reconciliation*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">account_balance</span>
                 <span>Rekonsiliasi</span>
             </a>
             @endcan
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Dokumen & Pemasaran
             </div>
 
             @can('documents.view')
             <a href="{{ route('admin.documents.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.documents*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.documents*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">description</span>
                 <span>Dokumen Resmi</span>
             </a>
@@ -220,7 +220,7 @@
 
             @can('vouchers.manage')
             <a href="{{ route('admin.vouchers.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.vouchers*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.vouchers*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
                 <span>Voucher Promo</span>
             </a>
@@ -228,19 +228,19 @@
 
             @can('notifications.view')
             <a href="{{ route('admin.notifications.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.notifications*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.notifications*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">notifications_active</span>
                 <span>Log Notifikasi</span>
             </a>
             @endcan
 
-            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Pengaturan Sistem
             </div>
 
             @can('master_data.manage')
             <a href="{{ route('admin.master.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.master*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.master*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">dataset</span>
                 <span>Master Data</span>
             </a>
@@ -248,7 +248,7 @@
 
             @can('site_content.manage')
             <a href="{{ route('admin.siteContents.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.siteContents*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.siteContents*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">web</span>
                 <span>Konten Halaman</span>
             </a>
@@ -256,7 +256,7 @@
 
             @can('internal_users.manage')
             <a href="{{ route('admin.team.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.team*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.team*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">badge</span>
                 <span>Tim & Akses Role</span>
             </a>
@@ -264,7 +264,7 @@
 
             @can('settings.general')
             <a href="{{ route('admin.settings.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.settings*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.settings*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">settings</span>
                 <span>Pengaturan Global</span>
             </a>
@@ -272,7 +272,7 @@
 
             @can('audit_logs.view')
             <a href="{{ route('admin.auditLogs.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.auditLogs*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.auditLogs*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">history</span>
                 <span>Audit Log</span>
             </a>
@@ -280,7 +280,7 @@
 
             @can('analytics.view')
             <a href="{{ route('admin.analytics.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.analytics*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.analytics*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">query_stats</span>
                 <span>Analitik Makro</span>
             </a>
@@ -288,7 +288,7 @@
 
             @can('system_health.view')
             <a href="{{ route('admin.health.index') }}" 
-               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.health*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-stone-300 hover:text-white hover:bg-white/10' }}">
+               class="flex items-center gap-3 px-3.5 py-2 text-xs font-bold tracking-wide rounded-2xl transition-all {{ request()->routeIs('admin.health*') ? 'text-white bg-[#b87a38] shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/10' }}">
                 <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
                 <span>System Health</span>
             </a>
@@ -309,7 +309,7 @@
                 </div>
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" title="Keluar Sesi" class="p-2 text-stone-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer">
+                    <button type="submit" title="Keluar Sesi" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer">
                         <span class="material-symbols-outlined text-[18px]">logout</span>
                     </button>
                 </form>

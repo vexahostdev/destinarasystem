@@ -58,7 +58,7 @@
                         </td>
                         <td class="py-3">
                             @foreach($usr->roles as $r)
-                                <span class="px-2.5 py-0.5 rounded-full bg-stone-100 text-[#1F2B45] font-bold text-[10px] uppercase">
+                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-[#1F2B45] font-bold text-[10px] uppercase">
                                     {{ $r->name }}
                                 </span>
                             @endforeach
@@ -111,7 +111,7 @@
                 <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
                     <div class="flex flex-wrap gap-1.5">
                         @foreach($role->permissions as $perm)
-                            <span class="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 text-[10px] font-mono">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono">
                                 {{ $perm->name }}
                             </span>
                         @endforeach

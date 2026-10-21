@@ -54,7 +54,7 @@
 
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Waktu Booking &rarr; Bayar</span>
-            <span class="text-2xl font-extrabold text-stone-800 font-mono">
+            <span class="text-2xl font-extrabold text-slate-800 font-mono">
                 {{ $avgPayMinutes }} Menit
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">Rata-rata kecepatan pelunasan</span>
@@ -77,7 +77,7 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-            <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200/60 text-center">
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 text-center">
                 <span class="text-[10px] uppercase font-bold text-gray-400 block">1. Dibuat</span>
                 <span class="text-2xl font-extrabold text-gray-800 font-mono mt-1 block">{{ $funnel['created'] }}</span>
                 <span class="text-[10px] text-gray-400 mt-1 block">Inquiry Masuk</span>
@@ -97,10 +97,10 @@
                 <span class="text-2xl font-extrabold text-emerald-900 font-mono mt-1 block">{{ $funnel['completed'] }}</span>
                 <span class="text-[10px] text-emerald-700 mt-1 block">Selesai Tapak</span>
             </div>
-            <div class="p-4 rounded-2xl bg-stone-100 border border-stone-200 text-center opacity-80">
-                <span class="text-[10px] uppercase font-bold text-stone-600 block">Drop: Expired</span>
-                <span class="text-2xl font-extrabold text-stone-700 font-mono mt-1 block">{{ $funnel['expired'] }}</span>
-                <span class="text-[10px] text-stone-500 mt-1 block">Batas Waktu Habis</span>
+            <div class="p-4 rounded-2xl bg-slate-100 border border-slate-200 text-center opacity-80">
+                <span class="text-[10px] uppercase font-bold text-slate-600 block">Drop: Expired</span>
+                <span class="text-2xl font-extrabold text-slate-700 font-mono mt-1 block">{{ $funnel['expired'] }}</span>
+                <span class="text-[10px] text-slate-500 mt-1 block">Batas Waktu Habis</span>
             </div>
             <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center opacity-80">
                 <span class="text-[10px] uppercase font-bold text-rose-800 block">Drop: Batal</span>

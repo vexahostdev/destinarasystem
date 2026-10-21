@@ -27,6 +27,7 @@ html.dark .bg-\[\#51634b\]\/15 { background-color: rgba(167,200,159,0.15) !impor
 html.dark .bg-\[\#51634b\]\/5 { background-color: rgba(167,200,159,0.05) !important; }
 html.dark .bg-\[\#51634b\]\/8 { background-color: rgba(167,200,159,0.08) !important; }
 html.dark .bg-\[\#E2E7EE\] { background-color: #202429 !important; }
+html.dark .bg-\[\#EEF1F5\] { background-color: #202429 !important; }
 html.dark .bg-\[\#F4F6F9\] { background-color: #202429 !important; }
 html.dark .bg-\[\#FFFFFF\] { background-color: #111315 !important; }
 html.dark .bg-\[\#ffffff\] { background-color: #111315 !important; }
@@ -63,8 +64,6 @@ html.dark .bg-slate-200 { background-color: #2C3036 !important; }
 html.dark .bg-slate-50 { background-color: #202429 !important; }
 html.dark .bg-slate-50\/50 { background-color: rgba(32,36,41,0.5) !important; }
 html.dark .bg-slate-900\/50 { background-color: rgba(44,48,54,0.5) !important; }
-html.dark .bg-stone-100 { background-color: #24282E !important; }
-html.dark .bg-stone-50 { background-color: #202429 !important; }
 html.dark .bg-white { background-color: #1A1D21 !important; }
 html.dark .bg-white\/80 { background-color: rgba(26,29,33,0.8) !important; }
 html.dark .bg-white\/90 { background-color: rgba(26,29,33,0.9) !important; }
@@ -115,12 +114,9 @@ html.dark .border-sky-300 { border-color: rgba(14,165,233,0.35) !important; }
 html.dark .border-slate-100 { border-color: #2C3036 !important; }
 html.dark .border-slate-200 { border-color: #2C3036 !important; }
 html.dark .border-slate-200\/60 { border-color: rgba(44,48,54,0.6) !important; }
+html.dark .border-slate-200\/80 { border-color: rgba(44,48,54,0.8) !important; }
 html.dark .border-slate-300 { border-color: #3A3F46 !important; }
 html.dark .border-slate-50 { border-color: #2C3036 !important; }
-html.dark .border-stone-200 { border-color: #2C3036 !important; }
-html.dark .border-stone-200\/60 { border-color: rgba(44,48,54,0.6) !important; }
-html.dark .border-stone-200\/80 { border-color: rgba(44,48,54,0.8) !important; }
-html.dark .border-stone-300 { border-color: #3A3F46 !important; }
 html.dark .border-white { border-color: #2C3036 !important; }
 html.dark .border-white\/10 { border-color: #2C3036 !important; }
 html.dark .border-white\/25 { border-color: #2C3036 !important; }
@@ -196,11 +192,6 @@ html.dark .text-slate-600 { color: #B4B9C0 !important; }
 html.dark .text-slate-700 { color: #ECEDEF !important; }
 html.dark .text-slate-800 { color: #ECEDEF !important; }
 html.dark .text-slate-900 { color: #ECEDEF !important; }
-html.dark .text-stone-400 { color: #9EA3AA !important; }
-html.dark .text-stone-500 { color: #B4B9C0 !important; }
-html.dark .text-stone-600 { color: #B4B9C0 !important; }
-html.dark .text-stone-700 { color: #ECEDEF !important; }
-html.dark .text-stone-800 { color: #ECEDEF !important; }
 html.dark .text-yellow-800 { color: #FDE047 !important; }
 html.dark .to-\[\#16203A\] { --tw-gradient-to: #34466A !important; }
 html.dark .bg-\[\#1F2B45\] { background-color: #34466A !important; }
@@ -230,6 +221,7 @@ html.dark .hover\:bg-blue-100:hover { background-color: rgba(59,130,246,0.14) !i
 html.dark .hover\:bg-emerald-100:hover { background-color: rgba(16,185,129,0.14) !important; }
 html.dark .hover\:bg-emerald-50:hover { background-color: rgba(16,185,129,0.14) !important; }
 html.dark .hover\:bg-gray-100:hover { background-color: #24282E !important; }
+html.dark .hover\:bg-gray-200:hover { background-color: #2C3036 !important; }
 html.dark .hover\:bg-gray-50:hover { background-color: #202429 !important; }
 html.dark .hover\:bg-gray-50\/60:hover { background-color: rgba(32,36,41,0.6) !important; }
 html.dark .hover\:bg-gray-50\/70:hover { background-color: rgba(32,36,41,0.7) !important; }
@@ -241,8 +233,6 @@ html.dark .hover\:bg-slate-100:hover { background-color: #24282E !important; }
 html.dark .hover\:bg-slate-200:hover { background-color: #2C3036 !important; }
 html.dark .hover\:bg-slate-50:hover { background-color: #202429 !important; }
 html.dark .hover\:bg-slate-50\/60:hover { background-color: rgba(32,36,41,0.6) !important; }
-html.dark .hover\:bg-stone-200:hover { background-color: #2C3036 !important; }
-html.dark .hover\:bg-stone-50:hover { background-color: #202429 !important; }
 html.dark .hover\:bg-white:hover { background-color: #1A1D21 !important; }
 html.dark .hover\:border-\[\#1F2B45\]:hover { border-color: #8FA8D0 !important; }
 html.dark .hover\:border-\[\#1F2B45\]\/30:hover { border-color: rgba(143,168,208,0.3) !important; }

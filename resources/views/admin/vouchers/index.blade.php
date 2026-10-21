@@ -65,7 +65,7 @@
                             @endif
                         </td>
                         <td class="py-3.5 text-center">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $v->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500' }}">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $v->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
                                 {{ $v->is_active ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </td>

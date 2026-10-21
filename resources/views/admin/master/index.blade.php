@@ -82,7 +82,7 @@
                         <td class="py-3 font-mono text-gray-500">{{ $cat->slug }}</td>
                         <td class="py-3 text-center font-mono font-bold">{{ $cat->destinations_count }}</td>
                         <td class="py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $cat->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500' }}">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $cat->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
                                 {{ $cat->is_active ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </td>
@@ -144,7 +144,7 @@
                             <span>{{ $fac->name }}</span>
                         </td>
                         <td class="py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $fac->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500' }}">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $fac->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
                                 {{ $fac->is_active ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </td>
@@ -205,7 +205,7 @@
                         <td class="py-3 font-bold text-gray-800">{{ $b->name }}</td>
                         <td class="py-3 font-mono text-[#1F2B45] font-bold">{{ $b->code }}</td>
                         <td class="py-3 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $b->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-500' }}">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $b->is_active ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-500' }}">
                                 {{ $b->is_active ? 'Aktif' : 'Nonaktif' }}
                             </span>
                         </td>
@@ -267,7 +267,7 @@
             <h3 class="text-base font-bold text-gray-900 mb-4">Daftar Wilayah Provinsi Resmi</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 @foreach($provinces as $prv)
-                <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60 font-semibold text-gray-700 flex items-center justify-between">
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 font-semibold text-gray-700 flex items-center justify-between">
                     <span>{{ $prv->name }}</span>
                     <span class="text-[10px] font-mono text-gray-400">{{ $prv->code }}</span>
                 </div>

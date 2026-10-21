@@ -74,7 +74,7 @@
                                 $gwStr = $p->gateway instanceof \UnitEnum ? $p->gateway->value : (string)$p->gateway;
                                 $isManual = ($gwStr === 'manual_transfer');
                             @endphp
-                            <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-semibold uppercase">
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold uppercase">
                                 {{ $gwStr }}
                             </span>
                             @if($p->payment_method)

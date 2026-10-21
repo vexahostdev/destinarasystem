@@ -84,7 +84,7 @@
                         <td class="py-3.5 pr-2 max-w-md">
                             <p class="text-gray-700 italic">"{{ $rev->comment }}"</p>
                             @if($rev->partner_reply)
-                                <div class="mt-2 p-2 rounded-xl bg-stone-50 border border-stone-200/60 text-[11px] text-stone-600">
+                                <div class="mt-2 p-2 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600">
                                     <span class="font-bold text-gray-800 block">Balasan Mitra ({{ $rev->replied_at?->translatedFormat('d M Y') }}):</span>
                                     <span>{{ $rev->partner_reply }}</span>
                                 </div>

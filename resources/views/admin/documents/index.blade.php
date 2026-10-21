@@ -94,7 +94,7 @@
                             v{{ $doc->version }}
                         </td>
                         <td class="py-3.5 text-center">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $doc->status->value === 'final' ? 'bg-emerald-50 text-emerald-800' : ($doc->status->value === 'void' ? 'bg-rose-50 text-rose-800' : 'bg-stone-100 text-stone-600') }}">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $doc->status->value === 'final' ? 'bg-emerald-50 text-emerald-800' : ($doc->status->value === 'void' ? 'bg-rose-50 text-rose-800' : 'bg-slate-100 text-slate-600') }}">
                                 {{ $doc->status->value ?? $doc->status }}
                             </span>
                         </td>
@@ -111,7 +111,7 @@
                                 @can('documents.regenerate')
                                 <form action="{{ route('admin.documents.regenerate', $doc->id) }}" method="POST" class="inline" onsubmit="return confirm('Regenerate dokumen ini? Versi lama akan otomatis berstatus void.')">
                                     @csrf
-                                    <button type="submit" class="border border-stone-200 text-stone-700 hover:bg-stone-50 px-2 py-1 rounded-2xl text-[10px] font-semibold">
+                                    <button type="submit" class="border border-slate-200 text-slate-700 hover:bg-slate-50 px-2 py-1 rounded-2xl text-[10px] font-semibold">
                                         Regenerate
                                     </button>
                                 </form>

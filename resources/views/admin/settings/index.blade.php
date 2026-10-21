@@ -98,7 +98,7 @@
                                 <p class="text-[11px] text-gray-400">Pilihan rekening bank resmi tujuan transfer pemesanan buyer</p>
                             </div>
                             <button type="button" @click="accounts.push({ bank: 'Bank Central Asia', number: '', holder: '{{ setting('company_name', config('app.name')) }}' })"
-                                    class="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
+                                    class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
                                 <span class="material-symbols-outlined text-[16px]">add</span>
                                 <span>Tambah Rekening</span>
                             </button>
@@ -106,7 +106,7 @@
 
                         <div class="space-y-3">
                             <template x-for="(acc, idx) in accounts" :key="idx">
-                                <div class="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/80 flex flex-col sm:flex-row items-center gap-3">
+                                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-center gap-3">
                                     <div class="w-full sm:w-1/3">
                                         <label class="block text-[10px] uppercase font-bold text-gray-500 mb-0.5">Bank Tujuan</label>
                                         <select :name="'manual_transfer_accounts[' + idx + '][bank]'" x-model="acc.bank"
@@ -136,7 +136,7 @@
                                     </div>
                                 </div>
                             </template>
-                            <div x-show="accounts.length === 0" class="p-6 text-center text-xs text-gray-400 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                            <div x-show="accounts.length === 0" class="p-6 text-center text-xs text-gray-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                                 Belum ada rekening transfer manual yang didaftarkan. Klik "Tambah Rekening" di atas.
                             </div>
                         </div>
@@ -160,7 +160,7 @@
                                 <p class="text-[11px] text-gray-400">Email admin internal untuk menerima alert gateway error, insiden sistem, dan pembayaran</p>
                             </div>
                             <button type="button" @click="emails.push('')"
-                                    class="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
+                                    class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
                                 <span class="material-symbols-outlined text-[16px]">add</span>
                                 <span>Tambah Email</span>
                             </button>
@@ -202,7 +202,7 @@
                                 <p class="text-[11px] text-gray-400">Nomor WhatsApp PIC admin (format internasional, cth: 6281234567890)</p>
                             </div>
                             <button type="button" @click="numbers.push('')"
-                                    class="px-3.5 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
+                                    class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold flex items-center gap-1 transition-all">
                                 <span class="material-symbols-outlined text-[16px]">add</span>
                                 <span>Tambah Nomor</span>
                             </button>
@@ -220,7 +220,7 @@
                                     </button>
                                 </div>
                             </template>
-                            <div x-show="numbers.length === 0" class="p-4 text-center text-xs text-gray-400 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                            <div x-show="numbers.length === 0" class="p-4 text-center text-xs text-gray-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                                 Belum ada nomor WhatsApp alert darurat yang didaftarkan.
                             </div>
                         </div>
@@ -306,22 +306,22 @@
                 <div>
                     @if($grpKey === 'whatsapp')
                         <button type="submit" formaction="{{ route('admin.settings.test', 'whatsapp') }}"
-                                class="border border-stone-300 text-stone-700 px-4 py-2 rounded-2xl text-xs font-bold uppercase hover:bg-stone-50">
+                                class="border border-slate-300 text-slate-700 px-4 py-2 rounded-2xl text-xs font-bold uppercase hover:bg-slate-50">
                             Tes Koneksi WhatsApp
                         </button>
                     @elseif($grpKey === 'email' || $grpKey === 'mail')
                         <button type="submit" formaction="{{ route('admin.settings.test', 'mail') }}"
-                                class="border border-stone-300 text-stone-700 px-4 py-2 rounded-2xl text-xs font-bold uppercase hover:bg-stone-50">
+                                class="border border-slate-300 text-slate-700 px-4 py-2 rounded-2xl text-xs font-bold uppercase hover:bg-slate-50">
                             Tes Kirim Email SMTP
                         </button>
                     @elseif($grpKey === 'payment')
                         <div class="flex items-center gap-2">
                             <button type="submit" formaction="{{ route('admin.settings.test', 'xendit') }}"
-                                    class="border border-stone-300 text-stone-700 px-3 py-1.5 rounded-2xl text-xs font-bold uppercase hover:bg-stone-50">
+                                    class="border border-slate-300 text-slate-700 px-3 py-1.5 rounded-2xl text-xs font-bold uppercase hover:bg-slate-50">
                                 Tes Xendit
                             </button>
                             <button type="submit" formaction="{{ route('admin.settings.test', 'midtrans') }}"
-                                    class="border border-stone-300 text-stone-700 px-3 py-1.5 rounded-2xl text-xs font-bold uppercase hover:bg-stone-50">
+                                    class="border border-slate-300 text-slate-700 px-3 py-1.5 rounded-2xl text-xs font-bold uppercase hover:bg-slate-50">
                                 Tes Midtrans
                             </button>
                         </div>

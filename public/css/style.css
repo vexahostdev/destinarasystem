@@ -572,7 +572,7 @@ html, body {
 
 /* Dark Mode Scrollbar */
 html.dark ::-webkit-scrollbar-track {
-  background: #1e1716;
+  background: #1A1D21;
 }
 html.dark ::-webkit-scrollbar-thumb {
   background: #3A3F46;
@@ -661,7 +661,7 @@ html.dark .toast p.text-xs {
 html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
 html.dark textarea,
 html.dark select {
-  background-color: #1e1716 !important;
+  background-color: #1A1D21 !important;
   color: #ECEDEF !important;
   border-color: rgba(82, 67, 67, 0.8) !important;
 }

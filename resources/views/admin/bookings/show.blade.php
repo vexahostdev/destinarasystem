@@ -30,7 +30,7 @@
             @endif
 
             @if(in_array($booking->status, [\App\Enums\BookingStatus::DIBAYAR, \App\Enums\BookingStatus::DIKONFIRMASI]))
-                <button type="button" @click="openRescheduleModal = true" class="border border-stone-300 text-stone-700 hover:bg-stone-50 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
+                <button type="button" @click="openRescheduleModal = true" class="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider">
                     Jadwal Ulang
                 </button>
             @endif
@@ -166,7 +166,7 @@
                 <h3 class="text-base font-bold text-[#111827]">Dokumen Resmi Terbit</h3>
                 <div class="space-y-2">
                     @forelse($booking->documents as $doc)
-                    <div class="p-3 rounded-2xl bg-stone-50 border border-stone-200/60 flex items-center justify-between text-xs">
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-[#1F2B45]">description</span>
                             <div>
@@ -189,7 +189,7 @@
         <div class="space-y-6">
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
                 <h3 class="text-base font-bold text-[#111827]">Riwayat Perubahan Status</h3>
-                <div class="relative border-l-2 border-stone-200 ml-3 space-y-4 text-xs">
+                <div class="relative border-l-2 border-slate-200 ml-3 space-y-4 text-xs">
                     @foreach($booking->statusHistories as $hist)
                     <div class="ml-4 relative">
                         <span class="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-[#1F2B45] border-2 border-white"></span>
@@ -254,7 +254,7 @@
                     $remainingReschedule = $maxReschedule === 0 ? 'Tanpa Batas' : max(0, $maxReschedule - $usedReschedule) . ' kali';
                     $cutoffDays = (int) setting('reschedule_cutoff_days', 3);
                 @endphp
-                <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs space-y-1">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
                     <div class="flex justify-between">
                         <span class="text-gray-500">Sisa Kuota Reschedule:</span>
                         <span class="font-bold text-gray-800">{{ $remainingReschedule }}</span>

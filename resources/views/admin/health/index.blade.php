@@ -53,19 +53,19 @@
     <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-3">
         <h3 class="text-base font-bold text-[#111827]">Lingkungan Runtime & Host</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Versi PHP</span>
                 <span class="font-bold text-gray-800">{{ PHP_VERSION }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Versi Laravel</span>
                 <span class="font-bold text-gray-800">{{ app()->version() }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Environment</span>
                 <span class="font-bold text-[#1F2B45] uppercase">{{ app()->environment() }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Waktu Server</span>
                 <span class="font-bold text-gray-800">{{ now()->format('H:i:s T') }}</span>
             </div>

@@ -100,7 +100,7 @@
                             @else
                                 <form action="{{ route('admin.users.verifyEmail', $u->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="border border-stone-200 text-stone-700 hover:bg-stone-50 px-2 py-0.5 rounded-2xl text-[10px] font-semibold">
+                                    <button type="submit" class="border border-slate-200 text-slate-700 hover:bg-slate-50 px-2 py-0.5 rounded-2xl text-[10px] font-semibold">
                                         Verif Manual
                                     </button>
                                 </form>

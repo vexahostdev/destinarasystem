@@ -102,7 +102,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Bukti Transfer (JPG/PNG/PDF) *</label>
                         <input type="file" name="proof" required accept="image/*,application/pdf"
-                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200">
+                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
