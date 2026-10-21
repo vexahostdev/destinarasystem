@@ -35,7 +35,7 @@
             letter-spacing: 1px;
         }
         .header p {
-            color: #FED7D7;
+            color: #DCE4EF;
             font-size: 13px;
             margin: 4px 0 0 0;
         }

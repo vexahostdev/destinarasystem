@@ -134,7 +134,7 @@
             border: 2px solid #2E3D5C;
             padding: 15px;
             border-radius: 8px;
-            background: #FFF5F5;
+            background: #F4F6F9;
             margin: 15px 0;
         }
         .doc-instructions {

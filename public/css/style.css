@@ -397,7 +397,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
   width: 100vw !important;
   height: 100vh !important;
   height: 100dvh !important;
-  background-color: rgba(35, 25, 23, 0.6) !important;
+  background-color: rgba(17, 19, 21, 0.6) !important;
   backdrop-filter: blur(4px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
   z-index: 9998 !important;
@@ -479,7 +479,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
   border-left: 5px solid #2E3D5C;
   padding: 16px;
   border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(35, 25, 23, 0.15);
+  box-shadow: 0 12px 30px rgba(17, 19, 21, 0.15);
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -506,7 +506,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(35, 25, 23, 0.6);
+  background-color: rgba(17, 19, 21, 0.6);
   backdrop-filter: blur(4px);
   z-index: 9998;
   display: flex;
@@ -530,7 +530,7 @@ h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-hero {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(35, 25, 23, 0.25);
+  box-shadow: 0 20px 40px rgba(17, 19, 21, 0.25);
   transform: scale(0.95);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid rgba(132, 115, 114, 0.2);
@@ -575,7 +575,7 @@ html.dark ::-webkit-scrollbar-track {
   background: #1e1716;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #5c2c2c;
+  background: #3A3F46;
 }
 html.dark ::-webkit-scrollbar-thumb:hover {
   background: #3A3F46;
@@ -583,8 +583,8 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
 /* Dark Mode Text Selection */
 html.dark ::selection {
-  background-color: #5c2c2c;
-  color: #ffdad9;
+  background-color: #3A3F46;
+  color: #DCE4EF;
 }
 
 /* RGS Hero Panel in Dark Mode */
@@ -601,29 +601,29 @@ html.dark .rgs-hero-panel p {
 
 /* RGS Outline Button in Dark Mode */
 html.dark .rgs-btn-outline {
-  color: #ede0dc !important;
-  border-color: rgba(237, 224, 220, 0.4) !important;
+  color: #ECEDEF !important;
+  border-color: rgba(236, 237, 239, 0.4) !important;
 }
 html.dark .rgs-btn-outline:hover {
-  background-color: #ede0dc !important;
+  background-color: #ECEDEF !important;
   color: #111315 !important;
-  border-color: #ede0dc !important;
+  border-color: #ECEDEF !important;
 }
 
 /* RGS Editorial Card & Grid Borders in Dark Mode */
 html.dark .rgs-card-alt {
-  border-bottom-color: rgba(215, 194, 193, 0.2) !important;
+  border-bottom-color: rgba(158, 163, 170, 0.2) !important;
 }
 html.dark .rgs-card-alt:hover {
   border-bottom-color: #8FA8D0 !important;
 }
 @media (min-width: 768px) {
   html.dark .rgs-card-alt::after {
-    background-color: rgba(215, 194, 193, 0.15) !important;
+    background-color: rgba(158, 163, 170, 0.15) !important;
   }
 }
 html.dark .rgs-grid-connected-alt {
-  border-bottom-color: rgba(215, 194, 193, 0.2) !important;
+  border-bottom-color: rgba(158, 163, 170, 0.2) !important;
 }
 
 /* Mobile Menu Drawer in Dark Mode */
@@ -636,7 +636,7 @@ html.dark #mobileMenuDrawer {
 html.dark .modal-dialog {
   background: #202429 !important;
   color: #ECEDEF !important;
-  border-color: rgba(215, 194, 193, 0.15) !important;
+  border-color: rgba(158, 163, 170, 0.15) !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -687,7 +687,7 @@ html.dark .destinara-logo {
 }
 
 /* Dark Mode Overrides for Hardcoded Text & Borders */
-html.dark .text-\[\#231917\] {
+html.dark .text-\[\#1F2937\] {
   color: #ECEDEF !important;
 }
 html.dark .text-\[\#1F2937\] {
@@ -699,19 +699,19 @@ html.dark .text-\[\#1F2937\]\/80 {
 html.dark .border-\[\#1F2937\]\/10,
 html.dark .border-\[\#1F2937\]\/15,
 html.dark .border-\[\#1F2937\]\/20 {
-  border-color: rgba(215, 194, 193, 0.15) !important;
+  border-color: rgba(158, 163, 170, 0.15) !important;
 }
 html.dark .border-\[\#2E3D5C\]\/10,
 html.dark .border-\[\#2E3D5C\]\/15,
 html.dark .border-\[\#2E3D5C\]\/20,
 html.dark .border-\[\#2E3D5C\]\/30,
 html.dark .border-\[\#2E3D5C\]\/35 {
-  border-color: rgba(255, 179, 178, 0.25) !important;
+  border-color: rgba(143, 168, 208, 0.25) !important;
 }
 html.dark .divide-\[\#2E3D5C\]\/10 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-\[\#2E3D5C\]\/15 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-\[\#2E3D5C\]\/20 > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(255, 179, 178, 0.15) !important;
+  border-color: rgba(143, 168, 208, 0.15) !important;
 }
 
 /* Theme Toggle Button Animation & Polish */

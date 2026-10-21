@@ -7,7 +7,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="bg-[#2E3D5C] px-6 py-4 text-white">
             <h1 class="text-xl font-bold">Verifikasi Check-in Masuk Tapak</h1>
-            <p class="text-sm text-[#FED7D7]">Pindai e-Pass resmi rombongan belajar</p>
+            <p class="text-sm text-[#DCE4EF]">Pindai e-Pass resmi rombongan belajar</p>
         </div>
 
         <div class="p-6">

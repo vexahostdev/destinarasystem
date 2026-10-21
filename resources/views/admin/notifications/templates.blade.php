@@ -86,7 +86,7 @@
                             </button>
                             <form action="{{ route('admin.notifications.templates.toggle', $tmpl->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-3 py-1.5 rounded-2xl text-xs font-bold {{ $tmpl->is_active ? 'bg-rose-50 text-rose-700 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">
+                                <button type="submit" class="px-3 py-1.5 rounded-2xl text-xs font-bold {{ $tmpl->is_active ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">
                                     {{ $tmpl->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </button>
                             </form>

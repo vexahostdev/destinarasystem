@@ -131,7 +131,7 @@ class DocumentAdminController extends Controller
             '{{package.name}}' => 'Paket Edukasi Budaya & Arkeologi (3 Hari)',
             '{{package.duration}}' => '3 Hari',
             '{{items_table}}' => '<table class="data-table"><thead><tr><th>Uraian Layanan</th><th class="text-center">Kuantitas</th><th class="text-right">Harga Satuan</th><th class="text-right">Subtotal</th></tr></thead><tbody><tr><td>Paket Edukasi Budaya</td><td class="text-center">45</td><td class="text-right">Rp 250.000</td><td class="text-right">Rp 11.250.000</td></tr><tr style="font-weight:bold; background:#F7FAFC;"><td colspan="3" class="text-right">Total Tagihan:</td><td class="text-right">Rp 11.250.000</td></tr></tbody></table>',
-            '{{qr_checkin}}' => '<div style="border: 2px dashed #8C5151; padding: 15px; text-align: center; border-radius: 8px;">[QR CODE CHECK-IN CONTOH]</div>',
+            '{{qr_checkin}}' => '<div style="border: 2px dashed #1F2B45; padding: 15px; text-align: center; border-radius: 8px;">[QR CODE CHECK-IN CONTOH]</div>',
         ];
 
         $bodyHtml = str_replace(array_keys($sampleData), array_values($sampleData), $template->body);
