@@ -171,6 +171,21 @@ class PartnerPortalTest extends TestCase
         ]);
     }
 
+    public function test_partner_with_soft_deleted_profile_can_open_dashboard_and_profile(): void
+    {
+        $partner = User::factory()->create([
+            'account_type' => AccountType::PARTNER,
+            'status' => 'active',
+        ]);
+        PartnerProfile::create(['user_id' => $partner->id, 'organization_name' => 'Desa Lama'])->delete();
+
+        $this->actingAs($partner)->get(route('mitra.dashboard'))->assertOk();
+        $this->actingAs($partner)->get(route('mitra.profile'))->assertOk();
+
+        $this->assertSame(1, PartnerProfile::withTrashed()->where('user_id', $partner->id)->count());
+        $this->assertNotNull($partner->fresh()->partnerProfile);
+    }
+
     public function test_partner_can_access_income_report(): void
     {
         $response = $this->actingAs($this->partner)->get(route('mitra.income'));

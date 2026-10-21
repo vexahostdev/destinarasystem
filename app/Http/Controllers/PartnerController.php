@@ -52,18 +52,32 @@ class PartnerController extends Controller
     ) {}
 
     /**
+     * Profil mitra selalu ada: mitra tanpa profil (mis. dibuat di luar alur registrasi) dibuatkan
+     * profil belum terverifikasi; profil yang pernah di-soft-delete dipulihkan (user_id unik).
+     */
+    private function ensurePartnerProfile(\App\Models\User $user): PartnerProfile
+    {
+        $profile = $user->partnerProfile;
+
+        if (! $profile) {
+            $profile = PartnerProfile::withTrashed()->firstOrNew(['user_id' => $user->id], [
+                'organization_name' => $user->name,
+                'verification_status' => VerificationStatus::UNVERIFIED,
+            ]);
+            $profile->trashed() ? $profile->restore() : $profile->save();
+            $user->setRelation('partnerProfile', $profile);
+        }
+
+        return $profile;
+    }
+
+    /**
      * Halaman 1: Dashboard Mitra
      */
     public function dashboard(Request $request)
     {
         $user = Auth::user();
-        // Mitra tanpa profil (mis. dibuat di luar alur registrasi) tetap bisa membuka dashboard
-        // dan diarahkan melengkapi profil, sama seperti halaman profil.
-        $profile = $user->partnerProfile ?? PartnerProfile::firstOrCreate(['user_id' => $user->id], [
-            'organization_name' => $user->name,
-            'verification_status' => VerificationStatus::UNVERIFIED,
-        ]);
-        $user->setRelation('partnerProfile', $profile);
+        $profile = $this->ensurePartnerProfile($user);
 
         $destinationIds = Destination::where('partner_id', $user->id)->pluck('id');
 
@@ -851,9 +865,7 @@ class PartnerController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        $profile = $user->partnerProfile()->first() ?? PartnerProfile::firstOrCreate(['user_id' => $user->id], [
-            'organization_name' => $user->name,
-        ]);
+        $profile = $this->ensurePartnerProfile($user);
 
         $profile->load('documents', 'bank');
 
