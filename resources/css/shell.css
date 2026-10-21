@@ -86,19 +86,12 @@ html.dark {
 
 .ps-brand:hover { background-color: var(--ps-hover); }
 
-.ps-logo {
-    display: flex;
-    width: 2rem;
-    height: 2rem;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    border-radius: 0.5rem;
-    background-color: #FFFFFF;
-    border: 1px solid var(--ps-border);
-}
+/* Logo tanpa kotak latar; nama brand seperti desain sebelumnya */
+.ps-logo { width: auto; height: 2.25rem; flex-shrink: 0; object-fit: contain; }
+.ps-aside.is-rail .ps-logo { height: 2rem; }
 
-.ps-logo img { width: 1.5rem; height: 1.5rem; object-fit: contain; }
+.ps-brand-name { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1; color: var(--ps-ink); }
+.ps-brand-sub { margin-top: 0.25rem; font-size: 9px; font-weight: 600; letter-spacing: 0.05em; line-height: 1; text-transform: uppercase; color: var(--ps-muted); }
 
 .ps-title { font-size: 0.875rem; font-weight: 600; line-height: 1.15; }
 .ps-sub { font-size: 0.75rem; color: var(--ps-muted); line-height: 1.2; }

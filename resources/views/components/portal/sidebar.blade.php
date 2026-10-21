@@ -13,10 +13,10 @@
 
     {{-- Kepala: identitas portal --}}
     <a href="{{ $home }}" class="ps-brand" title="Destinara">
-        <span class="ps-logo"><img src="{{ asset('assets/img/logo-mark-tight.png') }}" alt="Logo Destinara"></span>
-        <span x-show="!rail" class="grid min-w-0 flex-1">
-            <span class="ps-title truncate">Destinara</span>
-            <span class="ps-sub truncate">{{ $subtitle }}</span>
+        <img src="{{ asset('assets/img/logo-mark-tight.png') }}" alt="Logo Destinara" class="ps-logo">
+        <span x-show="!rail" class="flex min-w-0 flex-1 flex-col">
+            <span class="ps-brand-name">DESTINARA</span>
+            <span class="ps-brand-sub truncate">{{ $subtitle }}</span>
         </span>
     </a>
 

@@ -5,9 +5,11 @@ html.dark body { background-color: #0A0A0A !important; color: #FAFAFA !important
 html.dark input:not([type=checkbox]):not([type=radio]):not([type=file]):not(.auth-input),
 html.dark select, html.dark textarea { background-color: #0A0A0A !important; color: #FAFAFA !important; border-color: #404040 !important; }
 html.dark input::placeholder, html.dark textarea::placeholder { color: #737373 !important; }
-html.dark input[type=checkbox], html.dark input[type=radio] { background-color: #171717; border-color: #404040; }
-html.dark option { background-color: #171717; color: #FAFAFA; }
+html.dark input[type=checkbox], html.dark input[type=radio] { background-color: #1A1A1A; border-color: #404040; }
+html.dark option { background-color: #1A1A1A; color: #FAFAFA; }
 html.dark img.logo-on-light { filter: brightness(1.1); }
+html.dark .bg-white[class*="rounded"]:not([class*="border"]):not([class*="dark:bg-"]),
+html.dark [class*="rgs-card"]:not([class*="border"]) { outline: 1px solid #262626; outline-offset: -1px; }
 html.dark ::-webkit-scrollbar-track { background: #0A0A0A; }
 html.dark ::-webkit-scrollbar-thumb { background: #404040; }
 html.dark .bg-\[\#111827\] { background-color: #262626 !important; }
@@ -24,9 +26,9 @@ html.dark .bg-\[\#51634b\]\/10 { background-color: rgba(167,200,159,0.1) !import
 html.dark .bg-\[\#51634b\]\/15 { background-color: rgba(167,200,159,0.15) !important; }
 html.dark .bg-\[\#51634b\]\/5 { background-color: rgba(167,200,159,0.05) !important; }
 html.dark .bg-\[\#51634b\]\/8 { background-color: rgba(167,200,159,0.08) !important; }
-html.dark .bg-\[\#E2E7EE\] { background-color: #171717 !important; }
-html.dark .bg-\[\#EEF1F5\] { background-color: #171717 !important; }
-html.dark .bg-\[\#F4F6F9\] { background-color: #171717 !important; }
+html.dark .bg-\[\#E2E7EE\] { background-color: #1A1A1A !important; }
+html.dark .bg-\[\#EEF1F5\] { background-color: #1A1A1A !important; }
+html.dark .bg-\[\#F4F6F9\] { background-color: #1A1A1A !important; }
 html.dark .bg-\[\#FFFFFF\] { background-color: #0A0A0A !important; }
 html.dark .bg-amber-100 { background-color: rgba(245,158,11,0.14) !important; }
 html.dark .bg-amber-50 { background-color: rgba(245,158,11,0.14) !important; }
@@ -43,8 +45,8 @@ html.dark .bg-gray-100 { background-color: #24282E !important; }
 html.dark .bg-gray-200 { background-color: #262626 !important; }
 html.dark .bg-gray-300 { background-color: #404040 !important; }
 html.dark .bg-gray-400 { background-color: #555B64 !important; }
-html.dark .bg-gray-50 { background-color: #171717 !important; }
-html.dark .bg-gray-50\/50 { background-color: rgba(23,23,23,0.5) !important; }
+html.dark .bg-gray-50 { background-color: #1A1A1A !important; }
+html.dark .bg-gray-50\/50 { background-color: rgba(26,26,26,0.5) !important; }
 html.dark .bg-gray-600 { background-color: #4A5059 !important; }
 html.dark .bg-green-100 { background-color: rgba(34,197,94,0.14) !important; }
 html.dark .bg-green-50 { background-color: rgba(34,197,94,0.14) !important; }
@@ -58,13 +60,13 @@ html.dark .bg-rose-50\/70 { background-color: rgba(244,63,94,0.14) !important; }
 html.dark .bg-sky-50 { background-color: rgba(14,165,233,0.14) !important; }
 html.dark .bg-slate-100 { background-color: #24282E !important; }
 html.dark .bg-slate-200 { background-color: #262626 !important; }
-html.dark .bg-slate-50 { background-color: #171717 !important; }
-html.dark .bg-slate-50\/50 { background-color: rgba(23,23,23,0.5) !important; }
+html.dark .bg-slate-50 { background-color: #1A1A1A !important; }
+html.dark .bg-slate-50\/50 { background-color: rgba(26,26,26,0.5) !important; }
 html.dark .bg-slate-900\/50 { background-color: rgba(38,38,38,0.5) !important; }
-html.dark .bg-white { background-color: #0A0A0A !important; }
-html.dark .bg-white\/80 { background-color: rgba(10,10,10,0.8) !important; }
-html.dark .bg-white\/90 { background-color: rgba(10,10,10,0.9) !important; }
-html.dark .bg-white\/95 { background-color: rgba(10,10,10,0.95) !important; }
+html.dark .bg-white { background-color: #141414 !important; }
+html.dark .bg-white\/80 { background-color: rgba(20,20,20,0.8) !important; }
+html.dark .bg-white\/90 { background-color: rgba(20,20,20,0.9) !important; }
+html.dark .bg-white\/95 { background-color: rgba(20,20,20,0.95) !important; }
 html.dark .bg-yellow-100 { background-color: rgba(234,179,8,0.14) !important; }
 html.dark .bg-yellow-50 { background-color: rgba(234,179,8,0.14) !important; }
 html.dark .border-\[\#1F2937\]\/08 { border-color: rgba(236,237,239,0.08) !important; }
@@ -193,7 +195,7 @@ html.dark .bg-\[\#1F2B45\] { background-color: #34466A !important; }
 html.dark .hover\:bg-\[\#1F2B45\]:hover { background-color: #3E5280 !important; }
 html.dark .bg-\[\#2E3D5C\] { background-color: #34466A !important; }
 html.dark .hover\:bg-\[\#2E3D5C\]:hover { background-color: #3E5280 !important; }
-html.dark .focus\:bg-white:focus { background-color: #0A0A0A !important; }
+html.dark .focus\:bg-white:focus { background-color: #141414 !important; }
 html.dark .focus\:border-\[\#1F2B45\]:focus { border-color: #8FA8D0 !important; }
 html.dark .focus\:border-\[\#2E3D5C\]:focus { border-color: #8FA8D0 !important; }
 html.dark .focus\:ring-\[\#1F2B45\]:focus { --tw-ring-color: #8FA8D0 !important; }
@@ -207,8 +209,8 @@ html.dark .hover\:bg-\[\#1F2B45\]:hover { background-color: #3E5280 !important; 
 html.dark .hover\:bg-\[\#1F2B45\]\/10:hover { background-color: rgba(143,168,208,0.1) !important; }
 html.dark .hover\:bg-\[\#2E3D5C\]:hover { background-color: #34466A !important; }
 html.dark .hover\:bg-\[\#2E3D5C\]:hover { background-color: #3E5280 !important; }
-html.dark .hover\:bg-\[\#F4F6F9\]\/50:hover { background-color: rgba(23,23,23,0.5) !important; }
-html.dark .hover\:bg-\[\#F4F6F9\]\/60:hover { background-color: rgba(23,23,23,0.6) !important; }
+html.dark .hover\:bg-\[\#F4F6F9\]\/50:hover { background-color: rgba(26,26,26,0.5) !important; }
+html.dark .hover\:bg-\[\#F4F6F9\]\/60:hover { background-color: rgba(26,26,26,0.6) !important; }
 html.dark .hover\:bg-amber-100:hover { background-color: rgba(245,158,11,0.14) !important; }
 html.dark .hover\:bg-amber-50:hover { background-color: rgba(245,158,11,0.14) !important; }
 html.dark .hover\:bg-blue-100:hover { background-color: rgba(59,130,246,0.14) !important; }
@@ -216,18 +218,18 @@ html.dark .hover\:bg-emerald-100:hover { background-color: rgba(16,185,129,0.14)
 html.dark .hover\:bg-emerald-50:hover { background-color: rgba(16,185,129,0.14) !important; }
 html.dark .hover\:bg-gray-100:hover { background-color: #24282E !important; }
 html.dark .hover\:bg-gray-200:hover { background-color: #262626 !important; }
-html.dark .hover\:bg-gray-50:hover { background-color: #171717 !important; }
-html.dark .hover\:bg-gray-50\/60:hover { background-color: rgba(23,23,23,0.6) !important; }
-html.dark .hover\:bg-gray-50\/70:hover { background-color: rgba(23,23,23,0.7) !important; }
+html.dark .hover\:bg-gray-50:hover { background-color: #1A1A1A !important; }
+html.dark .hover\:bg-gray-50\/60:hover { background-color: rgba(26,26,26,0.6) !important; }
+html.dark .hover\:bg-gray-50\/70:hover { background-color: rgba(26,26,26,0.7) !important; }
 html.dark .hover\:bg-red-100:hover { background-color: rgba(239,68,68,0.14) !important; }
 html.dark .hover\:bg-red-50:hover { background-color: rgba(239,68,68,0.14) !important; }
 html.dark .hover\:bg-rose-100:hover { background-color: rgba(244,63,94,0.14) !important; }
 html.dark .hover\:bg-rose-50:hover { background-color: rgba(244,63,94,0.14) !important; }
 html.dark .hover\:bg-slate-100:hover { background-color: #24282E !important; }
 html.dark .hover\:bg-slate-200:hover { background-color: #262626 !important; }
-html.dark .hover\:bg-slate-50:hover { background-color: #171717 !important; }
-html.dark .hover\:bg-slate-50\/60:hover { background-color: rgba(23,23,23,0.6) !important; }
-html.dark .hover\:bg-white:hover { background-color: #0A0A0A !important; }
+html.dark .hover\:bg-slate-50:hover { background-color: #1A1A1A !important; }
+html.dark .hover\:bg-slate-50\/60:hover { background-color: rgba(26,26,26,0.6) !important; }
+html.dark .hover\:bg-white:hover { background-color: #141414 !important; }
 html.dark .hover\:border-\[\#1F2B45\]:hover { border-color: #8FA8D0 !important; }
 html.dark .hover\:border-\[\#1F2B45\]\/30:hover { border-color: rgba(143,168,208,0.3) !important; }
 html.dark .hover\:border-\[\#1F2B45\]\/40:hover { border-color: rgba(143,168,208,0.4) !important; }

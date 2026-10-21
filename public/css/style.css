@@ -572,7 +572,7 @@ html, body {
 
 /* Dark Mode Scrollbar */
 html.dark ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #141414;
 }
 html.dark ::-webkit-scrollbar-thumb {
   background: #404040;
@@ -628,7 +628,7 @@ html.dark .rgs-grid-connected-alt {
 
 /* Mobile Menu Drawer in Dark Mode */
 html.dark #mobileMenuDrawer {
-  background-color: #0A0A0A !important;
+  background-color: #141414 !important;
   color: #FAFAFA !important;
 }
 
@@ -661,7 +661,7 @@ html.dark .toast p.text-xs {
 html.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
 html.dark textarea,
 html.dark select {
-  background-color: #0A0A0A !important;
+  background-color: #141414 !important;
   color: #FAFAFA !important;
   border-color: rgba(82, 67, 67, 0.8) !important;
 }
