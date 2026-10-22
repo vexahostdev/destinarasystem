@@ -6,15 +6,15 @@
 <div class="space-y-8">
 
     <!-- Header & Tombol Tambah Destinasi -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2B211E]/12">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F2937]/12">
         <div>
-            <div class="flex items-center gap-2 text-xs text-[#2B211E]/60 mb-2">
-                <a href="{{ route('mitra.dashboard') }}" class="hover:text-[#703A3A]">Dashboard</a>
+            <div class="flex items-center gap-2 text-xs text-[#1F2937]/60 mb-2">
+                <a href="{{ route('mitra.dashboard') }}" class="hover:text-[#1F2B45]">Dashboard</a>
                 <span>/</span>
-                <span class="text-[#703A3A] font-semibold">Tapak Kelolaan</span>
+                <span class="text-[#1F2B45] font-semibold">Tapak Kelolaan</span>
             </div>
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#2B211E]">Katalog Tapak Laboratorium Kelolaan</h1>
-            <p class="text-xs sm:text-sm text-[#2B211E]/70 mt-1">
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1F2937]">Katalog Tapak Laboratorium Kelolaan</h1>
+            <p class="text-xs sm:text-sm text-[#1F2937]/70 mt-1">
                 Kelola konten edukasi, fasilitas rombongan, tarif tiket resmi, dan pantau status kurasi listing baru.
             </p>
         </div>
@@ -30,13 +30,13 @@
     <!-- Grid Kartu Tapak Kelolaan -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         @foreach($destinations as $dest)
-        <div class="rgs-card overflow-hidden border border-[#2B211E]/15 hover:border-[#703A3A]/40 transition-all flex flex-col">
+        <div class="rgs-card overflow-hidden border border-[#1F2937]/15 hover:border-[#1F2B45]/40 transition-all flex flex-col">
             <!-- Cover Gambar & Badge Status -->
             <div class="aspect-16/9 bg-gray-100 relative overflow-hidden">
                 <img src="{{ asset($dest->cover_image) }}" alt="{{ $dest->name }}" class="w-full h-full object-cover">
 
                 <div class="absolute top-3 left-3 flex items-center gap-2">
-                    <span class="px-2.5 py-1 bg-[#2B211E]/80 text-white text-[10px] font-bold uppercase tracking-wider">
+                    <span class="px-2.5 py-1 bg-[#1F2937]/80 text-white text-[10px] font-bold uppercase tracking-wider">
                         {{ strtoupper(str_replace('_', ' ', $dest->category?->name ?? 'Wisata Edukasi')) }}
                     </span>
                 </div>
@@ -61,37 +61,37 @@
             <!-- Konten Deskripsi & Spesifikasi -->
             <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div class="space-y-2">
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-[#703A3A]">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-[#1F2B45]">
                         {{ $dest->city }}, {{ $dest->province?->name ?? (is_string($dest->province) ? $dest->province : '') }}
                     </div>
-                    <h2 class="font-serif text-xl font-bold text-[#2B211E] leading-snug">
+                    <h2 class="font-serif text-xl font-bold text-[#1F2937] leading-snug">
                         {{ $dest->name }}
                     </h2>
-                    <p class="text-xs text-[#2B211E]/75 leading-relaxed line-clamp-3">
+                    <p class="text-xs text-[#1F2937]/75 leading-relaxed line-clamp-3">
                         {{ $dest->description }}
                     </p>
 
                     <!-- Modul & Fasilitas Singkat -->
                     @if($dest->educational_highlights)
-                    <div class="p-3 bg-[#faf6f0] border border-[#2B211E]/10 text-xs space-y-1">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#703A3A] block">Fokus Modul Ilmiah:</span>
-                        <p class="text-[11px] text-[#2B211E]/80">{{ $dest->educational_highlights }}</p>
+                    <div class="p-3 bg-[#F4F6F9] border border-[#1F2937]/10 text-xs space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#1F2B45] block">Fokus Modul Ilmiah:</span>
+                        <p class="text-[11px] text-[#1F2937]/80">{{ $dest->educational_highlights }}</p>
                     </div>
                     @endif
                 </div>
 
                 <!-- Footer Metrik & Tombol Aksi -->
-                <div class="pt-4 border-t border-[#2B211E]/10 space-y-3">
+                <div class="pt-4 border-t border-[#1F2937]/10 space-y-3">
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                            <span class="text-[#2B211E]/60 text-[11px] block">Tarif Retribusi Edukasi:</span>
-                            <span class="font-serif text-base font-bold text-[#703A3A]">
-                                Rp {{ number_format($dest->price_per_pax, 0, ',', '.') }} <span class="text-xs font-sans text-[#2B211E]/60 font-normal">/ pax</span>
+                            <span class="text-[#1F2937]/60 text-[11px] block">Tarif Retribusi Edukasi:</span>
+                            <span class="font-serif text-base font-bold text-[#1F2B45]">
+                                Rp {{ number_format($dest->price_per_pax, 0, ',', '.') }} <span class="text-xs font-sans text-[#1F2937]/60 font-normal">/ pax</span>
                             </span>
                         </div>
                         <div>
-                            <span class="text-[#2B211E]/60 text-[11px] block">Total Kunjungan Rombongan:</span>
-                            <span class="font-bold text-[#2B211E]">
+                            <span class="text-[#1F2937]/60 text-[11px] block">Total Kunjungan Rombongan:</span>
+                            <span class="font-bold text-[#1F2937]">
                                 {{ $dest->bookings_count ?? 0 }} Rombongan
                             </span>
                         </div>

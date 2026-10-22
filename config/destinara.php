@@ -166,7 +166,7 @@ return [
             'label' => 'Warna Brand Utama (HEX)',
             'group' => 'general',
             'type' => 'string',
-            'default' => '#8C5151',
+            'default' => '#1F2B45',
             'rules' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'permission' => 'settings.general',
         ],

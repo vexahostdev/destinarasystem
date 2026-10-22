@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <div>
-        <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Moderasi Ulasan Pembeli</h1>
+        <h1 class="text-2xl font-extrabold text-[#111827]">Moderasi Ulasan Pembeli</h1>
         <p class="text-sm text-gray-500">Kelola kurasi penayangan testimoni dan rating destinasi dari rombongan sekolah</p>
     </div>
 
@@ -13,7 +13,7 @@
     <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
         <form method="GET" action="{{ route('admin.reviews.index') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-                <select name="destination_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="destination_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Destinasi</option>
                     @foreach($destinations as $d)
                         <option value="{{ $d->id }}" {{ request('destination_id') == $d->id ? 'selected' : '' }}>
@@ -23,7 +23,7 @@
                 </select>
             </div>
             <div>
-                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Status Moderasi</option>
                     <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Diterbitkan (Published)</option>
                     <option value="hidden" {{ request('status') === 'hidden' ? 'selected' : '' }}>Disembunyikan (Hidden)</option>
@@ -31,7 +31,7 @@
                 </select>
             </div>
             <div>
-                <select name="rating" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="rating" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Rating Bintang</option>
                     @for($i = 5; $i >= 1; $i--)
                         <option value="{{ $i }}" {{ request('rating') == $i ? 'selected' : '' }}>{{ $i }} Bintang</option>
@@ -39,10 +39,10 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                     Filter
                 </button>
-                <a href="{{ route('admin.reviews.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl">
+                <a href="{{ route('admin.reviews.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-2xl">
                     Reset
                 </a>
             </div>
@@ -67,7 +67,7 @@
                     @forelse($reviews as $rev)
                     <tr class="hover:bg-gray-50/70 transition-colors">
                         <td class="py-3.5 pr-2">
-                            <span class="font-bold text-[#1E1B1B] block">{{ $rev->destination?->name }}</span>
+                            <span class="font-bold text-[#111827] block">{{ $rev->destination?->name }}</span>
                             <span class="text-[11px] font-mono text-gray-400">#{{ $rev->booking?->booking_code }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
@@ -84,7 +84,7 @@
                         <td class="py-3.5 pr-2 max-w-md">
                             <p class="text-gray-700 italic">"{{ $rev->comment }}"</p>
                             @if($rev->partner_reply)
-                                <div class="mt-2 p-2 rounded-xl bg-stone-50 border border-stone-200/60 text-[11px] text-stone-600">
+                                <div class="mt-2 p-2 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px] text-slate-600">
                                     <span class="font-bold text-gray-800 block">Balasan Mitra ({{ $rev->replied_at?->translatedFormat('d M Y') }}):</span>
                                     <span>{{ $rev->partner_reply }}</span>
                                 </div>
@@ -100,7 +100,7 @@
                             <form action="{{ route('admin.reviews.moderate', $rev->id) }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="status" value="published">
-                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase">
+                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-2xl text-[10px] font-bold uppercase">
                                     Terbitkan
                                 </button>
                             </form>
@@ -109,7 +109,7 @@
                             <form action="{{ route('admin.reviews.moderate', $rev->id) }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="status" value="hidden">
-                                <button type="submit" class="border border-rose-300 text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase">
+                                <button type="submit" class="border border-rose-300 text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-2xl text-[10px] font-bold uppercase">
                                     Sembunyikan
                                 </button>
                             </form>

@@ -59,7 +59,7 @@
                                 </svg>
                             </div>
                         @else
-                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10 text-[#8C5151]">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10 text-[#2E3D5C]">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -84,7 +84,7 @@
                                     <textarea name="reason" 
                                               rows="3" 
                                               {!! $reasonRequired ? 'required' : '' !!}
-                                              class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#8C5151] focus:border-transparent outline-none"
+                                              class="w-full text-sm border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#2E3D5C] focus:border-transparent outline-none"
                                               placeholder="Tuliskan catatan atau alasan..."></textarea>
                                 </div>
                             @endif
@@ -96,13 +96,13 @@
 
                 <div class="bg-slate-50 px-6 py-4 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
                     <button type="submit" 
-                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-sm font-medium text-white transition sm:w-auto
-                            {{ $confirmColor === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-[#8C5151] hover:bg-[#734040]' }}">
+                            class="w-full inline-flex justify-center rounded-2xl border border-transparent shadow-sm px-4 py-2 text-sm font-medium text-white transition sm:w-auto
+ {{ $confirmColor === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-[#1F2B45] hover:bg-[#2E3D5C]' }}">
                         {{ $confirmText }}
                     </button>
                     <button type="button" 
                             @click="open = false" 
-                            class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition sm:mt-0 sm:w-auto">
+                            class="mt-3 w-full inline-flex justify-center rounded-2xl border border-slate-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition sm:mt-0 sm:w-auto">
                         Batal
                     </button>
                 </div>

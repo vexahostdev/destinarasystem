@@ -6,11 +6,11 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Diagnostik & Kesehatan Sistem</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Diagnostik & Kesehatan Sistem</h1>
             <p class="text-sm text-gray-500">Pemeriksaan live koneksi database, queue workers, gateway, storage, dan scheduler</p>
         </div>
         <div>
-            <a href="{{ route('admin.health.index') }}" class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all">
+            <a href="{{ route('admin.health.index') }}" class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all">
                 <span class="material-symbols-outlined text-[18px]">refresh</span>
                 <span>Jalankan Ulang Diagnostik</span>
             </a>
@@ -51,21 +51,21 @@
 
     <!-- Info Server & Runtime Environment -->
     <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-3">
-        <h3 class="text-base font-bold text-[#1E1B1B]">Lingkungan Runtime & Host</h3>
+        <h3 class="text-base font-bold text-[#111827]">Lingkungan Runtime & Host</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Versi PHP</span>
                 <span class="font-bold text-gray-800">{{ PHP_VERSION }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Versi Laravel</span>
                 <span class="font-bold text-gray-800">{{ app()->version() }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Environment</span>
-                <span class="font-bold text-[#703A3A] uppercase">{{ app()->environment() }}</span>
+                <span class="font-bold text-[#1F2B45] uppercase">{{ app()->environment() }}</span>
             </div>
-            <div class="p-3 rounded-xl bg-stone-50 border border-stone-200/60">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span class="text-gray-400 block text-[10px]">Waktu Server</span>
                 <span class="font-bold text-gray-800">{{ now()->format('H:i:s T') }}</span>
             </div>

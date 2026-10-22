@@ -6,7 +6,7 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Pencairan Dana Mitra (Payout)</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Pencairan Dana Mitra (Payout)</h1>
             <p class="text-sm text-gray-500">Penyaluran bagi hasil pengelola tapak atas kunjungan rombongan yang telah selesai</p>
         </div>
     </div>
@@ -31,7 +31,7 @@
                     @forelse($payouts as $p)
                     <tr class="hover:bg-gray-50/70 transition-colors">
                         <td class="py-3.5 pr-2 font-mono">
-                            <span class="font-bold text-[#703A3A] block">{{ $p->payout_number }}</span>
+                            <span class="font-bold text-[#1F2B45] block">{{ $p->payout_number }}</span>
                             <a href="{{ route('admin.bookings.show', $p->booking->booking_code) }}" class="text-gray-500 hover:underline">
                                 {{ $p->booking->booking_code }}
                             </a>
@@ -61,7 +61,7 @@
                             @if($p->status === \App\Enums\PayoutStatus::PENDING)
                                 @can('payouts.process')
                                 <button type="button" @click="activePayout = {{ $p->id }}; openProcessModal = true"
-                                        class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                                        class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
                                     Transfer
                                 </button>
                                 <button type="button" @click="activePayout = {{ $p->id }}; openHoldModal = true"
@@ -70,7 +70,7 @@
                                 </button>
                                 @endcan
                             @elseif($p->proof_file)
-                                <a href="{{ asset('storage/' . $p->proof_file) }}" target="_blank" class="text-xs text-[#703A3A] hover:underline font-semibold">
+                                <a href="{{ asset('storage/' . $p->proof_file) }}" target="_blank" class="text-xs text-[#1F2B45] hover:underline font-semibold">
                                     Bukti Transfer
                                 </a>
                             @endif
@@ -102,14 +102,14 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Bukti Transfer (JPG/PNG/PDF) *</label>
                         <input type="file" name="proof" required accept="image/*,application/pdf"
-                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200">
+                               class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button type="button" @click="openProcessModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#703A3A] text-white rounded-xl hover:bg-[#561D1E]">
+                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#1F2B45] text-white rounded-2xl hover:bg-[#16203A]">
                             Selesaikan Transfer
                         </button>
                     </div>
@@ -127,14 +127,14 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alasan Penahanan Dana *</label>
                         <textarea name="reason" required rows="3" placeholder="Sebutkan kendala atau alasan penahanan dana..."
-                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                                  class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 pt-2">
                         <button type="button" @click="openHoldModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-amber-600 text-white rounded-xl hover:bg-amber-700">
+                        <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-amber-600 text-white rounded-2xl hover:bg-amber-700">
                             Tahan Payout
                         </button>
                     </div>

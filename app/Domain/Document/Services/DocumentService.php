@@ -284,8 +284,8 @@ class DocumentService
             .'</table>';
 
         // Checkin box for e-voucher
-        $checkinBox = '<div class="text-center mt-4 mb-4" style="border: 2px dashed #8C5151; padding: 15px; border-radius: 8px; background: #FFF5F5;">'
-            .'<h3 style="color: #8C5151; margin-top:0;">QR CHECK-IN ROMBONGAN</h3>'
+        $checkinBox = '<div class="text-center mt-4 mb-4" style="border: 2px dashed #1F2B45; padding: 15px; border-radius: 8px; background: #F4F6F9;">'
+            .'<h3 style="color: #1F2B45; margin-top:0;">QR CHECK-IN ROMBONGAN</h3>'
             .'<img src="data:image/svg+xml;base64,'.$checkinQrBase64.'" width="150" height="150" alt="QR Check-in">'
             .'<p style="font-size: 9pt; color: #4A5568; margin-bottom: 0;">Tunjukkan QR Code ini kepada pengelola destinasi saat tiba di lokasi untuk proses check-in rombongan.</p>'
             .'</div>';

@@ -19,24 +19,24 @@
         <!-- Pilihan Paket Edukasi -->
         <div class="bg-white p-6 sm:p-7 rounded-3xl border border-gray-100 shadow-sm space-y-4">
             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#8C5151]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#2E3D5C]"></span>
                 <span>1. Pilih Paket Pembelajaran</span>
             </h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 @foreach($packages as $pkg)
                     <label class="cursor-pointer p-4 rounded-2xl border-2 transition-all flex flex-col justify-between 
-                        {{ $packageId === $pkg->id ? 'border-[#8C5151] bg-[#8C5151]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300' }}">
+                        {{ $packageId === $pkg->id ? 'border-[#2E3D5C] bg-[#2E3D5C]/5 shadow-sm' : 'border-slate-200 hover:border-slate-300' }}">
                         <div class="flex items-start justify-between">
                             <div>
                                 <span class="font-bold text-slate-800 text-sm block">{{ $pkg->name }}</span>
                                 <span class="text-xs text-slate-500">{{ $pkg->duration_days }} Hari • Kuota {{ $pkg->min_pax }}-{{ $pkg->max_pax }} Pax</span>
                             </div>
-                            <input type="radio" wire:model.live="packageId" value="{{ $pkg->id }}" class="text-[#8C5151] focus:ring-[#8C5151]">
+                            <input type="radio" wire:model.live="packageId" value="{{ $pkg->id }}" class="text-[#2E3D5C] focus:ring-[#2E3D5C]">
                         </div>
                         <div class="mt-3 pt-2 border-t border-slate-100">
                             <span class="text-xs text-slate-400">Tarif per peserta:</span>
-                            <span class="text-sm font-extrabold text-[#8C5151] block">Rp {{ number_format($pkg->price_per_pax, 0, ',', '.') }}</span>
+                            <span class="text-sm font-extrabold text-[#2E3D5C] block">Rp {{ number_format($pkg->price_per_pax, 0, ',', '.') }}</span>
                         </div>
                     </label>
                 @endforeach
@@ -47,14 +47,14 @@
         <!-- Tipe Kunjungan & Tanggal Rencana -->
         <div class="bg-white p-6 sm:p-7 rounded-3xl border border-gray-100 shadow-sm space-y-5">
             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#8C5151]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#2E3D5C]"></span>
                 <span>2. Jadwal & Bentuk Kunjungan</span>
             </h3>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tipe Kunjungan</label>
-                    <select wire:model.live="inquiryType" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                    <select wire:model.live="inquiryType" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#2E3D5C] outline-none">
                         @foreach($availableInquiryTypes as $type)
                             <option value="{{ $type }}">
                                 {{ $type === 'study_tour' ? 'Ekskursi / Study Tour Sekolah (P5)' : ($type === 'penelitian' ? 'Riset Akademik / Pengabdian Masyarakat' : ucfirst($type)) }}
@@ -70,7 +70,7 @@
                            wire:model.live="plannedDateStart" 
                            min="{{ $minDate }}"
                            max="{{ $maxDate }}"
-                           class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                           class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#2E3D5C] outline-none">
                     <p class="text-[11px] text-slate-400 mt-1">Minimal H-{{ (int) setting('min_lead_days', 7) }} sebelum pelaksanaan untuk kliring adat.</p>
                     @error('plannedDateStart') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
@@ -89,7 +89,7 @@
         <!-- Jumlah Rombongan -->
         <div class="bg-white p-6 sm:p-7 rounded-3xl border border-gray-100 shadow-sm space-y-4">
             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#8C5151]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#2E3D5C]"></span>
                 <span>3. Kuota Peserta & Pendamping</span>
             </h3>
 
@@ -103,7 +103,7 @@
                            wire:model.live.debounce.300ms="participantCount" 
                            min="{{ $currentPkg?->min_pax ?? 1 }}" 
                            max="{{ $currentPkg?->max_pax ?? 500 }}" 
-                           class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                           class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#2E3D5C] outline-none">
                     @if($currentPkg)
                         <p class="text-[11px] text-slate-400 mt-1">Batas kuota rombongan paket: {{ $currentPkg->min_pax }} - {{ $currentPkg->max_pax }} peserta.</p>
                     @endif
@@ -112,7 +112,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jumlah Guru Pendamping</label>
-                    <input type="number" wire:model.live.debounce.300ms="companionCount" min="0" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#8C5151] outline-none">
+                    <input type="number" wire:model.live.debounce.300ms="companionCount" min="0" class="w-full text-sm border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-[#2E3D5C] outline-none">
                     @error('companionCount') <p class="text-xs text-rose-500 font-semibold mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
@@ -122,7 +122,7 @@
         @if($addons->isNotEmpty())
             <div class="bg-white p-6 sm:p-7 rounded-3xl border border-gray-100 shadow-sm space-y-4">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#8C5151]"></span>
+                    <span class="w-2 h-2 rounded-full bg-[#2E3D5C]"></span>
                     <span>4. Fasilitas Tambahan (Opsional)</span>
                 </h3>
 
@@ -130,13 +130,13 @@
                     @foreach($addons as $addon)
                         <label class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
                             <div class="flex items-center gap-3">
-                                <input type="checkbox" wire:model.live="selectedAddonIds" value="{{ $addon->id }}" class="rounded text-[#8C5151] focus:ring-[#8C5151]">
+                                <input type="checkbox" wire:model.live="selectedAddonIds" value="{{ $addon->id }}" class="rounded text-[#2E3D5C] focus:ring-[#2E3D5C]">
                                 <div>
                                     <span class="text-xs font-bold text-slate-800 block">{{ $addon->name }}</span>
                                     <span class="text-[11px] text-slate-500">{{ $addon->description }}</span>
                                 </div>
                             </div>
-                            <span class="text-xs font-extrabold text-[#8C5151]">
+                            <span class="text-xs font-extrabold text-[#2E3D5C]">
                                 +Rp {{ number_format($addon->price, 0, ',', '.') }}
                             </span>
                         </label>
@@ -148,19 +148,19 @@
         <!-- Catatan Pembelajaran & Surat Izin -->
         <div class="bg-white p-6 sm:p-7 rounded-3xl border border-gray-100 shadow-sm space-y-4">
             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-[#8C5151]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#2E3D5C]"></span>
                 <span>5. Catatan Khusus & Administrasi</span>
             </h3>
 
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Fokus Kajian / Harapan Pembelajaran</label>
-                    <textarea wire:model="purposeNotes" rows="2" class="w-full text-sm border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-[#8C5151] outline-none" placeholder="Misal: Kajian vegetasi hutan bambu, wawancara tetua adat, dsb."></textarea>
+                    <textarea wire:model="purposeNotes" rows="2" class="w-full text-sm border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-[#2E3D5C] outline-none" placeholder="Misal: Kajian vegetasi hutan bambu, wawancara tetua adat, dsb."></textarea>
                 </div>
 
                 @if($destination->has_permit_document)
                 <label class="flex items-start gap-2.5 cursor-pointer pt-2">
-                    <input type="checkbox" wire:model="needsPermitLetter" class="rounded mt-0.5 text-[#8C5151] focus:ring-[#8C5151]">
+                    <input type="checkbox" wire:model="needsPermitLetter" class="rounded mt-0.5 text-[#2E3D5C] focus:ring-[#2E3D5C]">
                     <span class="text-xs text-slate-700">
                         <strong>Butuh draf Surat Izin Dinas Pendidikan / Kemenag:</strong> Sistem akan membuatkan draf resmi otomatis setelah pemesanan dikonfirmasi.
                     </span>
@@ -176,7 +176,7 @@
         <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-gray-100 flex flex-col gap-5">
             
             <div>
-                <span class="text-xs uppercase tracking-wider font-bold text-[#8C5151] block mb-1">
+                <span class="text-xs uppercase tracking-wider font-bold text-[#2E3D5C] block mb-1">
                     Ringkasan Tagihan Resmi
                 </span>
                 <h4 class="text-xl font-extrabold text-slate-800">{{ $destination->name }}</h4>
@@ -190,7 +190,7 @@
                     <input type="text" 
                            wire:model.live.debounce.400ms="voucherCode" 
                            placeholder="KODE VOUCHER" 
-                           class="w-full text-xs font-mono uppercase px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#8C5151] outline-none">
+                           class="w-full text-xs font-mono uppercase px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#2E3D5C] outline-none">
                 </div>
                 @if($voucherError)
                     <p class="text-[11px] text-rose-500 font-semibold mt-1">{{ $voucherError }}</p>
@@ -243,10 +243,10 @@
             </div>
 
             <!-- Total Investasi -->
-            <div class="p-4 bg-[#FAF7F5] rounded-2xl border border-slate-200/60 flex justify-between items-baseline">
+            <div class="p-4 bg-[#FFFFFF] rounded-2xl border border-slate-200/60 flex justify-between items-baseline">
                 <div>
                     <span class="text-xs text-slate-500 block font-medium">Total Tagihan:</span>
-                    <span class="text-2xl font-black text-[#8C5151]">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
+                    <span class="text-2xl font-black text-[#2E3D5C]">Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
                 </div>
                 <span class="text-[11px] text-slate-400">Total Resmi</span>
             </div>
@@ -262,7 +262,7 @@
             <button type="submit" 
                     wire:loading.attr="disabled"
                     {{ (! $isSlotAvailable || ! $isPaymentAvailable) ? 'disabled' : '' }}
-                    class="w-full bg-[#8C5151] hover:bg-[#734040] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3.5 px-6 rounded-full font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition">
+                    class="w-full bg-[#1F2B45] hover:bg-[#2E3D5C] disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3.5 px-6 rounded-2xl font-bold text-sm text-center flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition">
                 <span wire:loading.remove>Lanjut ke Pembayaran</span>
                 <span wire:loading class="inline-flex items-center gap-2">
                     <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>

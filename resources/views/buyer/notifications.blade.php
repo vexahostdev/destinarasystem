@@ -9,9 +9,9 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
             <div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#703A3A]">Dashboard</a>
+                <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#1F2B45]">Dashboard</a>
                 <span>/</span>
-                <span class="text-[#703A3A] font-semibold">Notifikasi & Riwayat Pesan</span>
+                <span class="text-[#1F2B45] font-semibold">Notifikasi & Riwayat Pesan</span>
             </div>
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900">Pemberitahuan Sistem</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -22,7 +22,7 @@
         @if(Auth::user()->unreadNotifications()->count() > 0)
             <form action="{{ route('buyer.notifications.readAll') }}" method="POST">
                 @csrf
-                <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-full transition flex items-center gap-1.5 shadow-2xs">
+                <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-2xl transition flex items-center gap-1.5 shadow-2xs">
                     <span class="material-symbols-outlined text-[16px]">done_all</span>
                     <span>Tandai Semua Dibaca</span>
                 </button>
@@ -39,7 +39,7 @@
                 $eventKey = $notif->data['event_key'] ?? null;
             @endphp
             <div class="p-5 flex items-start gap-4 hover:bg-slate-50/60 transition {{ $isRead ? 'opacity-80 bg-white' : 'bg-rose-50/20' }}">
-                <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 {{ $isRead ? 'bg-slate-100 text-slate-500' : 'bg-[#703A3A]/10 text-[#703A3A]' }}">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 {{ $isRead ? 'bg-slate-100 text-slate-500' : 'bg-[#1F2B45]/10 text-[#1F2B45]' }}">
                     <span class="material-symbols-outlined text-[20px]">
                         {{ $isRead ? 'mail_outline' : 'mark_email_unread' }}
                     </span>
@@ -73,7 +73,7 @@
                         @if(!$isRead)
                             <form action="{{ route('buyer.notifications.read', $notif->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="text-[11px] text-[#703A3A] hover:underline font-bold flex items-center gap-1">
+                                <button type="submit" class="text-[11px] text-[#1F2B45] hover:underline font-bold flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px]">check</span>
                                     <span>Tandai dibaca</span>
                                 </button>

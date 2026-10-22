@@ -6,7 +6,7 @@
 <div class="space-y-6" x-data="{ rejectPaymentId: null, rejectReason: '' }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Log Pembayaran</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Log Pembayaran</h1>
             <p class="text-sm text-gray-500">Daftar invoice transaksi gateway & verifikasi transfer bank manual</p>
         </div>
     </div>
@@ -16,10 +16,10 @@
         <form method="GET" action="{{ route('admin.finance.payments') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari external ID atau invoice..."
-                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             </div>
             <div>
-                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Status Pembayaran</option>
                     @foreach(\App\Enums\PaymentStatus::cases() as $st)
                         <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>
@@ -29,10 +29,10 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E] transition-all">
+                <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A] transition-all">
                     Filter
                 </button>
-                <a href="{{ route('admin.finance.payments') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl">
+                <a href="{{ route('admin.finance.payments') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-2xl">
                     Reset
                 </a>
             </div>
@@ -64,7 +64,7 @@
                             @endif
                         </td>
                         <td class="py-3.5 pr-2">
-                            <a href="{{ route('admin.bookings.show', $p->booking->booking_code) }}" class="text-[#703A3A] font-bold hover:underline font-mono">
+                            <a href="{{ route('admin.bookings.show', $p->booking->booking_code) }}" class="text-[#1F2B45] font-bold hover:underline font-mono">
                                 {{ $p->booking->booking_code }}
                             </a>
                             <span class="block text-[11px] text-gray-500">{{ $p->booking->destination?->name }}</span>
@@ -74,7 +74,7 @@
                                 $gwStr = $p->gateway instanceof \UnitEnum ? $p->gateway->value : (string)$p->gateway;
                                 $isManual = ($gwStr === 'manual_transfer');
                             @endphp
-                            <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-semibold uppercase">
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold uppercase">
                                 {{ $gwStr }}
                             </span>
                             @if($p->payment_method)
@@ -99,7 +99,7 @@
                         <td class="py-3.5 text-right space-x-2">
                             @if($p->proof_path)
                                 <a href="{{ route('admin.finance.downloadProof', $p->id) }}" target="_blank"
-                                   class="inline-block border border-[#703A3A] text-[#703A3A] hover:bg-[#703A3A] hover:text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase transition">
+                                   class="inline-block border border-[#1F2B45] text-[#1F2B45] hover:bg-[#1F2B45] hover:text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase transition">
                                     Unduh Bukti
                                 </a>
                             @endif
@@ -109,7 +109,7 @@
                                         <form action="{{ route('admin.finance.verifyManual', $p->id) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" onclick="return confirm('Verifikasi pembayaran manual ini dan setujui status booking?')"
-                                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase transition">
+                                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-2xl text-[10px] font-bold uppercase transition">
                                                 Verifikasi
                                             </button>
                                         </form>
@@ -130,7 +130,7 @@
                             @if(!$isManual && $p->status === \App\Enums\PaymentStatus::PENDING)
                                 <form action="{{ route('admin.finance.checkGatewayStatus', $p->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                                    <button type="submit" class="border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-2xl text-[10px] font-bold uppercase">
                                         Cek Status
                                     </button>
                                 </form>
@@ -163,15 +163,15 @@
                     <label class="block text-xs font-bold text-gray-700 mb-1">Alasan Penolakan <span class="text-rose-500">*</span></label>
                     <textarea name="reason" rows="3" required minlength="5" x-model="rejectReason"
                               placeholder="Contoh: Bukti transfer buram, mutasi belum masuk, atau nominal tidak sesuai."
-                              class="w-full text-xs rounded-xl border-gray-300 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                              class="w-full text-xs rounded-xl border-gray-300 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="rejectPaymentId = null; rejectReason = ''"
-                            class="px-4 py-2 border border-gray-200 rounded-full text-xs font-bold text-gray-700 hover:bg-gray-50">
+                            class="px-4 py-2 border border-gray-200 rounded-2xl text-xs font-bold text-gray-700 hover:bg-gray-50">
                         Batal
                     </button>
                     <button type="submit"
-                            class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                            class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold uppercase tracking-wider">
                         Tolak Bukti
                     </button>
                 </div>

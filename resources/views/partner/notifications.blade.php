@@ -22,7 +22,7 @@
         @if(Auth::user()->unreadNotifications()->count() > 0)
             <form action="{{ route('mitra.notifications.readAll') }}" method="POST">
                 @csrf
-                <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-full transition flex items-center gap-1.5 shadow-2xs">
+                <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-2xl transition flex items-center gap-1.5 shadow-2xs">
                     <span class="material-symbols-outlined text-[16px]">done_all</span>
                     <span>Tandai Semua Dibaca</span>
                 </button>

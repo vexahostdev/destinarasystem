@@ -7,7 +7,7 @@
             <span class="w-1.5 h-1.5 rounded-full bg-[#51634b]"></span>
             <span>Etalase Tapak Edukasi Nusantara</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1E1B1B] tracking-tight">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111827] tracking-tight">
             Etalase Tapak & Laboratorium Alam
           </h1>
           <p class="text-xs sm:text-sm text-gray-500 mt-2 max-w-2xl leading-relaxed">
@@ -18,7 +18,7 @@
         <div class="flex items-center gap-3 text-xs font-semibold text-gray-500 shrink-0">
           <span class="flex items-center gap-1 text-[#51634b]"><span class="material-symbols-outlined text-[16px]">verified</span> Mitra Terkurasi</span>
           <span>•</span>
-          <span class="flex items-center gap-1 text-[#703A3A]"><span class="material-symbols-outlined text-[16px]">receipt_long</span> Akuntabilitas SPK</span>
+          <span class="flex items-center gap-1 text-[#1F2B45]"><span class="material-symbols-outlined text-[16px]">receipt_long</span> Akuntabilitas SPK</span>
         </div>
       </div>
 
@@ -33,13 +33,13 @@
             <input type="text" 
                    wire:model.live.debounce.350ms="search" 
                    placeholder="Cari nama tapak, kota, atau topik pembelajaran..." 
-                   class="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-full text-[#1E1B1B] placeholder-gray-400 focus:outline-none focus:border-[#703A3A] focus:bg-white transition-all">
-            <span class="material-symbols-outlined absolute left-3.5 top-3 text-base text-[#703A3A]">search</span>
+                   class="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-full text-[#111827] placeholder-gray-400 focus:outline-none focus:border-[#1F2B45] focus:bg-white transition-all">
+            <span class="material-symbols-outlined absolute left-3.5 top-3 text-base text-[#1F2B45]">search</span>
           </div>
 
           <!-- Province Selector -->
           <div class="sm:col-span-3">
-            <select wire:model.live="province" class="w-full p-2.5 border border-gray-200 rounded-full text-xs sm:text-sm bg-gray-50 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] cursor-pointer">
+            <select wire:model.live="province" class="w-full p-2.5 border border-gray-200 rounded-full text-xs sm:text-sm bg-gray-50 text-[#111827] focus:outline-none focus:border-[#1F2B45] cursor-pointer">
               <option value="">Semua Provinsi</option>
               @foreach($provinces as $prov)
                 <option value="{{ $prov }}">{{ $prov }}</option>
@@ -49,14 +49,14 @@
 
           <!-- Sort & Action Button -->
           <div class="sm:col-span-3 flex items-center gap-2">
-            <select wire:model.live="sort" class="w-full p-2.5 border border-gray-200 rounded-full text-xs sm:text-sm bg-gray-50 text-[#1E1B1B] focus:outline-none focus:border-[#703A3A] cursor-pointer">
+            <select wire:model.live="sort" class="w-full p-2.5 border border-gray-200 rounded-full text-xs sm:text-sm bg-gray-50 text-[#111827] focus:outline-none focus:border-[#1F2B45] cursor-pointer">
               <option value="popular">Terpopuler</option>
               <option value="lowest_price">Tarif Terendah</option>
               <option value="highest_capacity">Kapasitas Terbesar</option>
             </select>
 
             @if($search || $category || $province || $inquiry_type || $sort !== 'popular')
-              <button wire:click="resetFilters" class="text-xs text-[#703A3A] hover:underline font-semibold px-2 shrink-0" title="Reset Filter">
+              <button wire:click="resetFilters" class="text-xs text-[#1F2B45] hover:underline font-semibold px-2 shrink-0" title="Reset Filter">
                 Reset
               </button>
             @endif
@@ -66,12 +66,12 @@
         <!-- Category Pills -->
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full flex-nowrap pt-3 border-t border-gray-100">
           <button wire:click="$set('category', '')" 
-                  class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ empty($category) ? 'bg-[#703A3A] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+                  class="px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap {{ empty($category) ? 'bg-[#1F2B45] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
             Semua Kategori
           </button>
           @foreach($categories as $slug => $label)
             <button wire:click="$set('category', '{{ $slug }}')" 
-                    class="px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === $slug ? 'bg-[#703A3A] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+                    class="px-4 py-2 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $category === $slug ? 'bg-[#1F2B45] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
               {{ $label }}
             </button>
           @endforeach
@@ -81,15 +81,15 @@
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full flex-nowrap pt-2 border-t border-gray-100 text-xs">
           <span class="text-gray-400 font-semibold uppercase tracking-wider text-[10px] shrink-0">Tipe Kunjungan:</span>
           <button wire:click="$set('inquiry_type', '')" 
-                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ empty($inquiry_type) ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+                  class="px-3 py-1 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ empty($inquiry_type) ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
             Semua Tipe
           </button>
           <button wire:click="$set('inquiry_type', 'study_tour')" 
-                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'study_tour' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+                  class="px-3 py-1 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'study_tour' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
             Study Tour
           </button>
           <button wire:click="$set('inquiry_type', 'penelitian')" 
-                  class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'penelitian' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
+                  class="px-3 py-1 rounded-2xl text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap {{ $inquiry_type === 'penelitian' ? 'bg-[#51634b] text-white shadow-xs' : 'text-gray-700 bg-gray-50 hover:bg-gray-100' }}">
             Penelitian / Riset
           </button>
         </div>
@@ -129,7 +129,7 @@
                   @endif
 
                   <!-- Location & Category Pill -->
-                  <div class="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-md text-[#2B211E] text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-xs">
+                  <div class="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-md text-[#1F2937] text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-xs">
                     {{ $dest->province?->name ?? $dest->city }}
                   </div>
 
@@ -141,7 +141,7 @@
 
                   <!-- Destination Title Overlay -->
                   <div class="absolute bottom-3 inset-x-3 text-white">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-[#FFD3D2] block mb-0.5">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-[#DCE4EF] block mb-0.5">
                       {{ $dest->category?->name ?? 'Wisata Edukasi' }}
                     </span>
                     <h2 class="text-lg font-bold drop-shadow-sm leading-snug">
@@ -175,14 +175,14 @@
               <div class="px-2 pt-3 border-t border-gray-100 flex items-center justify-between mt-2">
                 <div>
                   <span class="text-[10px] text-gray-400 block font-medium">Mulai dari</span>
-                  <span class="text-sm font-extrabold text-[#703A3A]">
+                  <span class="text-sm font-extrabold text-[#1F2B45]">
                     Rp {{ number_format($minPrice, 0, ',', '.') }}
                     <span class="text-[10px] font-normal text-gray-500">/pax</span>
                   </span>
                 </div>
 
                 <a href="{{ route('destinasi.show', $dest->slug) }}" 
-                   class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
+                   class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs">
                   <span>Lihat Tapak</span>
                   <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                 </a>
@@ -193,7 +193,7 @@
             <div class="col-span-1 sm:col-span-2 lg:col-span-3 py-16 text-center text-gray-500 bg-white rounded-3xl p-8 border border-gray-100">
               <span class="material-symbols-outlined text-4xl text-gray-400 mb-2">search_off</span>
               <p class="text-sm font-semibold">Tidak ada tapak yang sesuai dengan kriteria pencarian.</p>
-              <button wire:click="resetFilters" class="inline-block mt-3 text-xs font-bold text-[#703A3A] hover:underline">
+              <button wire:click="resetFilters" class="inline-block mt-3 text-xs font-bold text-[#1F2B45] hover:underline">
                 Reset Pencarian
               </button>
             </div>

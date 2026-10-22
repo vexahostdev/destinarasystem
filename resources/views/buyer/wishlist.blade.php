@@ -8,9 +8,9 @@
     <!-- Header Breadcrumb -->
     <div class="pb-4 border-b border-slate-200">
         <div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
-            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#8C5151]">Dashboard</a>
+            <a href="{{ route('buyer.dashboard') }}" class="hover:text-[#2E3D5C]">Dashboard</a>
             <span>/</span>
-            <span class="text-[#8C5151] font-semibold">Wishlist Tapak Edukasi</span>
+            <span class="text-[#2E3D5C] font-semibold">Wishlist Tapak Edukasi</span>
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -19,7 +19,7 @@
                     Daftar laboratorium alam dan desa adat yang Anda simpan untuk rencana ekskursi mendatang.
                 </p>
             </div>
-            <a href="{{ route('destinasi.index') }}" class="px-4 py-2 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold rounded-full transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto">
+            <a href="{{ route('destinasi.index') }}" class="px-4 py-2 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white text-xs font-bold rounded-2xl transition shadow-xs flex items-center gap-1.5 self-start sm:self-auto">
                 <span class="material-symbols-outlined text-[16px]">explore</span>
                 <span>Jelajahi Katalog</span>
             </a>
@@ -56,7 +56,7 @@
                     </div>
 
                     <div class="px-2 pb-2">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-[#8C5151] block mb-1">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-[#2E3D5C] block mb-1">
                             {{ $dest->province?->name ?? $dest->city }}
                         </span>
                         <h3 class="font-bold text-slate-900 text-base leading-snug">
@@ -69,10 +69,10 @@
                 <div class="px-2 pt-3 border-t border-slate-100 flex items-center justify-between mt-2">
                     <div>
                         <span class="text-[10px] text-slate-400 block font-medium">Mulai dari</span>
-                        <span class="text-sm font-extrabold text-[#8C5151]">Rp {{ number_format($minPrice, 0, ',', '.') }}<span class="text-[10px] font-normal text-slate-500">/pax</span></span>
+                        <span class="text-sm font-extrabold text-[#2E3D5C]">Rp {{ number_format($minPrice, 0, ',', '.') }}<span class="text-[10px] font-normal text-slate-500">/pax</span></span>
                     </div>
 
-                    <a href="{{ route('buyer.booking.create', ['destinasi' => $dest->slug]) }}" class="px-3.5 py-1.5 bg-[#8C5151] hover:bg-[#734040] text-white text-xs font-bold rounded-full transition shadow-xs flex items-center gap-1">
+                    <a href="{{ route('buyer.booking.create', ['destinasi' => $dest->slug]) }}" class="px-3.5 py-1.5 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white text-xs font-bold rounded-full transition shadow-xs flex items-center gap-1">
                         <span>Pesan</span>
                         <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </a>
@@ -82,7 +82,7 @@
             <div class="col-span-1 sm:col-span-2 lg:col-span-3 py-16 text-center text-slate-400 bg-white rounded-3xl p-8 border border-slate-200">
                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">favorite_border</span>
                 <p class="text-sm font-medium text-slate-600">Belum ada tapak edukasi di daftar wishlist Anda.</p>
-                <a href="{{ route('destinasi.index') }}" class="inline-block mt-3 text-xs font-bold text-[#8C5151] hover:underline">
+                <a href="{{ route('destinasi.index') }}" class="inline-block mt-3 text-xs font-bold text-[#2E3D5C] hover:underline">
                     Jelajahi Katalog Destinasi Sekarang
                 </a>
             </div>

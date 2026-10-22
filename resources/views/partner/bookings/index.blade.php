@@ -6,15 +6,15 @@
 <div class="space-y-8">
 
     <!-- Header & Filter -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2B211E]/12">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1F2937]/12">
         <div>
-            <div class="flex items-center gap-2 text-xs text-[#2B211E]/60 mb-2">
-                <a href="{{ route('mitra.dashboard') }}" class="hover:text-[#703A3A]">Dashboard</a>
+            <div class="flex items-center gap-2 text-xs text-[#1F2937]/60 mb-2">
+                <a href="{{ route('mitra.dashboard') }}" class="hover:text-[#1F2B45]">Dashboard</a>
                 <span>/</span>
-                <span class="text-[#703A3A] font-semibold">Booking Masuk</span>
+                <span class="text-[#1F2B45] font-semibold">Booking Masuk</span>
             </div>
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#2B211E]">Permohonan Rombongan Pelajar & Riset</h1>
-            <p class="text-xs sm:text-sm text-[#2B211E]/70 mt-1">
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1F2937]">Permohonan Rombongan Pelajar & Riset</h1>
+            <p class="text-xs sm:text-sm text-[#1F2937]/70 mt-1">
                 Verifikasi kesiapan pemandu lokal dan kapasitas balai pertemuan sebelum rombongan tiba di lokasi.
             </p>
         </div>
@@ -27,29 +27,29 @@
     </div>
 
     <!-- Filter Tab Status -->
-    <div class="border-b border-[#2B211E]/15 flex items-center gap-2 overflow-x-auto text-xs font-bold uppercase tracking-wider pb-1">
+    <div class="border-b border-[#1F2937]/15 flex items-center gap-2 overflow-x-auto text-xs font-bold uppercase tracking-wider pb-1">
         <a href="{{ route('mitra.bookings', ['status' => 'semua']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'semua') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'semua') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Semua Permohonan
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'dibayar']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dibayar') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dibayar') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Perlu Respon Mitra
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'dikonfirmasi']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dikonfirmasi') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'dikonfirmasi') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Dikonfirmasi / Siap
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'berlangsung']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'berlangsung') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'berlangsung') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Sedang Berkunjung
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'selesai']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'selesai') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'selesai') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Selesai Terlaksana
         </a>
         <a href="{{ route('mitra.bookings', ['status' => 'batal']) }}" 
-           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'batal') ? 'border-[#703A3A] text-[#703A3A] bg-[#703A3A]/5' : 'border-transparent text-[#2B211E]/60 hover:text-[#2B211E]' }}">
+           class="px-4 py-2 border-b-2 transition-colors whitespace-nowrap {{ ($statusFilter === 'batal') ? 'border-[#1F2B45] text-[#1F2B45] bg-[#1F2B45]/5' : 'border-transparent text-[#1F2937]/60 hover:text-[#1F2937]' }}">
             Ditolak / Batal
         </a>
     </div>
@@ -57,46 +57,46 @@
     <!-- Daftar Rombongan Masuk -->
     <div class="space-y-4">
         @forelse($bookings as $booking)
-        <div class="rgs-card p-5 border border-[#2B211E]/15 hover:border-[#703A3A]/40 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="rgs-card p-5 border border-[#1F2937]/15 hover:border-[#1F2B45]/40 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <!-- Informasi Rombongan -->
             <div class="space-y-2 flex-1">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="font-mono font-bold text-[#703A3A]">{{ $booking->booking_code }}</span>
-                    <span class="text-[#2B211E]/40">•</span>
-                    <span class="font-bold text-[#2B211E] text-sm">{{ $booking->institution->institution_name }}</span>
-                    <span class="px-2 py-0.5 bg-[#703A3A]/10 text-[#703A3A] text-[10px] font-bold uppercase">
+                    <span class="font-mono font-bold text-[#1F2B45]">{{ $booking->booking_code }}</span>
+                    <span class="text-[#1F2937]/40">•</span>
+                    <span class="font-bold text-[#1F2937] text-sm">{{ $booking->institution->institution_name }}</span>
+                    <span class="px-2 py-0.5 bg-[#1F2B45]/10 text-[#1F2B45] text-[10px] font-bold uppercase">
                         {{ $booking->inquiry_type === \App\Enums\InquiryType::STUDY_TOUR ? 'Study Tour P5' : 'Riset Ilmiah' }}
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#2B211E]/75">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#1F2937]/75">
                     <div>
-                        <span class="text-[#2B211E]/60 text-[11px] block">Jadwal Ekskursi:</span>
-                        <span class="font-bold text-[#2B211E]">
+                        <span class="text-[#1F2937]/60 text-[11px] block">Jadwal Ekskursi:</span>
+                        <span class="font-bold text-[#1F2937]">
                             {{ \Carbon\Carbon::parse($booking->planned_date_start)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($booking->planned_date_end)->translatedFormat('d M Y') }}
                         </span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 text-[11px] block">Jumlah Rombongan:</span>
-                        <span class="font-bold text-[#2B211E]">{{ $booking->participant_count }} Siswa + {{ $booking->companion_count }} Pendamping</span>
+                        <span class="text-[#1F2937]/60 text-[11px] block">Jumlah Rombongan:</span>
+                        <span class="font-bold text-[#1F2937]">{{ $booking->participant_count }} Siswa + {{ $booking->companion_count }} Pendamping</span>
                     </div>
                     <div>
-                        <span class="text-[#2B211E]/60 text-[11px] block">Estimasi Payout Pengelola:</span>
+                        <span class="text-[#1F2937]/60 text-[11px] block">Estimasi Payout Pengelola:</span>
                         <span class="font-bold font-mono text-[#51634b]">Rp {{ number_format($booking->partner_net_amount ?: ($booking->subtotal_amount - $booking->commission_amount), 0, ',', '.') }}</span>
                     </div>
                 </div>
 
                 <!-- Kontak PIC Pemohon & Catatan Khusus -->
-                <div class="p-3 bg-[#faf6f0] border border-[#2B211E]/10 text-xs space-y-1">
+                <div class="p-3 bg-[#F4F6F9] border border-[#1F2937]/10 text-xs space-y-1">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-[11px] text-[#2B211E]/70">
+                        <span class="text-[11px] text-[#1F2937]/70">
                             PIC: <strong>{{ $booking->user->name ?? 'Pemohon' }}</strong> @if(!empty($booking->user->phone)) (WhatsApp: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $booking->user->phone) }}" target="_blank" class="text-[#51634b] font-bold underline">{{ $booking->user->phone }}</a>) @endif
                         </span>
-                        <span class="text-[11px] text-[#2B211E]/60">Destinasi: <strong>{{ $booking->destination->name }}</strong></span>
+                        <span class="text-[11px] text-[#1F2937]/60">Destinasi: <strong>{{ $booking->destination->name }}</strong></span>
                     </div>
 
                     @if($booking->purpose_notes)
-                    <div class="text-[11px] text-[#2B211E]/80 italic pt-1 border-t border-[#2B211E]/10">
+                    <div class="text-[11px] text-[#1F2937]/80 italic pt-1 border-t border-[#1F2937]/10">
                         Catatan Kebutuhan: "{{ $booking->purpose_notes }}"
                     </div>
                     @endif
@@ -104,7 +104,7 @@
             </div>
 
             <!-- Kolom Status & Aksi Tindakan Mitra -->
-            <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#2B211E]/10">
+            <div class="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-[#1F2937]/10">
                 <!-- Status Badge -->
                 <div>
                     @php $st = is_object($booking->status) ? $booking->status->value : $booking->status; @endphp
@@ -125,7 +125,7 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Menunggu Bayar
                         </span>
                     @elseif($st === 'selesai')
-                        <span class="px-3 py-1 bg-[#2B211E]/10 text-[#2B211E]/80 text-xs font-bold uppercase tracking-wider">
+                        <span class="px-3 py-1 bg-[#1F2937]/10 text-[#1F2937]/80 text-xs font-bold uppercase tracking-wider">
                             Selesai
                         </span>
                     @elseif($st === 'batal')
@@ -159,7 +159,7 @@
                         </form>
                     @endif
 
-                    <a href="{{ route('mitra.booking.show', $booking->booking_code) }}" class="px-3 py-2 border border-[#2B211E]/20 text-[#2B211E] bg-[#faf6f0] hover:bg-[#703A3A] hover:text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1">
+                    <a href="{{ route('mitra.booking.show', $booking->booking_code) }}" class="px-3 py-2 border border-[#1F2937]/20 text-[#1F2937] bg-[#F4F6F9] hover:bg-[#1F2B45] hover:text-white text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-[15px]">info</span>
                         <span>Detail</span>
                     </a>
@@ -167,8 +167,8 @@
             </div>
         </div>
         @empty
-        <div class="rgs-card p-12 text-center text-xs text-[#2B211E]/60 space-y-2">
-            <span class="material-symbols-outlined text-4xl text-[#703A3A]">inbox</span>
+        <div class="rgs-card p-12 text-center text-xs text-[#1F2937]/60 space-y-2">
+            <span class="material-symbols-outlined text-4xl text-[#1F2B45]">inbox</span>
             <div>Tidak ada daftar permohonan booking pada kategori ini.</div>
         </div>
         @endforelse

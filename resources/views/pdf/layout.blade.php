@@ -17,7 +17,7 @@
             padding: 0;
         }
         .header {
-            border-bottom: 2px solid #8C5151;
+            border-bottom: 2px solid #2E3D5C;
             padding-bottom: 15px;
             margin-bottom: 25px;
         }
@@ -26,7 +26,7 @@
             border-collapse: collapse;
         }
         .brand-title {
-            color: #8C5151;
+            color: #2E3D5C;
             font-size: 20pt;
             font-weight: bold;
             margin: 0;
@@ -95,7 +95,7 @@
             font-weight: bold;
         }
         table.items-table tfoot td {
-            border-top: 2px solid #8C5151;
+            border-top: 2px solid #2E3D5C;
             padding: 8px 10px;
         }
         table.info-table td {
@@ -119,7 +119,7 @@
         }
         .doc-notice {
             background-color: #F7FAFC;
-            border-left: 4px solid #8C5151;
+            border-left: 4px solid #2E3D5C;
             padding: 10px 14px;
             border-radius: 4px;
             font-size: 9.5pt;
@@ -131,10 +131,10 @@
             color: #03543F;
         }
         .voucher-box {
-            border: 2px solid #8C5151;
+            border: 2px solid #2E3D5C;
             padding: 15px;
             border-radius: 8px;
-            background: #FFF5F5;
+            background: #F4F6F9;
             margin: 15px 0;
         }
         .doc-instructions {

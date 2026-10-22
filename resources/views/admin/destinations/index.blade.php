@@ -6,11 +6,11 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Katalog Destinasi</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Katalog Destinasi</h1>
             <p class="text-sm text-gray-500">Kelola direktori tapak nusantara, ketersediaan, dan status penayangan</p>
         </div>
         @can('destinations.create')
-        <a href="{{ route('admin.destinations.create') }}" class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 self-start shadow-xs transition-all">
+        <a href="{{ route('admin.destinations.create') }}" class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 self-start shadow-xs transition-all">
             <span class="material-symbols-outlined text-[18px]">add</span>
             <span>Tambah Destinasi Baru</span>
         </a>
@@ -22,10 +22,10 @@
         <form method="GET" action="{{ route('admin.destinations.index') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama atau kota..."
-                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             </div>
             <div>
-                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Status</option>
                     @foreach(\App\Enums\DestinationStatus::cases() as $st)
                         <option value="{{ $st->value }}" {{ request('status') === $st->value ? 'selected' : '' }}>
@@ -35,7 +35,7 @@
                 </select>
             </div>
             <div>
-                <select name="category_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="category_id" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Kategori</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
@@ -45,10 +45,10 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E] transition-all">
+                <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A] transition-all">
                     Filter
                 </button>
-                <a href="{{ route('admin.destinations.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl">
+                <a href="{{ route('admin.destinations.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-2xl">
                     Reset
                 </a>
             </div>
@@ -78,21 +78,21 @@
                                 @if($dest->cover_image)
                                     <img src="{{ asset('storage/' . $dest->cover_image) }}" alt="{{ $dest->name }}" class="w-10 h-10 rounded-xl object-cover shrink-0">
                                 @else
-                                    <div class="w-10 h-10 rounded-xl bg-stone-100 text-stone-400 flex items-center justify-center shrink-0">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
                                         <span class="material-symbols-outlined text-[20px]">image</span>
                                     </div>
                                 @endif
                                 <div>
-                                    <span class="font-bold text-[#1E1B1B] block">{{ $dest->name }}</span>
+                                    <span class="font-bold text-[#111827] block">{{ $dest->name }}</span>
                                     <span class="text-[11px] text-gray-400 font-mono">/destinasi/{{ $dest->slug }}</span>
                                 </div>
                             </div>
                         </td>
                         <td class="py-3.5 pr-2">
-                            <span class="font-medium text-[#1E1B1B]">{{ $dest->partner?->name ?? 'Internal Platform' }}</span>
+                            <span class="font-medium text-[#111827]">{{ $dest->partner?->name ?? 'Internal Platform' }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
-                            <span class="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 text-[10px] font-semibold">
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
                                 {{ $dest->category?->name ?? '-' }}
                             </span>
                         </td>
@@ -114,7 +114,7 @@
                                 @can('destinations.update')
                                 <form action="{{ route('admin.destinations.toggleActive', $dest->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-700">
+                                    <button type="submit" class="text-xs font-semibold px-2.5 py-1 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700">
                                         {{ $dest->status === \App\Enums\DestinationStatus::PUBLISHED ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                 </form>

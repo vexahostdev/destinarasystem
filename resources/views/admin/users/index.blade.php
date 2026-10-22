@@ -6,7 +6,7 @@
 <div class="space-y-6" x-data="{ openSuspendModal: false, openCommissionModal: false, activeUser: null, activeCommission: 10 }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Manajemen Pengguna</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Manajemen Pengguna</h1>
             <p class="text-sm text-gray-500">Kelola akun pembeli institusi dan mitra pengelola tapak, status akun, dan reset sandi</p>
         </div>
     </div>
@@ -32,27 +32,27 @@
         <form method="GET" action="{{ route('admin.users.index') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama, email, nomor HP..."
-                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                       class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
             </div>
             <div>
-                <select name="type" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="type" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Tipe Akun</option>
                     <option value="buyer" {{ request('type') === 'buyer' ? 'selected' : '' }}>Pembeli Institusi</option>
                     <option value="partner" {{ request('type') === 'partner' ? 'selected' : '' }}>Mitra Pengelola</option>
                 </select>
             </div>
             <div>
-                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                <select name="status" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     <option value="">Semua Status Akun</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
                     <option value="suspended" {{ request('status') === 'suspended' ? 'selected' : '' }}>Ditangguhkan (Suspended)</option>
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full bg-[#703A3A] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                <button type="submit" class="w-full bg-[#1F2B45] text-white rounded-xl py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                     Filter
                 </button>
-                <a href="{{ route('admin.users.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl">
+                <a href="{{ route('admin.users.index') }}" class="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-2xl">
                     Reset
                 </a>
             </div>
@@ -77,7 +77,7 @@
                     @forelse($users as $u)
                     <tr class="hover:bg-gray-50/70 transition-colors">
                         <td class="py-3.5 pr-2">
-                            <span class="font-bold text-[#1E1B1B] block">{{ $u->name }}</span>
+                            <span class="font-bold text-[#111827] block">{{ $u->name }}</span>
                             <span class="text-[11px] text-gray-500">{{ $u->email }}</span>
                         </td>
                         <td class="py-3.5 pr-2">
@@ -100,7 +100,7 @@
                             @else
                                 <form action="{{ route('admin.users.verifyEmail', $u->id) }}" method="POST" class="inline">
                                     @csrf
-                                    <button type="submit" class="border border-stone-200 text-stone-700 hover:bg-stone-50 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                                    <button type="submit" class="border border-slate-200 text-slate-700 hover:bg-slate-50 px-2 py-0.5 rounded-2xl text-[10px] font-semibold">
                                         Verif Manual
                                     </button>
                                 </form>
@@ -124,7 +124,7 @@
                             <!-- Partner Commission -->
                             @if($u->isPartner() && $u->partnerProfile)
                             <button type="button" @click="activeUser = {{ $u->id }}; activeCommission = {{ $u->partnerProfile->commission_percent_override ?? 10 }}; openCommissionModal = true"
-                                    class="p-1 text-[#703A3A] hover:text-[#561D1E]" title="Ubah Tarif Komisi Khusus">
+                                    class="p-1 text-[#1F2B45] hover:text-[#16203A]" title="Ubah Tarif Komisi Khusus">
                                 <span class="material-symbols-outlined text-[16px]">percent</span>
                             </button>
                             @endif
@@ -139,7 +139,7 @@
                             <form action="{{ route('admin.users.toggleStatus', $u->id) }}" method="POST" class="inline">
                                 @csrf
                                 <input type="hidden" name="status" value="active">
-                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-full text-[10px] font-bold uppercase">
+                                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-2xl text-[10px] font-bold uppercase">
                                     Aktifkan
                                 </button>
                             </form>
@@ -173,14 +173,14 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alasan Penangguhan *</label>
                     <textarea name="reason" required rows="3" placeholder="Sebutkan pelanggaran atau alasan penangguhan..."
-                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                              class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="openSuspendModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-xl hover:bg-rose-700">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-rose-600 text-white rounded-2xl hover:bg-rose-700">
                         Tangguhkan Sekarang
                     </button>
                 </div>
@@ -199,14 +199,14 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tarif Komisi Platform (%) *</label>
                     <input type="number" step="0.1" name="commission_rate" x-model="activeCommission" required min="0" max="100"
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="openCommissionModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#703A3A] text-white rounded-xl hover:bg-[#561D1E]">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#1F2B45] text-white rounded-2xl hover:bg-[#16203A]">
                         Simpan Komisi
                     </button>
                 </div>

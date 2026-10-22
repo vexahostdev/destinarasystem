@@ -1,0 +1,320 @@
+/* Tata letak portal "sidebar inset" mengikuti POS Kasir (shadcn, tema Vercel netral):
+   sidebar menyatu dengan latar, halaman = panel membulat yang melayang di atasnya.
+   Dipakai layouts buyer / partner / admin lewat <x-portal.sidebar>. */
+:root {
+    --ps-shell: #FAFAFA;
+    --ps-panel: #FFFFFF;
+    --ps-border: #E5E5E5;
+    --ps-ink: #0A0A0A;
+    --ps-muted: #737373;
+    --ps-link: #525252;
+    --ps-hover: rgba(229, 229, 229, 0.55);
+    --ps-active: rgba(229, 229, 229, 0.8);
+    --ps-seg: rgba(229, 229, 229, 0.6);
+    --ps-seg-on: #FFFFFF;
+}
+
+html.dark {
+    --ps-shell: #171717;
+    --ps-panel: #0A0A0A;
+    --ps-border: #262626;
+    --ps-ink: #FAFAFA;
+    --ps-muted: #A3A3A3;
+    --ps-link: #D4D4D4;
+    --ps-hover: rgba(46, 46, 46, 0.6);
+    --ps-active: #262626;
+    --ps-seg: #262626;
+    --ps-seg-on: #0A0A0A;
+}
+
+.ps-shell {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background-color: var(--ps-shell) !important;
+    color: var(--ps-ink);
+}
+
+/* ---------- Sidebar ---------- */
+.ps-aside {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    width: 18rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 0.5rem;
+    background-color: var(--ps-shell);
+    color: var(--ps-ink);
+    transform: translateX(-100%);
+    transition: width 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.ps-aside.is-open {
+    transform: translateX(0);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 1024px) {
+    .ps-aside,
+    .ps-aside.is-open {
+        position: static;
+        z-index: auto;
+        height: 100%;
+        width: 16rem;
+        transform: none;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .ps-aside.is-rail {
+        width: 3.5rem;
+    }
+}
+
+.ps-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    transition: background-color 0.15s;
+}
+
+.ps-brand:hover { background-color: var(--ps-hover); }
+
+/* Logo tanpa kotak latar; nama brand seperti desain sebelumnya */
+.ps-logo { width: auto; height: 2.25rem; flex-shrink: 0; object-fit: contain; }
+.ps-aside.is-rail .ps-logo { height: 2rem; }
+
+.ps-brand-name { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1; color: var(--ps-ink); }
+.ps-brand-sub { margin-top: 0.25rem; font-size: 9px; font-weight: 600; letter-spacing: 0.05em; line-height: 1; text-transform: uppercase; color: var(--ps-muted); }
+
+.ps-title { font-size: 0.875rem; font-weight: 600; line-height: 1.15; }
+.ps-sub { font-size: 0.75rem; color: var(--ps-muted); line-height: 1.2; }
+
+.ps-context {
+    margin-top: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--ps-border);
+    background-color: var(--ps-panel);
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.ps-nav {
+    margin-top: 0.5rem;
+    flex: 1 1 0%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.ps-nav > * + * { margin-top: 0.125rem; }
+
+.ps-label {
+    display: flex;
+    height: 2rem;
+    align-items: center;
+    padding: 0.5rem 0.75rem 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ps-muted);
+    white-space: nowrap;
+}
+
+.ps-link {
+    display: flex;
+    height: 2.25rem;
+    align-items: center;
+    gap: 0.625rem;
+    border-radius: 0.375rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--ps-link);
+    white-space: nowrap;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.ps-link:hover { background-color: var(--ps-hover); color: var(--ps-ink); }
+.ps-link.is-active { background-color: var(--ps-active); color: var(--ps-ink); font-weight: 500; }
+.ps-link .material-symbols-outlined { font-size: 18px; width: 18px; flex-shrink: 0; }
+
+.ps-badge {
+    margin-left: auto;
+    min-width: 1.25rem;
+    border-radius: 9999px;
+    background-color: #E11D48;
+    padding: 0 0.375rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: #FFFFFF;
+}
+
+/* Pilihan tema Terang / Gelap (segmented) */
+.ps-seg {
+    margin-top: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    border-radius: 0.5rem;
+    background-color: var(--ps-seg);
+    padding: 0.25rem;
+}
+
+.ps-aside.is-rail .ps-seg { grid-template-columns: minmax(0, 1fr); }
+
+.ps-seg button {
+    display: flex;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ps-muted);
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+}
+
+.ps-seg button:hover { color: var(--ps-ink); }
+.ps-seg button.is-on { background-color: var(--ps-seg-on); color: var(--ps-ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.ps-seg .material-symbols-outlined { font-size: 16px; }
+
+.ps-user {
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+}
+
+.ps-avatar {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background-color: var(--ps-active);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ps-ink);
+}
+
+.ps-icon-btn {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    color: var(--ps-muted);
+    transition: background-color 0.15s, color 0.15s;
+    cursor: pointer;
+}
+
+.ps-icon-btn:hover { background-color: var(--ps-hover); color: var(--ps-ink); }
+.ps-icon-btn.is-danger:hover { background-color: rgba(239, 68, 68, 0.1); color: #DC2626; }
+
+/* ---------- Panel halaman ---------- */
+.ps-inset {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: var(--ps-panel) !important;
+}
+
+@media (min-width: 1024px) {
+    .ps-inset {
+        margin: 0.5rem 0.5rem 0.5rem 0;
+        border-radius: 0.75rem;
+        border: 1px solid var(--ps-border);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+}
+
+.ps-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    height: 3.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--ps-border);
+    background-color: var(--ps-panel) !important;
+    padding: 0 1rem;
+}
+
+@media (min-width: 1024px) {
+    .ps-header { padding: 0 1.5rem; }
+}
+
+.ps-header-title { font-size: 0.875rem; font-weight: 600; color: var(--ps-ink); }
+.ps-header-sub { font-size: 0.75rem; color: var(--ps-muted); }
+.ps-divider { height: 1rem; width: 1px; background-color: var(--ps-border); flex-shrink: 0; }
+
+.ps-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 1024px) {
+    .ps-backdrop { display: none !important; }
+}
+
+/* ---------- Aksi di header ---------- */
+.ps-btn,
+.ps-chip {
+    display: inline-flex;
+    height: 2rem;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--ps-border);
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.ps-btn { background-color: var(--ps-panel); color: var(--ps-ink); transition: background-color 0.15s; }
+.ps-btn:hover { background-color: var(--ps-hover); }
+.ps-chip { color: var(--ps-muted); }
+.ps-btn .material-symbols-outlined,
+.ps-chip .material-symbols-outlined { font-size: 16px; }
+
+.ps-btn-primary { background-color: #1F2B45; border-color: transparent; color: #FFFFFF; }
+.ps-btn-primary:hover { background-color: #2E3D5C; }
+html.dark .ps-btn-primary { background-color: #FAFAFA; color: #0A0A0A; }
+html.dark .ps-btn-primary:hover { background-color: #E5E5E5; }
+
+.ps-notif { position: relative; }
+.ps-notif .ps-dot {
+    position: absolute;
+    top: 0.375rem;
+    right: 0.375rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: #E11D48;
+    box-shadow: 0 0 0 2px var(--ps-panel);
+}
+
+[x-cloak] { display: none !important; }

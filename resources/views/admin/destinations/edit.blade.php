@@ -12,7 +12,7 @@
                 <span>Kembali ke Katalog Destinasi</span>
             </a>
             <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-extrabold text-[#1E1B1B]">{{ $destination->name }}</h1>
+                <h1 class="text-2xl font-extrabold text-[#111827]">{{ $destination->name }}</h1>
                 <span class="px-3 py-1 text-xs font-bold rounded-full {{ $destination->status->badgeClass() }}">
                     {{ $destination->status->label() }}
                 </span>
@@ -34,7 +34,7 @@
             @can('destinations.feature')
                 <form action="{{ route('admin.destinations.toggleFeatured', $destination->id) }}" method="POST">
                     @csrf
-                    <button type="submit" class="px-3 py-2 text-xs font-bold rounded-xl border border-gray-200 hover:bg-gray-50 flex items-center gap-1.5 transition">
+                    <button type="submit" class="px-3 py-2 text-xs font-bold rounded-2xl border border-gray-200 hover:bg-gray-50 flex items-center gap-1.5 transition">
                         <span class="material-symbols-outlined text-[16px] {{ $destination->is_featured ? 'text-amber-500 fill-current' : 'text-gray-400' }}">star</span>
                         <span>{{ $destination->is_featured ? 'Hapus Featured' : 'Jadikan Featured' }}</span>
                     </button>
@@ -44,7 +44,7 @@
             @can('destinations.update')
                 <form action="{{ route('admin.destinations.toggleActive', $destination->id) }}" method="POST">
                     @csrf
-                    <button type="submit" class="px-3 py-2 text-xs font-bold rounded-xl border {{ $destination->status->value === 'published' ? 'border-amber-200 text-amber-700 hover:bg-amber-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }} transition">
+                    <button type="submit" class="px-3 py-2 text-xs font-bold rounded-2xl border {{ $destination->status->value === 'published' ? 'border-amber-200 text-amber-700 hover:bg-amber-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' }} transition">
                         {{ $destination->status->value === 'published' ? 'Nonaktifkan Sementara' : 'Aktifkan Destinasi' }}
                     </button>
                 </form>
@@ -72,7 +72,7 @@
     <div class="flex items-center gap-1 overflow-x-auto pb-2 border-b border-gray-100">
         @foreach($tabs as $tabKey => $tab)
             <a href="{{ route('admin.destinations.edit', ['destination' => $destination->id, 'tab' => $tabKey]) }}"
-               class="px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap flex items-center gap-1.5 transition {{ $activeTab === $tabKey ? 'bg-[#703A3A] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100' }}">
+               class="px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap flex items-center gap-1.5 transition {{ $activeTab === $tabKey ? 'bg-[#1F2B45] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100' }}">
                 <span class="material-symbols-outlined text-[16px]">{{ $tab['icon'] }}</span>
                 <span>{{ $tab['label'] }}</span>
             </a>
@@ -83,7 +83,7 @@
     @if($activeTab === 'info')
         <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
             <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#703A3A] text-[20px]">edit_note</span>
+                <span class="material-symbols-outlined text-[#1F2B45] text-[20px]">edit_note</span>
                 <span>Edit Informasi Dasar Destinasi</span>
             </h2>
 
@@ -92,12 +92,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Destinasi *</label>
-                        <input type="text" name="name" value="{{ old('name', $destination->name) }}" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <input type="text" name="name" value="{{ old('name', $destination->name) }}" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kategori *</label>
-                        <select name="category_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <select name="category_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}" {{ old('category_id', $destination->category_id) == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                             @endforeach
@@ -106,7 +106,7 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Provinsi *</label>
-                        <select name="province_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <select name="province_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             @foreach($provinces as $prov)
                                 <option value="{{ $prov->id }}" {{ old('province_id', $destination->province_id) == $prov->id ? 'selected' : '' }}>{{ $prov->name }}</option>
                             @endforeach
@@ -115,39 +115,39 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kota / Kabupaten *</label>
-                        <input type="text" name="city" value="{{ old('city', $destination->city) }}" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <input type="text" name="city" value="{{ old('city', $destination->city) }}" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alamat Lengkap</label>
-                    <textarea name="address" rows="2" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">{{ old('address', $destination->address) }}</textarea>
+                    <textarea name="address" rows="2" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">{{ old('address', $destination->address) }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Deskripsi Singkat (Ringkasan Kartu) *</label>
-                    <input type="text" name="short_description" value="{{ old('short_description', $destination->short_description) }}" required maxlength="300" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                    <input type="text" name="short_description" value="{{ old('short_description', $destination->short_description) }}" required maxlength="300" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Deskripsi Lengkap *</label>
-                    <textarea name="description" rows="5" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">{{ old('description', $destination->description) }}</textarea>
+                    <textarea name="description" rows="5" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">{{ old('description', $destination->description) }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Muatan Edukasi & Kurikulum</label>
-                    <textarea name="educational_highlights" rows="3" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">{{ old('educational_highlights', $destination->educational_highlights) }}</textarea>
+                    <textarea name="educational_highlights" rows="3" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">{{ old('educational_highlights', $destination->educational_highlights) }}</textarea>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kapasitas Harian Default (Pax) *</label>
-                        <input type="number" name="default_daily_capacity" value="{{ old('default_daily_capacity', $destination->default_daily_capacity) }}" min="1" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <input type="number" name="default_daily_capacity" value="{{ old('default_daily_capacity', $destination->default_daily_capacity) }}" min="1" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kebijakan Pembatalan *</label>
-                        <select name="cancellation_policy_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                        <select name="cancellation_policy_id" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             @foreach($cancellationPolicies as $pol)
                                 <option value="{{ $pol->id }}" {{ old('cancellation_policy_id', $destination->cancellation_policy_id) == $pol->id ? 'selected' : '' }}>{{ $pol->name }}</option>
                             @endforeach
@@ -162,11 +162,11 @@
                             <img src="{{ Storage::url($destination->cover_image) }}" alt="Sampul" class="h-32 w-auto rounded-xl object-cover border border-gray-200">
                         </div>
                     @endif
-                    <input type="file" name="cover_image" accept="image/*" class="text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#703A3A]/10 file:text-[#703A3A]">
+                    <input type="file" name="cover_image" accept="image/*" class="text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-bold file:bg-[#1F2B45]/10 file:text-[#1F2B45]">
                 </div>
 
                 <div class="pt-4 border-t border-gray-100 flex justify-end">
-                    <button type="submit" class="px-5 py-2.5 bg-[#703A3A] hover:bg-[#5a2e2e] text-white text-xs font-bold rounded-xl shadow-xs transition">
+                    <button type="submit" class="px-5 py-2.5 bg-[#1F2B45] hover:bg-[#2E3D5C] text-white text-xs font-bold rounded-2xl shadow-xs transition">
                         Simpan Perubahan Informasi
                     </button>
                 </div>
@@ -182,7 +182,7 @@
                     <h2 class="text-base font-bold text-gray-800">Galeri Foto Destinasi</h2>
                     <p class="text-xs text-gray-500">Maksimal 10 foto kualitas tinggi untuk ditampilkan di etalase pembeli</p>
                 </div>
-                <button type="button" onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('upload-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[16px]">add_photo_alternate</span>
                     <span>Upload Foto Baru</span>
                 </button>
@@ -250,15 +250,15 @@
                         @csrf
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">File Gambar *</label>
-                            <input type="file" name="image" required accept="image/*" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#703A3A]/10 file:text-[#703A3A]">
+                            <input type="file" name="image" required accept="image/*" class="w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-bold file:bg-[#1F2B45]/10 file:text-[#1F2B45]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Keterangan Foto (Caption)</label>
-                            <input type="text" name="caption" placeholder="Contoh: Suasana workshop membatik..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="caption" placeholder="Contoh: Suasana workshop membatik..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" onclick="document.getElementById('upload-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-xl text-gray-600">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl">Upload Foto</button>
+                            <button type="button" onclick="document.getElementById('upload-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-2xl text-gray-600">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl">Upload Foto</button>
                         </div>
                     </form>
                 </div>
@@ -279,13 +279,13 @@
                         <label class="flex items-center gap-2 p-3 rounded-2xl border border-gray-200 hover:bg-gray-50 cursor-pointer text-xs font-medium text-gray-700">
                             <input type="checkbox" name="facilities[]" value="{{ $facility->id }}"
                                    {{ $destination->facilities->contains($facility->id) ? 'checked' : '' }}
-                                   class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                   class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                             <span>{{ $facility->name }}</span>
                         </label>
                     @endforeach
                 </div>
                 <div class="flex justify-end">
-                    <button type="submit" class="px-5 py-2.5 bg-[#703A3A] text-white text-xs font-bold rounded-xl shadow-xs transition">
+                    <button type="submit" class="px-5 py-2.5 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl shadow-xs transition">
                         Simpan Daftar Fasilitas
                     </button>
                 </div>
@@ -301,7 +301,7 @@
                     <h2 class="text-base font-bold text-gray-800">Kontak Narahubung Tapak</h2>
                     <p class="text-xs text-gray-500">Daftar PIC resmi tapak untuk koordinasi lapangan saat rombongan tiba</p>
                 </div>
-                <button type="button" onclick="document.getElementById('contact-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('contact-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[16px]">add</span>
                     <span>Tambah Kontak</span>
                 </button>
@@ -360,23 +360,23 @@
                         @csrf
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Lengkap *</label>
-                            <input type="text" name="contact_name" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="contact_name" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Peran / Jabatan</label>
-                            <input type="text" name="role" placeholder="Contoh: Koordinator Lapangan" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="role" placeholder="Contoh: Koordinator Lapangan" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nomor WhatsApp / Telepon *</label>
-                            <input type="text" name="phone" required placeholder="08xxxxxxxxxx" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="phone" required placeholder="08xxxxxxxxxx" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="is_primary" value="1" id="is_primary" class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="checkbox" name="is_primary" value="1" id="is_primary" class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                             <label for="is_primary" class="text-xs text-gray-700">Jadikan kontak utama</label>
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" onclick="document.getElementById('contact-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-xl text-gray-600">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl">Simpan Kontak</button>
+                            <button type="button" onclick="document.getElementById('contact-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-2xl text-gray-600">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl">Simpan Kontak</button>
                         </div>
                     </form>
                 </div>
@@ -392,7 +392,7 @@
                     <h2 class="text-base font-bold text-gray-800">Paket Edukasi & Harga</h2>
                     <p class="text-xs text-gray-500">Destinasi wajib memiliki minimal 1 paket aktif agar dapat dipublikasikan</p>
                 </div>
-                <button type="button" onclick="document.getElementById('package-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('package-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[16px]">add</span>
                     <span>Tambah Paket Baru</span>
                 </button>
@@ -404,7 +404,7 @@
                         <div class="flex items-start justify-between">
                             <div>
                                 <h3 class="text-sm font-bold text-gray-900">{{ $pkg->name }}</h3>
-                                <p class="text-xs text-[#703A3A] font-extrabold mt-0.5">Rp {{ number_format($pkg->price_per_pax, 0, ',', '.') }} / pax</p>
+                                <p class="text-xs text-[#1F2B45] font-extrabold mt-0.5">Rp {{ number_format($pkg->price_per_pax, 0, ',', '.') }} / pax</p>
                             </div>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $pkg->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600' }}">
                                 {{ $pkg->is_active ? 'Aktif' : 'Nonaktif' }}
@@ -449,36 +449,36 @@
                         @csrf
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Paket *</label>
-                            <input type="text" name="name" required placeholder="Contoh: Paket Belajar Membatik 1 Hari" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="name" required placeholder="Contoh: Paket Belajar Membatik 1 Hari" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div class="grid grid-cols-3 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Harga per Pax (Rp) *</label>
-                                <input type="number" name="price_per_pax" required min="0" placeholder="50000" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="number" name="price_per_pax" required min="0" placeholder="50000" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Min Peserta *</label>
-                                <input type="number" name="min_pax" required min="1" value="10" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="number" name="min_pax" required min="1" value="10" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Maks Peserta *</label>
-                                <input type="number" name="max_pax" required min="1" value="100" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="number" name="max_pax" required min="1" value="100" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Durasi Kunjungan (Hari) *</label>
-                                <input type="number" name="duration_days" required min="1" value="1" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="number" name="duration_days" required min="1" value="1" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Jenis Kunjungan *</label>
                                 <div class="flex items-center gap-3 pt-2 text-xs">
                                     <label class="flex items-center gap-1.5 cursor-pointer">
-                                        <input type="checkbox" name="inquiry_types[]" value="study_tour" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                        <input type="checkbox" name="inquiry_types[]" value="study_tour" checked class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                                         <span>Study Tour</span>
                                     </label>
                                     <label class="flex items-center gap-1.5 cursor-pointer">
-                                        <input type="checkbox" name="inquiry_types[]" value="penelitian" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                        <input type="checkbox" name="inquiry_types[]" value="penelitian" checked class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                                         <span>Penelitian</span>
                                     </label>
                                 </div>
@@ -486,25 +486,25 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Deskripsi & Aktivitas Paket *</label>
-                            <textarea name="description" rows="3" required placeholder="Jelaskan alur kegiatan, benefit, dan fasilitas yang didapatkan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                            <textarea name="description" rows="3" required placeholder="Jelaskan alur kegiatan, benefit, dan fasilitas yang didapatkan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Fasilitas Termasuk (1 per baris)</label>
-                                <textarea name="included_items" rows="3" placeholder="Tiket masuk&#10;Pemandu lokal&#10;Makan siang" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                                <textarea name="included_items" rows="3" placeholder="Tiket masuk&#10;Pemandu lokal&#10;Makan siang" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tidak Termasuk (1 per baris)</label>
-                                <textarea name="excluded_items" rows="3" placeholder="Transportasi bus&#10;Pengeluaran pribadi" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                                <textarea name="excluded_items" rows="3" placeholder="Transportasi bus&#10;Pengeluaran pribadi" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="is_active" value="1" id="pkg_is_active" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="checkbox" name="is_active" value="1" id="pkg_is_active" checked class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                             <label for="pkg_is_active" class="text-xs text-gray-700">Aktifkan paket langsung</label>
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" onclick="document.getElementById('package-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-xl text-gray-600">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl">Simpan Paket</button>
+                            <button type="button" onclick="document.getElementById('package-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-2xl text-gray-600">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl">Simpan Paket</button>
                         </div>
                     </form>
                 </div>
@@ -520,7 +520,7 @@
                     <h2 class="text-base font-bold text-gray-800">Add-on Layanan & Fasilitas Tambahan</h2>
                     <p class="text-xs text-gray-500">Layanan opsional seperti makan siang, pemandu lokal, atau sewa perlengkapan</p>
                 </div>
-                <button type="button" onclick="document.getElementById('addon-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('addon-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[16px]">add</span>
                     <span>Tambah Add-on</span>
                 </button>
@@ -577,16 +577,16 @@
                         @csrf
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Layanan Add-on *</label>
-                            <input type="text" name="name" required placeholder="Contoh: Paket Makan Siang Tradisional" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="name" required placeholder="Contoh: Paket Makan Siang Tradisional" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tarif (Rp) *</label>
-                                <input type="number" name="price" required min="0" placeholder="25000" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="number" name="price" required min="0" placeholder="25000" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Tipe Harga *</label>
-                                <select name="pricing_type" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <select name="pricing_type" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                                     <option value="per_pax">Per Peserta (Pax)</option>
                                     <option value="per_group">Per Rombongan (Group)</option>
                                     <option value="per_day">Per Hari</option>
@@ -596,15 +596,15 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Keterangan Singkat</label>
-                            <input type="text" name="description" placeholder="Penjelasan singkat add-on..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="text" name="description" placeholder="Penjelasan singkat add-on..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="is_active" value="1" id="addon_active" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="checkbox" name="is_active" value="1" id="addon_active" checked class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                             <label for="addon_active" class="text-xs text-gray-700">Aktifkan add-on</label>
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" onclick="document.getElementById('addon-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-xl text-gray-600">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl">Simpan Add-on</button>
+                            <button type="button" onclick="document.getElementById('addon-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-2xl text-gray-600">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl">Simpan Add-on</button>
                         </div>
                     </form>
                 </div>
@@ -620,7 +620,7 @@
                     <h2 class="text-base font-bold text-gray-800">Kalender & Slot Ketersediaan</h2>
                     <p class="text-xs text-gray-500">Kelola kuota peserta per tanggal kunjungan untuk mencegah overbooking</p>
                 </div>
-                <button type="button" onclick="document.getElementById('bulk-slot-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <button type="button" onclick="document.getElementById('bulk-slot-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 transition">
                     <span class="material-symbols-outlined text-[16px]">date_range</span>
                     <span>Generate Slot Massal</span>
                 </button>
@@ -661,7 +661,7 @@
                                         <input type="hidden" name="slot_id" value="{{ $slot->id }}">
                                         <input type="hidden" name="capacity" value="{{ $slot->capacity }}">
                                         <input type="hidden" name="status" value="{{ $slot->status === 'open' ? 'closed' : 'open' }}">
-                                        <button type="submit" class="text-xs font-bold text-[#703A3A] hover:underline">
+                                        <button type="submit" class="text-xs font-bold text-[#1F2B45] hover:underline">
                                             {{ $slot->status === 'open' ? 'Tutup Tanggal' : 'Buka Tanggal' }}
                                         </button>
                                     </form>
@@ -690,31 +690,31 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Mulai Tanggal *</label>
-                                <input type="date" name="start_date" required value="{{ now()->toDateString() }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="date" name="start_date" required value="{{ now()->toDateString() }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Sampai Tanggal *</label>
-                                <input type="date" name="end_date" required value="{{ now()->addMonths(2)->toDateString() }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="date" name="end_date" required value="{{ now()->addMonths(2)->toDateString() }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kapasitas Kuota Harian *</label>
-                            <input type="number" name="capacity" required min="1" value="{{ $destination->default_daily_capacity }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                            <input type="number" name="capacity" required min="1" value="{{ $destination->default_daily_capacity }}" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-gray-700 mb-2">Hari Operasional Dibuka</label>
                             <div class="grid grid-cols-4 gap-2 text-xs">
                                 @foreach(['Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5, 'Sabtu' => 6, 'Minggu' => 7] as $dayName => $dayNum)
                                     <label class="flex items-center gap-1.5 p-2 rounded-lg border border-gray-200">
-                                        <input type="checkbox" name="days_of_week[]" value="{{ $dayNum }}" checked class="rounded text-[#703A3A] focus:ring-[#703A3A]">
+                                        <input type="checkbox" name="days_of_week[]" value="{{ $dayNum }}" checked class="rounded text-[#1F2B45] focus:ring-[#1F2B45]">
                                         <span>{{ $dayName }}</span>
                                     </label>
                                 @endforeach
                             </div>
                         </div>
                         <div class="flex justify-end gap-2 pt-2">
-                            <button type="button" onclick="document.getElementById('bulk-slot-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-xl text-gray-600">Batal</button>
-                            <button type="submit" class="px-4 py-2 bg-[#703A3A] text-white text-xs font-bold rounded-xl">Generate Slot</button>
+                            <button type="button" onclick="document.getElementById('bulk-slot-modal').classList.add('hidden')" class="px-4 py-2 border border-gray-200 text-xs font-bold rounded-2xl text-gray-600">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl">Generate Slot</button>
                         </div>
                     </form>
                 </div>
@@ -740,9 +740,9 @@
 
                 <div class="space-y-3">
                     @foreach($cancellationPolicies as $pol)
-                        <label class="block p-4 rounded-2xl border {{ $destination->cancellation_policy_id == $pol->id ? 'border-[#703A3A] bg-[#703A3A]/5' : 'border-gray-200 hover:bg-gray-50' }} cursor-pointer">
+                        <label class="block p-4 rounded-2xl border {{ $destination->cancellation_policy_id == $pol->id ? 'border-[#1F2B45] bg-[#1F2B45]/5' : 'border-gray-200 hover:bg-gray-50' }} cursor-pointer">
                             <div class="flex items-center gap-3">
-                                <input type="radio" name="cancellation_policy_id" value="{{ $pol->id }}" {{ $destination->cancellation_policy_id == $pol->id ? 'checked' : '' }} class="text-[#703A3A] focus:ring-[#703A3A]">
+                                <input type="radio" name="cancellation_policy_id" value="{{ $pol->id }}" {{ $destination->cancellation_policy_id == $pol->id ? 'checked' : '' }} class="text-[#1F2B45] focus:ring-[#1F2B45]">
                                 <div>
                                     <h3 class="text-xs font-bold text-gray-800">{{ $pol->name }}</h3>
                                     <p class="text-[11px] text-gray-500 mt-0.5">{{ $pol->description }}</p>
@@ -753,7 +753,7 @@
                 </div>
 
                 <div class="flex justify-end pt-4 border-t border-gray-100">
-                    <button type="submit" class="px-5 py-2.5 bg-[#703A3A] text-white text-xs font-bold rounded-xl shadow-xs transition">
+                    <button type="submit" class="px-5 py-2.5 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl shadow-xs transition">
                         Perbarui Kebijakan Pembatalan
                     </button>
                 </div>
@@ -780,16 +780,16 @@
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Meta Title</label>
-                    <input type="text" name="meta_title" value="{{ old('meta_title', $destination->meta_title) }}" placeholder="{{ $destination->name }} | Destinara" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                    <input type="text" name="meta_title" value="{{ old('meta_title', $destination->meta_title) }}" placeholder="{{ $destination->name }} | Destinara" class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Meta Description</label>
-                    <textarea name="meta_description" rows="3" placeholder="Deskripsi ringkas yang muncul pada cuplikan hasil pencarian mesin pencari..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">{{ old('meta_description', $destination->meta_description) }}</textarea>
+                    <textarea name="meta_description" rows="3" placeholder="Deskripsi ringkas yang muncul pada cuplikan hasil pencarian mesin pencari..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">{{ old('meta_description', $destination->meta_description) }}</textarea>
                 </div>
 
                 <div class="flex justify-end pt-4 border-t border-gray-100">
-                    <button type="submit" class="px-5 py-2.5 bg-[#703A3A] text-white text-xs font-bold rounded-xl shadow-xs transition">
+                    <button type="submit" class="px-5 py-2.5 bg-[#1F2B45] text-white text-xs font-bold rounded-2xl shadow-xs transition">
                         Simpan Pengaturan SEO
                     </button>
                 </div>
@@ -818,16 +818,16 @@
                         @csrf
                         <div>
                             <label class="block text-[11px] font-bold text-gray-600 mb-1">Catatan Kurasi / Alasan</label>
-                            <textarea name="notes" rows="2" placeholder="Tuliskan catatan perbaikan atau alasan persetujuan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]"></textarea>
+                            <textarea name="notes" rows="2" placeholder="Tuliskan catatan perbaikan atau alasan persetujuan..." class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]"></textarea>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button type="submit" name="action" value="approve" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition">
+                            <button type="submit" name="action" value="approve" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-2xl transition">
                                 Setujui & Terbitkan (Approve)
                             </button>
-                            <button type="submit" name="action" value="revision" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition">
+                            <button type="submit" name="action" value="revision" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-2xl transition">
                                 Minta Revisi Mitra (Revision Required)
                             </button>
-                            <button type="submit" name="action" value="reject" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition">
+                            <button type="submit" name="action" value="reject" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-2xl transition">
                                 Tolak / Arsipkan (Archive)
                             </button>
                         </div>

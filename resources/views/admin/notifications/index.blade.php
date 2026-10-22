@@ -6,17 +6,17 @@
 <div class="space-y-8" x-data="{ previewModal: false, modalMsg: {} }">
 
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2B211E]/12 pb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1F2937]/12 pb-6">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#2B3A4A] mb-1">
                 <span>Infrastruktur Komunikasi Otomatis</span>
                 <span>•</span>
                 <span>Gateway Dispatcher</span>
             </div>
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#2B211E]">
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1F2937]">
                 Pusat Notifikasi & Log Antrian (Queue)
             </h1>
-            <p class="text-sm text-[#2B211E]/70 max-w-2xl">
+            <p class="text-sm text-[#1F2937]/70 max-w-2xl">
                 Pantau seluruh pengiriman notifikasi otomatis transaksi: pengingat Virtual Account, konfirmasi rombongan masuk, penerbitan e-Pass, dan status transfer dana ke mitra pengelola.
             </p>
         </div>
@@ -31,10 +31,10 @@
 
     <!-- 4 Mini Metric Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-        <div class="rgs-card p-4 bg-white border-t-2 border-t-[#2B211E]">
-            <span class="text-[#2B211E]/60 uppercase block text-[10px]">Total Pesan Diproses</span>
-            <span class="font-serif text-2xl font-bold text-[#2B211E]">{{ $stats['total'] }}</span>
-            <span class="text-[10px] text-[#2B211E]/50 block mt-1">Multi-channel gateway</span>
+        <div class="rgs-card p-4 bg-white border-t-2 border-t-[#1F2937]">
+            <span class="text-[#1F2937]/60 uppercase block text-[10px]">Total Pesan Diproses</span>
+            <span class="font-serif text-2xl font-bold text-[#1F2937]">{{ $stats['total'] }}</span>
+            <span class="text-[10px] text-[#1F2937]/50 block mt-1">Multi-channel gateway</span>
         </div>
 
         <div class="rgs-card p-4 bg-white border-t-2 border-t-emerald-600">
@@ -61,30 +61,30 @@
         <!-- Filter Tabs -->
         <div class="flex items-center gap-2 overflow-x-auto text-xs font-semibold uppercase tracking-wider">
             <a href="{{ route('admin.notifications.index', ['channel' => 'all', 'status' => $status]) }}" 
-               class="px-3.5 py-2 transition-colors {{ $channel === 'all' ? 'bg-[#703A3A] text-white' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors {{ $channel === 'all' ? 'bg-[#1F2B45] text-white' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 Semua Kanal
             </a>
             <a href="{{ route('admin.notifications.index', ['channel' => 'whatsapp', 'status' => $status]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $channel === 'whatsapp' ? 'bg-[#703A3A] text-white' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $channel === 'whatsapp' ? 'bg-[#1F2B45] text-white' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>WhatsApp</span>
             </a>
             <a href="{{ route('admin.notifications.index', ['channel' => 'email', 'status' => $status]) }}" 
-               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $channel === 'email' ? 'bg-[#703A3A] text-white' : 'bg-white text-[#2B211E]/75 border border-[#2B211E]/15 hover:bg-[#2B211E]/5' }}">
+               class="px-3.5 py-2 transition-colors flex items-center gap-1.5 {{ $channel === 'email' ? 'bg-[#1F2B45] text-white' : 'bg-white text-[#1F2937]/75 border border-[#1F2937]/15 hover:bg-[#1F2937]/5' }}">
                 <span>Email SMTP</span>
             </a>
         </div>
 
         <!-- Filter Status -->
         <div class="flex items-center gap-2 text-xs font-mono">
-            <span class="text-[#2B211E]/60 uppercase">Status:</span>
+            <span class="text-[#1F2937]/60 uppercase">Status:</span>
             <a href="{{ route('admin.notifications.index', ['channel' => $channel, 'status' => 'all']) }}" 
-               class="px-2.5 py-1 text-xs {{ $status === 'all' ? 'font-bold text-[#703A3A] underline' : 'text-[#2B211E]/70' }}">Semua</a>
+               class="px-2.5 py-1 text-xs {{ $status === 'all' ? 'font-bold text-[#1F2B45] underline' : 'text-[#1F2937]/70' }}">Semua</a>
             <a href="{{ route('admin.notifications.index', ['channel' => $channel, 'status' => 'sent']) }}" 
-               class="px-2.5 py-1 text-xs {{ $status === 'sent' ? 'font-bold text-emerald-800 underline' : 'text-[#2B211E]/70' }}">Sent</a>
+               class="px-2.5 py-1 text-xs {{ $status === 'sent' ? 'font-bold text-emerald-800 underline' : 'text-[#1F2937]/70' }}">Sent</a>
             <a href="{{ route('admin.notifications.index', ['channel' => $channel, 'status' => 'queued']) }}" 
-               class="px-2.5 py-1 text-xs {{ $status === 'queued' ? 'font-bold text-blue-800 underline' : 'text-[#2B211E]/70' }}">Queued</a>
+               class="px-2.5 py-1 text-xs {{ $status === 'queued' ? 'font-bold text-blue-800 underline' : 'text-[#1F2937]/70' }}">Queued</a>
             <a href="{{ route('admin.notifications.index', ['channel' => $channel, 'status' => 'failed']) }}" 
-               class="px-2.5 py-1 text-xs {{ $status === 'failed' ? 'font-bold text-red-800 underline' : 'text-[#2B211E]/70' }}">Failed</a>
+               class="px-2.5 py-1 text-xs {{ $status === 'failed' ? 'font-bold text-red-800 underline' : 'text-[#1F2937]/70' }}">Failed</a>
         </div>
     </div>
 
@@ -93,7 +93,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead>
-                    <tr class="bg-[#faf6f0] border-b border-[#2B211E]/12 text-[#2B211E]/60 uppercase tracking-wider font-mono">
+                    <tr class="bg-[#F4F6F9] border-b border-[#1F2937]/12 text-[#1F2937]/60 uppercase tracking-wider font-mono">
                         <th class="py-3 px-4 font-semibold">Penerima & Kontak</th>
                         <th class="py-3 px-4 font-semibold text-center">Kanal</th>
                         <th class="py-3 px-4 font-semibold">Event Trigger & Isi Notifikasi</th>
@@ -102,12 +102,12 @@
                         <th class="py-3 px-4 font-semibold text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#2B211E]/08">
+                <tbody class="divide-y divide-[#1F2937]/08">
                     @forelse($logs as $log)
-                    <tr class="hover:bg-[#faf6f0]/60 transition-colors">
+                    <tr class="hover:bg-[#F4F6F9]/60 transition-colors">
                         <td class="py-3.5 px-4">
-                            <span class="font-semibold text-[#2B211E] block">{{ $log->recipient_name }}</span>
-                            <span class="text-[11px] font-mono text-[#2B211E]/60">{{ $log->target }}</span>
+                            <span class="font-semibold text-[#1F2937] block">{{ $log->recipient_name }}</span>
+                            <span class="text-[11px] font-mono text-[#1F2937]/60">{{ $log->target }}</span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             @if($log->channel === \App\Enums\NotificationChannel::WHATSAPP)
@@ -123,8 +123,8 @@
                             @endif
                         </td>
                         <td class="py-3.5 px-4 max-w-md">
-                            <span class="font-bold text-[#2B211E] block text-xs">{{ $log->title }}</span>
-                            <p class="text-[11px] text-[#2B211E]/75 line-clamp-1 mt-0.5">{{ $log->preview_text }}</p>
+                            <span class="font-bold text-[#1F2937] block text-xs">{{ $log->title }}</span>
+                            <p class="text-[11px] text-[#1F2937]/75 line-clamp-1 mt-0.5">{{ $log->preview_text }}</p>
                         </td>
                         <td class="py-3.5 px-4 text-center">
                             @if($log->status === \App\Enums\NotificationStatus::SENT)
@@ -141,7 +141,7 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="py-3.5 px-4 font-mono text-[11px] text-[#2B211E]/70">
+                        <td class="py-3.5 px-4 font-mono text-[11px] text-[#1F2937]/70">
                             {{ $log->sent_at ? $log->sent_at->format('d/m/Y H:i') : '-' }}
                         </td>
                         <td class="py-3.5 px-4 text-center">
@@ -149,7 +149,7 @@
                                 <button type="button" 
                                         @click="modalMsg = { title: '{{ addslashes($log->title) }}', recipient: '{{ addslashes($log->recipient_name) }}', target: '{{ $log->target }}', text: '{{ addslashes($log->preview_text) }}', channel: '{{ $log->channel?->value ?? (string)$log->channel }}' }; previewModal = true"
                                         title="Pratinjau Pesan Lengkap" 
-                                        class="p-1 text-[#2B211E]/60 hover:text-[#703A3A]">
+                                        class="p-1 text-[#1F2937]/60 hover:text-[#1F2B45]">
                                     <span class="material-symbols-outlined text-[16px]">visibility</span>
                                 </button>
 
@@ -167,7 +167,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="py-8 text-center text-[#2B211E]/50">Tidak ada log notifikasi pada filter ini.</td>
+                        <td colspan="6" class="py-8 text-center text-[#1F2937]/50">Tidak ada log notifikasi pada filter ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -180,18 +180,18 @@
         $auditLogs = $auditLogs ?? collect();
     @endphp
     <div class="rgs-card bg-white p-6">
-        <div class="flex items-center justify-between border-b border-[#2B211E]/10 pb-3 mb-4">
+        <div class="flex items-center justify-between border-b border-[#1F2937]/10 pb-3 mb-4">
             <div>
-                <h3 class="font-serif text-base font-bold text-[#2B211E]">Rekam Jejak Audit Harian (Audit Trail)</h3>
-                <p class="text-xs text-[#2B211E]/60">Catatan kronologis tindakan operasional dan verifikasi resmi petugas</p>
+                <h3 class="font-serif text-base font-bold text-[#1F2937]">Rekam Jejak Audit Harian (Audit Trail)</h3>
+                <p class="text-xs text-[#1F2937]/60">Catatan kronologis tindakan operasional dan verifikasi resmi petugas</p>
             </div>
-            <span class="text-xs font-mono text-[#2B211E]/60">{{ count($auditLogs) }} Tindakan Tercatat</span>
+            <span class="text-xs font-mono text-[#1F2937]/60">{{ count($auditLogs) }} Tindakan Tercatat</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs font-mono">
                 <thead>
-                    <tr class="border-b border-[#2B211E]/10 text-[#2B211E]/60 uppercase text-[10px]">
+                    <tr class="border-b border-[#1F2937]/10 text-[#1F2937]/60 uppercase text-[10px]">
                         <th class="pb-2">Waktu</th>
                         <th class="pb-2">Petugas</th>
                         <th class="pb-2">Aksi</th>
@@ -199,14 +199,14 @@
                         <th class="pb-2 text-right">IP Address</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#2B211E]/08 text-[11px]">
+                <tbody class="divide-y divide-[#1F2937]/08 text-[11px]">
                     @foreach($auditLogs as $a)
-                    <tr class="hover:bg-[#faf6f0]/50">
-                        <td class="py-2.5 text-[#2B211E]/60 whitespace-nowrap">{{ $a->created_at->format('d/m/Y H:i:s') }}</td>
-                        <td class="py-2.5 font-sans font-semibold text-[#2B211E]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</td>
-                        <td class="py-2.5 font-bold text-[#703A3A] uppercase">{{ $a->action }}</td>
-                        <td class="py-2.5 font-sans text-[#2B211E]/80">{{ $a->description }}</td>
-                        <td class="py-2.5 text-right text-[#2B211E]/50">{{ $a->ip_address }}</td>
+                    <tr class="hover:bg-[#F4F6F9]/50">
+                        <td class="py-2.5 text-[#1F2937]/60 whitespace-nowrap">{{ $a->created_at->format('d/m/Y H:i:s') }}</td>
+                        <td class="py-2.5 font-sans font-semibold text-[#1F2937]">{{ $a->user->name ?? 'Sistem / Pengguna' }}</td>
+                        <td class="py-2.5 font-bold text-[#1F2B45] uppercase">{{ $a->action }}</td>
+                        <td class="py-2.5 font-sans text-[#1F2937]/80">{{ $a->description }}</td>
+                        <td class="py-2.5 text-right text-[#1F2937]/50">{{ $a->ip_address }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -220,28 +220,28 @@
          class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs"
          @keydown.escape.window="previewModal = false">
         
-        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#2B211E]/20 shadow-2xl" @click.away="previewModal = false">
-            <div class="flex items-center justify-between border-b border-[#2B211E]/10 pb-3">
-                <h3 class="font-serif text-lg font-bold text-[#2B211E]">Isi Pesan Notifikasi Gateway</h3>
-                <button @click="previewModal = false" class="text-[#2B211E]/60 hover:text-[#2B211E]">
+        <div class="bg-white max-w-md w-full p-6 space-y-4 border border-[#1F2937]/20 shadow-2xl" @click.away="previewModal = false">
+            <div class="flex items-center justify-between border-b border-[#1F2937]/10 pb-3">
+                <h3 class="font-serif text-lg font-bold text-[#1F2937]">Isi Pesan Notifikasi Gateway</h3>
+                <button @click="previewModal = false" class="text-[#1F2937]/60 hover:text-[#1F2937]">
                     <span class="material-symbols-outlined text-[18px]">close</span>
                 </button>
             </div>
 
             <div class="space-y-3 text-xs">
-                <div class="bg-[#faf6f0] p-3 border border-[#2B211E]/10 space-y-1">
-                    <p class="text-[#2B211E]/60 font-mono text-[10px] uppercase">Penerima:</p>
-                    <p class="font-bold text-[#2B211E]" x-text="modalMsg.recipient"></p>
-                    <p class="font-mono text-[#703A3A]" x-text="modalMsg.target"></p>
+                <div class="bg-[#F4F6F9] p-3 border border-[#1F2937]/10 space-y-1">
+                    <p class="text-[#1F2937]/60 font-mono text-[10px] uppercase">Penerima:</p>
+                    <p class="font-bold text-[#1F2937]" x-text="modalMsg.recipient"></p>
+                    <p class="font-mono text-[#1F2B45]" x-text="modalMsg.target"></p>
                 </div>
 
                 <div class="space-y-1">
-                    <p class="font-bold text-[#2B211E]" x-text="modalMsg.title"></p>
-                    <div class="p-3 bg-gray-50 border border-[#2B211E]/15 rounded-none font-sans text-xs leading-relaxed text-[#2B211E]/90 whitespace-pre-wrap" x-text="modalMsg.text"></div>
+                    <p class="font-bold text-[#1F2937]" x-text="modalMsg.title"></p>
+                    <div class="p-3 bg-gray-50 border border-[#1F2937]/15 rounded-none font-sans text-xs leading-relaxed text-[#1F2937]/90 whitespace-pre-wrap" x-text="modalMsg.text"></div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-end pt-2 border-t border-[#2B211E]/10">
+            <div class="flex items-center justify-end pt-2 border-t border-[#1F2937]/10">
                 <button type="button" @click="previewModal = false" class="rgs-btn-primary px-4 py-2 text-xs font-semibold uppercase">
                     Tutup
                 </button>

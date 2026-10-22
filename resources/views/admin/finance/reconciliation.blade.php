@@ -6,7 +6,7 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Rekonsiliasi Keuangan</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Rekonsiliasi Keuangan</h1>
             <p class="text-sm text-gray-500">Laporan penutupan buku transaksi riil, hak bagi hasil mitra, dan fee gateway per periode</p>
         </div>
         <div class="flex items-center gap-3">
@@ -19,7 +19,7 @@
                 <form action="{{ route('admin.finance.closePeriod') }}" method="POST" onsubmit="return confirm('Tutup buku periode {{ $period }}? Setelah ditutup, data historis periode ini akan terkunci secara permanen.')">
                     @csrf
                     <input type="hidden" name="period" value="{{ $period }}">
-                    <button type="submit" class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <button type="submit" class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2">
                         <span class="material-symbols-outlined text-[18px]">lock</span>
                         <span>Tutup Buku Periode</span>
                     </button>
@@ -39,8 +39,8 @@
         <form method="GET" action="{{ route('admin.finance.reconciliation') }}" class="flex items-center gap-3">
             <label class="text-xs font-bold uppercase text-gray-700">Pilih Periode Bulan:</label>
             <input type="month" name="period" value="{{ $period }}"
-                   class="text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
-            <button type="submit" class="bg-[#703A3A] text-white rounded-xl px-4 py-2 text-xs font-bold uppercase hover:bg-[#561D1E]">
+                   class="text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
+            <button type="submit" class="bg-[#1F2B45] text-white rounded-2xl px-4 py-2 text-xs font-bold uppercase hover:bg-[#16203A]">
                 Tampilkan
             </button>
         </form>
@@ -51,7 +51,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Total GMV (Bruto)</span>
-            <span class="text-2xl font-extrabold text-[#1E1B1B] font-mono">
+            <span class="text-2xl font-extrabold text-[#111827] font-mono">
                 Rp {{ number_format($recon['total_gmv'] ?? 0, 0, ',', '.') }}
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">{{ $recon['total_bookings'] ?? 0 }} reservasi terbayar</span>
@@ -67,7 +67,7 @@
 
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Pendapatan Platform</span>
-            <span class="text-2xl font-extrabold text-[#703A3A] font-mono">
+            <span class="text-2xl font-extrabold text-[#1F2B45] font-mono">
                 Rp {{ number_format($recon['platform_commission'] ?? 0, 0, ',', '.') }}
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">Komisi 10% platform</span>
@@ -75,7 +75,7 @@
 
         <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-xs">
             <span class="text-xs font-semibold text-gray-400 block mb-1">Estimasi Biaya Gateway</span>
-            <span class="text-2xl font-extrabold text-stone-700 font-mono">
+            <span class="text-2xl font-extrabold text-slate-700 font-mono">
                 Rp {{ number_format($recon['gateway_fees'] ?? 0, 0, ',', '.') }}
             </span>
             <span class="text-[11px] text-gray-400 mt-2 block">Biaya processing payment</span>
@@ -84,7 +84,7 @@
 
     <!-- Riwayat Penutupan Buku -->
     <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs">
-        <h3 class="text-base font-bold text-[#1E1B1B] mb-4">Arsip Periode Tutup Buku</h3>
+        <h3 class="text-base font-bold text-[#111827] mb-4">Arsip Periode Tutup Buku</h3>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead>
@@ -100,7 +100,7 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($allReconciliations as $hist)
                     <tr class="hover:bg-gray-50/70 transition-colors">
-                        <td class="py-3 font-mono font-bold text-[#703A3A]">
+                        <td class="py-3 font-mono font-bold text-[#1F2B45]">
                             {{ $hist->period }}
                         </td>
                         <td class="py-3 text-right font-mono font-bold text-gray-800">
@@ -109,7 +109,7 @@
                         <td class="py-3 text-right font-mono text-emerald-700 font-semibold">
                             Rp {{ number_format($hist->total_partner_payout, 0, ',', '.') }}
                         </td>
-                        <td class="py-3 text-right font-mono text-[#703A3A] font-bold">
+                        <td class="py-3 text-right font-mono text-[#1F2B45] font-bold">
                             Rp {{ number_format($hist->total_commission, 0, ',', '.') }}
                         </td>
                         <td class="py-3 text-gray-700">

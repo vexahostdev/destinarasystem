@@ -6,12 +6,12 @@
 <div class="space-y-6" x-data="{ tab: 'users', openUserModal: false, openRoleModal: false, activeUser: null, activeRole: null }">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-extrabold text-[#1E1B1B]">Tim Internal & Peran</h1>
+            <h1 class="text-2xl font-extrabold text-[#111827]">Tim Internal & Peran</h1>
             <p class="text-sm text-gray-500">Kelola akun staf internal platform dan konfigurasi hak akses permission Spatie</p>
         </div>
         <div class="flex items-center gap-3">
             <button type="button" @click="openUserModal = true"
-                    class="bg-[#703A3A] hover:bg-[#561D1E] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    class="bg-[#1F2B45] hover:bg-[#16203A] text-white px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center gap-2">
                 <span class="material-symbols-outlined text-[18px]">person_add</span>
                 <span>Tambah Staf Internal</span>
             </button>
@@ -21,11 +21,11 @@
     <!-- Navigation Tabs -->
     <div class="border-b border-gray-200">
         <nav class="flex space-x-6 text-xs font-bold uppercase tracking-wider">
-            <button @click="tab = 'users'" :class="tab === 'users' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'users'" :class="tab === 'users' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Staf Internal ({{ $internalUsers->total() }})
             </button>
-            <button @click="tab = 'roles'" :class="tab === 'roles' ? 'border-[#703A3A] text-[#703A3A]' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            <button @click="tab = 'roles'" :class="tab === 'roles' ? 'border-[#1F2B45] text-[#1F2B45]' : 'border-transparent text-gray-500 hover:text-gray-700'"
                     class="py-3 px-1 border-b-2 transition-all">
                 Daftar Peran & Hak Akses ({{ $roles->count() }})
             </button>
@@ -58,7 +58,7 @@
                         </td>
                         <td class="py-3">
                             @foreach($usr->roles as $r)
-                                <span class="px-2.5 py-0.5 rounded-full bg-stone-100 text-[#703A3A] font-bold text-[10px] uppercase">
+                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-[#1F2B45] font-bold text-[10px] uppercase">
                                     {{ $r->name }}
                                 </span>
                             @endforeach
@@ -103,7 +103,7 @@
             <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-xs space-y-4">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                     <div>
-                        <h3 class="text-base font-bold text-[#1E1B1B] uppercase">{{ $role->name }}</h3>
+                        <h3 class="text-base font-bold text-[#111827] uppercase">{{ $role->name }}</h3>
                         <p class="text-xs text-gray-400">{{ $role->permissions->count() }} izin akses aktif</p>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                 <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
                     <div class="flex flex-wrap gap-1.5">
                         @foreach($role->permissions as $perm)
-                            <span class="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 text-[10px] font-mono">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono">
                                 {{ $perm->name }}
                             </span>
                         @endforeach
@@ -132,26 +132,26 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nama Lengkap *</label>
                     <input type="text" name="name" required placeholder="Nama staf..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Alamat Email *</label>
                     <input type="email" name="email" required placeholder="email@destinara.id..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Nomor WhatsApp</label>
                     <input type="text" name="phone" placeholder="62812..."
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Kata Sandi Awal *</label>
                     <input type="password" name="password" required minlength="10" placeholder="Min. 10 karakter, huruf besar, huruf kecil, angka"
-                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                           class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Peran / Role *</label>
-                    <select name="role" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#703A3A] focus:ring-[#703A3A]">
+                    <select name="role" required class="w-full text-xs rounded-xl border-gray-200 focus:border-[#1F2B45] focus:ring-[#1F2B45]">
                         @foreach($roles as $r)
                             <option value="{{ $r->name }}">{{ strtoupper($r->name) }}</option>
                         @endforeach
@@ -162,7 +162,7 @@
                     <button type="button" @click="openUserModal = false" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#703A3A] text-white rounded-xl hover:bg-[#561D1E]">
+                    <button type="submit" class="px-5 py-2 text-xs font-bold uppercase bg-[#1F2B45] text-white rounded-2xl hover:bg-[#16203A]">
                         Simpan Staf
                     </button>
                 </div>

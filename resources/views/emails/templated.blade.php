@@ -23,7 +23,7 @@
             border: 1px solid #E2E8F0;
         }
         .header {
-            background-color: #8C5151;
+            background-color: #2E3D5C;
             padding: 24px;
             text-align: center;
         }
@@ -35,7 +35,7 @@
             letter-spacing: 1px;
         }
         .header p {
-            color: #FED7D7;
+            color: #DCE4EF;
             font-size: 13px;
             margin: 4px 0 0 0;
         }
@@ -49,7 +49,7 @@
         }
         .btn {
             display: inline-block;
-            background-color: #8C5151;
+            background-color: #2E3D5C;
             color: #FFFFFF !important;
             padding: 12px 24px;
             border-radius: 6px;
